@@ -1,0 +1,21 @@
+node_modules/
+dist/
+.astro/
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+.DS_Store
+.env
+.env.*
+
+# Planning material stays local: it holds unconfirmed figures and internal notes
+research/
+plan/
+.claude-protocol/
+.claude/
+
+# HyperFrames render output and caches (rendered reels are copied to public/reels/)
+media/**/renders/
+media/**/.hyperframes/
+media/**/.thumbnails/
