@@ -1,0 +1,77 @@
+name: Deploy
+
+# Publishes to GitHub Pages after CI passes on main. It stays off until launch: set the repository
+# variable DEPLOY_ENABLED to "true" (docs/launch-checklist.md §3). The build refuses any figure
+# Bhoomi hasn't confirmed, so nothing unverified can go live. Roll back by reverting on main.
+# Task 1.1.2 replaces this with Cloudflare Workers (preview per PR, production on main).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: 'npm' }
+      - run: npm ci
+
+      - name: Read her domain from public/CNAME
+        id: domain
+        run: |
+          if [ ! -s public/CNAME ]; then
+            echo "::error::public/CNAME is missing. Add her domain first (docs/launch-checklist.md §3)."
+            exit 1
+          fi
+          echo "domain=$(tr -d '[:space:]' < public/CNAME)" >> "$GITHUB_OUTPUT"
+
+      - name: Build, refusing unconfirmed figures
+        run: npm run build
+        env:
+          REQUIRE_VERIFIED: '1'
+          SITE_URL: https://${{ steps.domain.outputs.domain }}
+
+      - name: Brand guard on the built site
+        run: npx vitest run tests/brand-guard.test.ts
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with: { path: dist }
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+      - name: Smoke-test the live site
+        env:
+          BASE: https://${{ steps.domain.outputs.domain }}
+        run: |
+          for path in / /reels/ /p/smartblog-ai/ /stories/projects/ /sitemap.xml /og/default.png; do
+            code=000
+            for attempt in 1 2 3 4 5 6; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE$path") || true
+              [ "$code" = 200 ] && break
+              sleep 10
+            done
+            echo "$path -> $code"
+            [ "$code" = 200 ] || { echo "::error::$BASE$path returned $code"; exit 1; }
+          done

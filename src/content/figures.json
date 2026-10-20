@@ -1,0 +1,86 @@
+{
+  "projects": {
+    "value": "3",
+    "label": "projects",
+    "source": "Resume 2026, Projects: SmartBlog AI, Conversational AI Web App, AI Resume Shortlisting Tool",
+    "verified": true
+  },
+  "cybercup": {
+    "value": "1st",
+    "label": "of 160 teams",
+    "source": "Resume 2026: Winner, CyberCup 4.0 National-Level Hackathon, 1st place out of 160 competing teams",
+    "verified": true
+  },
+  "certifications": {
+    "value": "5",
+    "label": "certifications",
+    "source": "Resume 2026: AWS Cloud Practitioner Essentials, Microsoft Azure AI Fundamentals (AI-900), Microsoft Azure Fundamentals (AZ-900), Introduction to Cybersecurity (Cisco), Elements of AI (Univ. of Helsinki)",
+    "verified": true
+  },
+  "network-calls": {
+    "value": "~45%",
+    "label": "fewer redundant network calls",
+    "source": "Resume 2026, SmartBlog AI: client-side caching with React Query, cutting redundant network calls by ~45%",
+    "verified": true
+  },
+  "latency": {
+    "value": "40%",
+    "label": "lower end-to-end latency",
+    "source": "Resume 2026, Conversational AI Web App: deployed to AWS EC2, slashing end-to-end latency by 40%",
+    "verified": true
+  },
+  "test-sessions": {
+    "value": "500+",
+    "label": "test sessions without UI regressions",
+    "source": "Resume 2026, Conversational AI Web App: supporting 500+ test sessions without UI regressions",
+    "verified": true
+  },
+  "response-time": {
+    "value": "<1.5s",
+    "label": "perceived response time",
+    "source": "Resume 2026, AI Resume Shortlisting Tool: surfacing skill-gap insights with sub-1.5s perceived response time",
+    "verified": true
+  },
+  "interaction-time": {
+    "value": "35%",
+    "label": "longer average interaction time",
+    "source": "Resume 2026, TheMobiAdz: lifting average user interaction time by 35% in 8 weeks",
+    "verified": true
+  },
+  "modules": {
+    "value": "12+",
+    "label": "responsive web interface modules",
+    "source": "Resume 2026, TheMobiAdz: engineered 12+ responsive, cross-platform web interface modules",
+    "verified": true
+  },
+  "lighthouse": {
+    "value": "+18",
+    "label": "Lighthouse mobile points",
+    "source": "Resume 2026, TheMobiAdz: improving Lighthouse mobile scores by 18 points across 3 high-traffic breakpoints",
+    "verified": true
+  },
+  "engagement": {
+    "value": "30%",
+    "label": "more engagement",
+    "source": "Resume 2026, Wearduds: amplifying engagement by 30% and reach by 20% across owned channels in 12 weeks",
+    "verified": true
+  },
+  "assets": {
+    "value": "25+",
+    "label": "web-ready multimedia assets",
+    "source": "Resume 2026, Wearduds: produced 25+ web-ready multimedia assets",
+    "verified": true
+  },
+  "dashboards": {
+    "value": "4",
+    "label": "automated reporting dashboards",
+    "source": "Resume 2026, Gatsby Club: automated 4 reporting dashboards in Google Data Studio with Excel macros",
+    "verified": true
+  },
+  "hours-saved": {
+    "value": "3 hrs/week",
+    "label": "of manual effort removed",
+    "source": "Resume 2026, Gatsby Club: eliminating 3 hrs/week of manual effort",
+    "verified": true
+  }
+}

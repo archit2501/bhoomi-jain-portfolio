@@ -1,0 +1,20 @@
+{
+  "cybercup": {
+    "title": "1st of 160 teams",
+    "order": 1,
+    "figure": "cybercup",
+    "description": "CyberCup 4.0 National-Level Hackathon: Bhoomi led a team to 1st place out of 160 competing teams with a working prototype built in 36 hours."
+  },
+  "latency": {
+    "title": "40% lower latency",
+    "order": 2,
+    "figure": "latency",
+    "description": "Conversational AI Web App: a React client on a FastAPI backend, deployed to AWS EC2, with end-to-end latency cut by 40% through request batching, lazy loading and asset compression."
+  },
+  "network-calls": {
+    "title": "~45% fewer network calls",
+    "order": 3,
+    "figure": "network-calls",
+    "description": "SmartBlog AI: client-side caching with React Query cut redundant network calls by about 45%."
+  }
+}

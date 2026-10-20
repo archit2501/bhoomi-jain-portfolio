@@ -1,0 +1,104 @@
+---
+import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const { highlights } = await loadSiteContent();
+  return highlights.map((highlight) => ({ params: { id: highlight.id }, props: { highlight } }));
+}
+
+const { highlight } = Astro.props;
+const { label, frames } = highlight.data;
+---
+
+<BaseLayout title={`${label} highlights`} current="home">
+  <article class="story-page">
+    <a class="back" href="/">
+      <ChevronLeft size={20} aria-hidden="true" />
+      <span>Back to profile</span>
+    </a>
+    <h1>{label}</h1>
+    <ol role="list">
+      {frames.map((frame, i) => (
+        <li class={`frame tone-${(i % 3) + 1}`}>
+          {frame.type === 'image' ? (
+            <figure>
+              <img src={frame.src} alt={frame.alt} />
+              {frame.caption && <figcaption>{frame.caption}</figcaption>}
+            </figure>
+          ) : (
+            <>
+              {frame.heading && <h2>{frame.heading}</h2>}
+              <p>{frame.body}</p>
+            </>
+          )}
+        </li>
+      ))}
+    </ol>
+  </article>
+</BaseLayout>
+
+<style>
+  .story-page {
+    max-width: 470px;
+    margin: 0 auto;
+    padding: var(--space-4);
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  h1 {
+    margin: var(--space-4) 0;
+    font-size: var(--fs-20);
+    line-height: var(--lh-20);
+  }
+
+  ol {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .frame {
+    padding: var(--space-6) var(--space-5);
+    color: var(--on-story);
+    border-radius: var(--radius-card);
+  }
+
+  .tone-1 {
+    background: linear-gradient(160deg, var(--story-start), var(--story-end));
+  }
+
+  .tone-2 {
+    background: linear-gradient(160deg, var(--tile-slate), var(--story-end));
+  }
+
+  .tone-3 {
+    background: var(--accent);
+  }
+
+  h2 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-24);
+    line-height: var(--lh-24);
+  }
+
+  p,
+  figure {
+    margin: 0;
+  }
+
+  figure img {
+    width: 100%;
+    border-radius: var(--radius-button);
+  }
+</style>

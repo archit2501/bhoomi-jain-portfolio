@@ -1,0 +1,26 @@
+{
+  "label": "Projects",
+  "order": 1,
+  "cover": {
+    "type": "text",
+    "text": "</>"
+  },
+  "figures": ["network-calls", "latency", "response-time"],
+  "frames": [
+    {
+      "type": "text",
+      "heading": "SmartBlog AI",
+      "body": "A full-stack AI blogging platform: React, Node.js/Express, MongoDB and JWT auth. React Query caching cut redundant network calls by ~45%."
+    },
+    {
+      "type": "text",
+      "heading": "Conversational AI Web App",
+      "body": "Real-time chat in React on a FastAPI backend, deployed to AWS EC2 with 40% lower end-to-end latency."
+    },
+    {
+      "type": "text",
+      "heading": "AI Resume Shortlisting Tool",
+      "body": "A recruiter-facing web UI with drag-and-drop upload and skill-gap insights at <1.5s perceived response time."
+    }
+  ]
+}

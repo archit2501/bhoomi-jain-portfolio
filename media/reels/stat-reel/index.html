@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en" data-composition-variables='[
+{"id":"contextLabel","type":"string","label":"Context label","default":"F1Jobs.io \u00b7 Sales & Operations","maxLength":40},
+{"id":"statPrefix","type":"string","label":"Stat prefix","default":"$","maxLength":2},
+{"id":"statValue","type":"number","label":"Stat value (counts up from 0)","default":100,"min":0,"max":9999,"step":1},
+{"id":"statSuffix","type":"string","label":"Stat suffix","default":"K+","maxLength":3},
+{"id":"statLabel","type":"string","label":"Stat label","default":"in revenue","maxLength":32},
+{"id":"detailLine","type":"string","label":"Detail line","default":"from 7+ sales","maxLength":44},
+{"id":"timeLine","type":"string","label":"Time line","default":"since May 2026","maxLength":24},
+{"id":"signoffLine","type":"string","label":"Sign-off line","default":"Bhoomi Jain \u00b7 Full Stack Developer","maxLength":44}
+]'>
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      reel-stat: 1080x1920, 15 s, 30 fps stat reel (motion-graphics / stat).
+
+      One paused root timeline (window.__timelines["reel-stat"]). Registry sources
+      in compositions/components/ are ported inline, not mounted, so the piece keeps
+      exactly one timeline:
+        - count-up         -> prefix / value / suffix lockup, tabular numerals,
+                              affix optical lift, en-US grouping, deterministic
+                              per-frame integer rows written with tl.set
+        - svg-stroke-trace -> measured getTotalLength() dash draw, extended to the
+                              wordmark's 9 stroke elements (7 letter groups) plus
+                              2 dot pops; hold drift, closed-path fill and glow off
+      Hand-authored: the pinned brand ring (always closes to 100%, not a gauge) and
+      the text-line entrances / exits.
+
+      Text comes from composition variables (reel-1 values are the defaults).
+      Override per render:
+        npx hyperframes render . --strict-variables --variables-file variables/reel-2.json -o renders/reel-2.mp4
+    -->
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Revenue stat reel</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --teal-deep: #0b5e7a;
+        --ink: #0c1014;
+        --accent: #0b7a75;
+        --ring-a: #0e9f94;
+        --ring-b: #0b5e7a;
+        --text-1: #ffffff;
+        --text-2: rgb(255 255 255 / 0.88);
+        --text-3: rgb(255 255 255 / 0.78);
+        --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+          sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--ink);
+      }
+
+      #stage {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        color: var(--text-1);
+        font-family: var(--font);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #scene {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      /* z0: flat brand gradient on a full-bleed child, never on the root */
+      #bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom right, var(--teal-deep), var(--ink));
+      }
+
+      /* z1: one static soft glow centred on the ring (540, 796) */
+      #glow {
+        position: absolute;
+        left: 40px;
+        top: 296px;
+        width: 1000px;
+        height: 1000px;
+        border-radius: 50%;
+        background: radial-gradient(
+          closest-side,
+          color-mix(in srgb, var(--accent) 22%, transparent),
+          color-mix(in srgb, var(--accent) 0%, transparent)
+        );
+      }
+
+      /* z2/z3: content column, laid out with padding + flex, no offsets */
+      #content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 296px 96px 0;
+      }
+
+      #eyebrow {
+        font-size: 34px;
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: 0.02em;
+        color: var(--text-3);
+        white-space: nowrap;
+      }
+
+      #ring-box {
+        position: relative;
+        flex: none;
+        width: 840px;
+        height: 840px;
+        margin-top: 36px;
+        display: grid;
+        place-items: center;
+        transform-origin: 50% 50%;
+      }
+
+      #ring-svg {
+        position: absolute;
+        inset: 0;
+        width: 840px;
+        height: 840px;
+        overflow: visible;
+      }
+
+      #ring-arc {
+        fill: none;
+        stroke: url(#ringGrad);
+        stroke-width: 14;
+        stroke-linecap: round;
+      }
+
+      .ring-stop-a {
+        stop-color: var(--ring-a);
+      }
+
+      .ring-stop-b {
+        stop-color: var(--ring-b);
+      }
+
+      .lockup {
+        grid-area: 1 / 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        transform-origin: 50% 50%;
+      }
+
+      /* count-up figure: weight 800, tabular numerals, fixed affixes */
+      .figure {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        font-size: 200px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum" 1;
+        white-space: nowrap;
+        color: var(--text-1);
+      }
+
+      #count-figure {
+        transform-origin: 50% 58%;
+      }
+
+      .affix {
+        position: relative;
+        flex: 0 0 auto;
+        font-size: 0.55em;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text-1);
+      }
+
+      .prefix {
+        margin-right: 0.14em;
+      }
+
+      .suffix {
+        margin-left: 0.14em;
+      }
+
+      .affix:empty {
+        display: none;
+      }
+
+      .value {
+        display: inline-block;
+        min-width: 1ch;
+      }
+
+      .label {
+        max-width: 660px;
+        font-size: 58px;
+        font-weight: 600;
+        line-height: 1.15;
+        text-align: center;
+        text-wrap: balance;
+        color: var(--text-1);
+      }
+
+      #wordmark {
+        grid-area: 1 / 1;
+        width: 560px;
+        color: var(--text-1);
+      }
+
+      #wordmark-svg {
+        display: block;
+        width: 560px;
+        height: auto;
+        overflow: visible;
+      }
+
+      #below-slot {
+        display: grid;
+        width: 100%;
+        margin-top: 44px;
+        justify-items: center;
+        align-items: start;
+      }
+
+      #detail-group {
+        grid-area: 1 / 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+      }
+
+      #detail {
+        max-width: 860px;
+        font-size: 46px;
+        font-weight: 500;
+        line-height: 1.2;
+        text-align: center;
+        text-wrap: balance;
+        color: var(--text-2);
+      }
+
+      #time-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px 34px;
+        border-radius: 999px;
+        background: var(--accent);
+        transform-origin: 50% 50%;
+      }
+
+      #time-text {
+        font-size: 32px;
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        color: var(--text-1);
+      }
+
+      #signoff-line {
+        grid-area: 1 / 1;
+        max-width: 888px;
+        font-size: 38px;
+        font-weight: 500;
+        line-height: 1.25;
+        text-align: center;
+        text-wrap: balance;
+        color: var(--text-2);
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-7m7m"
+      id="stage"
+      data-composition-id="reel-stat"
+      data-start="0"
+      data-duration="15"
+      data-fps="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div data-hf-id="hf-ln0u" id="scene" class="clip" data-start="0" data-duration="15" data-track-index="0">
+        <div data-hf-id="hf-2xc0" id="bg"></div>
+        <div data-hf-id="hf-27c6" id="glow"></div>
+
+        <div data-hf-id="hf-lb60" id="content">
+          <div data-hf-id="hf-i3qg" id="eyebrow" data-var-text="contextLabel">F1Jobs.io &middot; Sales &amp; Operations</div>
+
+          <div data-hf-id="hf-dakn" id="ring-box">
+            <svg data-hf-id="hf-ipz5" id="ring-svg" viewBox="0 0 840 840" aria-hidden="true">
+              <defs data-hf-id="hf-mh0t">
+                <!-- The circle is rotated -90deg (draw starts at 12 o'clock), so the
+                     gradient vector is counter-rotated here to read top-left -> bottom-right. -->
+                <linearGradient data-hf-id="hf-r8cj" id="ringGrad" x1="1" y1="0" x2="0" y2="1">
+                  <stop data-hf-id="hf-qmne" class="ring-stop-a" offset="0" />
+                  <stop data-hf-id="hf-ve7a" class="ring-stop-b" offset="1" />
+                </linearGradient>
+              </defs>
+              <circle data-hf-id="hf-hid8" id="ring-arc" cx="420" cy="420" r="413" transform="rotate(-90 420 420)" />
+            </svg>
+
+            <!-- Poster copy: the finished lockup, static until 1.0 s -->
+            <div data-hf-id="hf-3xks" id="cover-lockup" class="lockup">
+              <div data-hf-id="hf-dcd0" id="cover-figure" class="figure">
+                <span data-hf-id="hf-6vd3" id="cover-prefix" class="affix prefix"></span>
+                <span data-hf-id="hf-o1tf" id="cover-value" class="value"></span>
+                <span data-hf-id="hf-twvv" id="cover-suffix" class="affix suffix"></span>
+              </div>
+              <div data-hf-id="hf-geae" id="cover-label" class="label" data-var-text="statLabel">in revenue</div>
+            </div>
+
+            <!-- Counting copy (ported count-up) -->
+            <div data-hf-id="hf-wxxk" id="count-lockup" class="lockup">
+              <div data-hf-id="hf-3gfo" id="count-figure" class="figure">
+                <span data-hf-id="hf-uxan" id="count-prefix" class="affix prefix"></span>
+                <span data-hf-id="hf-08q3" id="count-value" class="value"></span>
+                <span data-hf-id="hf-pokz" id="count-suffix" class="affix suffix"></span>
+              </div>
+              <div data-hf-id="hf-v50y" id="count-label" class="label" data-var-text="statLabel">in revenue</div>
+            </div>
+
+            <!-- Sign-off wordmark (ported svg-stroke-trace, stroke-only) -->
+            <div data-hf-id="hf-64rm" id="wordmark">
+              <svg data-hf-id="hf-xvyz" id="wordmark-svg" viewBox="0 0 90 28" aria-hidden="true">
+                <g data-hf-id="hf-5y1i"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <g data-hf-id="hf-4mo7" id="wm-b" class="wm-group">
+                    <path data-hf-id="hf-8pr2" id="wm-b-stem" class="wm-stroke" d="M2 3v21" />
+                    <circle data-hf-id="hf-chem"
+                      id="wm-b-bowl"
+                      class="wm-stroke"
+                      cx="8"
+                      cy="18"
+                      r="6"
+                      transform="rotate(180 8 18)"
+                    />
+                  </g>
+                  <g data-hf-id="hf-338t" id="wm-h" class="wm-group">
+                    <path data-hf-id="hf-h5ad" id="wm-h-path" class="wm-stroke" d="M18 3v21M18 18a6 6 0 0 1 12 0v6" />
+                  </g>
+                  <g data-hf-id="hf-tr6k" id="wm-a" class="wm-group">
+                    <circle data-hf-id="hf-my6w" id="wm-a-bowl" class="wm-stroke" cx="40" cy="18" r="6" />
+                    <path data-hf-id="hf-i92z" id="wm-a-stem" class="wm-stroke" d="M46 12v12" />
+                  </g>
+                  <g data-hf-id="hf-ydgz" id="wm-v" class="wm-group">
+                    <path data-hf-id="hf-vvs3" id="wm-v-path" class="wm-stroke" d="M50 12l5.5 12L61 12" />
+                  </g>
+                  <g data-hf-id="hf-o1x9" id="wm-i1" class="wm-group">
+                    <path data-hf-id="hf-hagp" id="wm-i1-path" class="wm-stroke" d="M65 12v12" />
+                  </g>
+                  <g data-hf-id="hf-pt2j" id="wm-n" class="wm-group">
+                    <path data-hf-id="hf-occ7" id="wm-n-path" class="wm-stroke" d="M70 12v12M70 18a6 6 0 0 1 12 0v6" />
+                  </g>
+                  <g data-hf-id="hf-s01a" id="wm-i2" class="wm-group">
+                    <path data-hf-id="hf-loih" id="wm-i2-path" class="wm-stroke" d="M86 12v12" />
+                  </g>
+                </g>
+                <g data-hf-id="hf-g1zz" fill="currentColor">
+                  <circle data-hf-id="hf-q3x6" id="wm-dot-1" cx="65" cy="6.5" r="1.7" />
+                  <circle data-hf-id="hf-xmcm" id="wm-dot-2" cx="86" cy="6.5" r="1.7" />
+                </g>
+              </svg>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-h00d" id="below-slot">
+            <div data-hf-id="hf-pmag" id="detail-group">
+              <div data-hf-id="hf-j7ce" id="detail" data-var-text="detailLine">from 7+ sales</div>
+              <div data-hf-id="hf-uvax" id="time-chip">
+                <span data-hf-id="hf-agjc" id="time-text" data-var-text="timeLine">since May 2026</span>
+              </div>
+            </div>
+            <div data-hf-id="hf-tuvv" id="signoff-line" data-var-text="signoffLine">
+              Bhoomi Jain &middot; Full Stack Developer
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var FONT =
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+        var DEFAULTS = {
+          contextLabel: "F1Jobs.io \u00b7 Sales & Operations",
+          statPrefix: "$",
+          statValue: 100,
+          statSuffix: "K+",
+          statLabel: "in revenue",
+          detailLine: "from 7+ sales",
+          timeLine: "since May 2026",
+          signoffLine: "Bhoomi Jain \u00b7 Full Stack Developer",
+        };
+
+        // Variables are read once at init, never per tick.
+        var hf = window.__hyperframes || {};
+        var vars = hf.getVariables ? hf.getVariables() || {} : {};
+        function text(id) {
+          return vars[id] == null ? DEFAULTS[id] : String(vars[id]);
+        }
+        var statValue = Number(vars.statValue);
+        if (!Number.isFinite(statValue)) statValue = DEFAULTS.statValue;
+        var prefix = text("statPrefix");
+        var suffix = text("statSuffix");
+
+        function $(id) {
+          return document.getElementById(id);
+        }
+
+        // ---- text fit (computed once from the final strings) ----
+        function fitSingle(str, weight, base, min, maxWidth) {
+          if (hf.fitTextFontSize) {
+            var r = hf.fitTextFontSize(str, {
+              fontFamily: FONT,
+              fontWeight: weight,
+              maxWidth: maxWidth,
+              baseFontSize: base,
+              minFontSize: min,
+              step: 1,
+            });
+            if (r && Number.isFinite(r.fontSize)) return Math.max(min, Math.min(base, r.fontSize));
+          }
+          return base;
+        }
+
+        function fitLines(str, weight, base, min, maxWidth, maxLines, lineHeight) {
+          var p = hf.pretext;
+          if (!p || !p.prepare || !p.layout) return base;
+          for (var size = base; size >= min; size -= 1) {
+            var prepared = p.prepare(str, weight + " " + size + "px " + FONT);
+            if (p.layout(prepared, maxWidth, size * lineHeight).lineCount <= maxLines) return size;
+          }
+          return min;
+        }
+
+        // ---- count-up port: formatting + affix optical lift ----
+        function formatValue(v) {
+          return Math.round(v).toLocaleString("en-US");
+        }
+
+        function affixLift(str) {
+          if (/^[$\u20ac\u00a3\u00a5\u20b9\u20a9]$/.test(str)) return "-0.31em";
+          if (/^[+\u2212\u00b1\u00d7=~<>-]+$/.test(str)) return "-0.36em";
+          return "";
+        }
+
+        var finalText = formatValue(statValue);
+        var figureSize = Math.max(
+          120,
+          Math.min(250, fitSingle(prefix + finalText + suffix, 800, 250, 120, 700)),
+        );
+
+        ["cover", "count"].forEach(function (key) {
+          var pre = $(key + "-prefix");
+          var suf = $(key + "-suffix");
+          pre.textContent = prefix;
+          suf.textContent = suffix;
+          pre.style.top = affixLift(prefix);
+          suf.style.top = affixLift(suffix);
+          $(key + "-figure").style.fontSize = figureSize + "px";
+        });
+        $("cover-value").textContent = finalText;
+
+        var labelSize = fitLines(text("statLabel"), 600, 58, 44, 660, 2, 1.15) + "px";
+        $("cover-label").style.fontSize = labelSize;
+        $("count-label").style.fontSize = labelSize;
+        $("eyebrow").style.fontSize = fitSingle(text("contextLabel"), 600, 34, 26, 850) + "px";
+        $("detail").style.fontSize = fitLines(text("detailLine"), 500, 46, 38, 860, 2, 1.2) + "px";
+        $("time-text").style.fontSize = fitSingle(text("timeLine"), 600, 32, 24, 780) + "px";
+        $("signoff-line").style.fontSize =
+          fitLines(text("signoffLine"), 500, 38, 30, 888, 2, 1.25) + "px";
+
+        // Fixed-width counter box sized from the final string, so the scale
+        // origin never shifts while the digit count changes.
+        var countFigure = $("count-figure");
+        countFigure.style.width = Math.ceil($("cover-figure").getBoundingClientRect().width) + "px";
+
+        // ---- measured lengths (ring + wordmark strokes) ----
+        var ring = $("ring-arc");
+        var RING_LEN = ring.getTotalLength();
+        ring.style.strokeDasharray = RING_LEN + " " + (RING_LEN + 2);
+        ring.style.strokeDashoffset = "0";
+
+        var GROUP_IDS = ["wm-b", "wm-h", "wm-a", "wm-v", "wm-i1", "wm-n", "wm-i2"];
+        var groups = GROUP_IDS.map(function (id) {
+          var g = $(id);
+          var strokes = Array.prototype.slice.call(g.querySelectorAll(".wm-stroke"));
+          strokes.forEach(function (el) {
+            var len = el.getTotalLength();
+            el.style.strokeDasharray = len + " " + len;
+            el.style.strokeDashoffset = String(len);
+            el.__len = len;
+          });
+          return { el: g, strokes: strokes };
+        });
+
+        // ---- count-up port: deterministic integer per frame ----
+        var COUNT_START = 1.35;
+        var COUNT_DUR = 2.1;
+        var COUNT_EASE = "power3.out";
+        var FPS = 30;
+        var lastFrame = Math.max(1, Math.round(COUNT_DUR * FPS));
+        var countEase = gsap.parseEase(COUNT_EASE);
+        var frameRows = [];
+        for (var f = 0; f <= lastFrame; f += 1) {
+          frameRows.push(formatValue(statValue * countEase(f / lastFrame)));
+        }
+        var countValue = $("count-value");
+        countValue.textContent = frameRows[0];
+
+        // ---- the one paused root timeline ----
+        var tl = gsap.timeline({ paused: true });
+
+        // 0.00-1.00 poster: fully composed and static (ring closed, cover lockup).
+
+        // 1.00-1.35 reset: cover sinks out, ring unwinds to 12 o'clock.
+        tl.fromTo(
+          "#cover-lockup",
+          { autoAlpha: 1, scale: 1, y: 0 },
+          { autoAlpha: 0, scale: 0.92, y: 12, duration: 0.3, ease: "power2.in" },
+          1.0,
+        );
+        tl.set("#cover-lockup", { opacity: 0, visibility: "hidden" }, 1.3);
+        tl.fromTo(
+          ring,
+          { strokeDashoffset: 0 },
+          { strokeDashoffset: RING_LEN, duration: 0.35, ease: "power3.in" },
+          1.0,
+        );
+
+        // 1.35-3.45 count-up; ring redraws in the same ease and closes on the landing frame.
+        tl.fromTo(
+          "#count-lockup",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.25, ease: "power1.out" },
+          COUNT_START,
+        );
+        frameRows.forEach(function (row, i) {
+          tl.set(countValue, { textContent: row }, COUNT_START + COUNT_DUR * (i / lastFrame));
+        });
+        tl.fromTo(
+          countFigure,
+          { scale: 0.62 },
+          { scale: 1, duration: COUNT_DUR, ease: COUNT_EASE },
+          COUNT_START,
+        );
+        tl.fromTo(
+          ring,
+          { strokeDashoffset: RING_LEN },
+          { strokeDashoffset: 0, duration: COUNT_DUR, ease: COUNT_EASE, immediateRender: false },
+          COUNT_START,
+        );
+
+        // 3.45 one restrained landing pulse on the ring box.
+        tl.fromTo(
+          "#ring-box",
+          { scale: 1 },
+          {
+            scale: 1.03,
+            duration: 0.16,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: 1,
+            immediateRender: false,
+          },
+          3.45,
+        );
+
+        // 3.55 label rises (value -> meaning).
+        tl.fromTo(
+          "#count-label",
+          { autoAlpha: 0, y: 24 },
+          { autoAlpha: 1, y: 0, duration: 0.6, ease: "power2.out" },
+          3.55,
+        );
+
+        // 4.90 detail slides in from the left.
+        tl.fromTo(
+          "#detail",
+          { autoAlpha: 0, x: -56 },
+          { autoAlpha: 1, x: 0, duration: 0.7, ease: "expo.out" },
+          4.9,
+        );
+
+        // 6.40 time chip pops open from its centre, text follows.
+        tl.fromTo(
+          "#time-chip",
+          { autoAlpha: 0, scaleX: 0.3 },
+          { autoAlpha: 1, scaleX: 1, duration: 0.5, ease: "back.out(1.6)" },
+          6.4,
+        );
+        tl.fromTo(
+          "#time-text",
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.3, ease: "power1.out" },
+          6.6,
+        );
+
+        // 6.90-10.30 breathe: hold_breath on the stat lockup only.
+        tl.fromTo(
+          "#count-lockup",
+          { scale: 1 },
+          { scale: 1.025, duration: 3.4, ease: "sine.inOut", immediateRender: false },
+          6.9,
+        );
+
+        // 10.30-10.75 handoff: the lockup clears fast, the ring stays pinned.
+        tl.fromTo(
+          "#time-chip",
+          { autoAlpha: 1, y: 0 },
+          { autoAlpha: 0, y: 20, duration: 0.28, ease: "power2.in", immediateRender: false },
+          10.3,
+        );
+        tl.fromTo(
+          "#detail",
+          { autoAlpha: 1, y: 0 },
+          { autoAlpha: 0, y: 20, duration: 0.28, ease: "power2.in", immediateRender: false },
+          10.35,
+        );
+        tl.fromTo(
+          "#count-lockup",
+          { autoAlpha: 1, scale: 1.025 },
+          { autoAlpha: 0, scale: 1.07, duration: 0.35, ease: "power3.in", immediateRender: false },
+          10.35,
+        );
+        tl.fromTo(
+          "#eyebrow",
+          { autoAlpha: 1 },
+          { autoAlpha: 0, duration: 0.3, ease: "power1.in", immediateRender: false },
+          10.4,
+        );
+        tl.set(
+          ["#time-chip", "#detail", "#count-lockup", "#eyebrow"],
+          { opacity: 0, visibility: "hidden" },
+          10.75,
+        );
+
+        // 10.75-11.85 wordmark draws letter by letter (ported svg-stroke-trace).
+        var WM_START = 10.75;
+        var WM_STEP = 0.1;
+        var WM_DRAW = 0.5;
+        groups.forEach(function (group, i) {
+          var at = WM_START + i * WM_STEP;
+          // Gate each group so round caps never show a dot before its draw.
+          tl.fromTo(
+            group.el,
+            { autoAlpha: 0 },
+            { autoAlpha: 1, duration: 0.04, ease: "none" },
+            at,
+          );
+          group.strokes.forEach(function (el) {
+            tl.fromTo(
+              el,
+              { strokeDashoffset: el.__len },
+              { strokeDashoffset: 0, duration: WM_DRAW, ease: "power2.out" },
+              at,
+            );
+          });
+        });
+
+        // 11.70-12.20 i-dots pop last, sign-off line fades up.
+        tl.fromTo(
+          "#wm-dot-1",
+          { autoAlpha: 0, scale: 0, transformOrigin: "50% 50%" },
+          { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" },
+          11.7,
+        );
+        tl.fromTo(
+          "#wm-dot-2",
+          { autoAlpha: 0, scale: 0, transformOrigin: "50% 50%" },
+          { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" },
+          11.8,
+        );
+        tl.fromTo(
+          "#signoff-line",
+          { autoAlpha: 0, y: 16 },
+          { autoAlpha: 1, y: 0, duration: 0.5, ease: "power1.out" },
+          11.7,
+        );
+
+        // 12.20-15.00 static sign-off hold: no tweens.
+
+        window.__timelines["reel-stat"] = tl;
+        tl.seek(0);
+      })();
+    </script>
+  </body>
+</html>

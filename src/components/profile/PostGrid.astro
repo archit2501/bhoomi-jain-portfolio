@@ -1,0 +1,33 @@
+---
+import type { Post } from '../../lib/content-schema';
+import PostTile from './PostTile.astro';
+
+interface Props {
+  posts: { id: string; data: Post }[];
+}
+
+const { posts } = Astro.props;
+---
+
+<ul class="grid" role="list">
+  {posts.map((post, i) => (
+    <PostTile post={post} eager={i < 3} />
+  ))}
+</ul>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 768px) {
+    .grid {
+      gap: 4px;
+    }
+  }
+</style>

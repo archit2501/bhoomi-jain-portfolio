@@ -1,0 +1,230 @@
+---
+import Link from '@lucide/astro/icons/link';
+import type { Figure, Highlight, Profile } from '../../lib/content-schema';
+import Avatar from '../Avatar.astro';
+import ActionButtons from './ActionButtons.astro';
+import StatsRow from './StatsRow.astro';
+
+interface Props {
+  profile: Profile;
+  figures: Record<string, Figure>;
+  /** The story behind the avatar ring; without one the ring is decoration only. */
+  intro?: { id: string; data: Highlight };
+}
+
+const { profile, figures, intro } = Astro.props;
+const AvatarWrap = intro ? 'a' : 'span';
+const introCount = intro?.data.frames.length ?? 0;
+const stats = profile.stats.map((id) => figures[id]);
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
+const linkLabel = profile.links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
+---
+
+<header class="profile">
+  <div class="avatar-cell">
+    <AvatarWrap
+      class="avatar-link"
+      href={intro && `/stories/${intro.id}/`}
+      data-story={intro?.id}
+      aria-label={
+        intro &&
+        `View ${profile.displayName}'s intro story, ${introCount} ${introCount === 1 ? 'story' : 'stories'}`
+      }
+    >
+      <Avatar
+        class="avatar-wide"
+        size={150}
+        ring="story"
+        src={profile.avatar.src}
+        alt={profile.avatar.alt}
+        initials={initials}
+      />
+      <Avatar
+        class="avatar-narrow"
+        size={86}
+        ring="story"
+        src={profile.avatar.src}
+        alt={profile.avatar.alt}
+        initials={initials}
+      />
+    </AvatarWrap>
+  </div>
+  <h1 class="full-name">{profile.displayName}</h1>
+  <p class="username">{profile.username}</p>
+  <StatsRow stats={stats} />
+  <div class="about">
+    <p class="category">{profile.category}</p>
+    <p class="bio">{profile.bio}</p>
+    <a class="bio-link" href={profile.links.linkedin} target="_blank" rel="noopener noreferrer">
+      <Link size={12} stroke-width={2.5} aria-hidden="true" />
+      <span>{linkLabel}</span>
+    </a>
+  </div>
+  <ActionButtons links={profile.links} />
+</header>
+
+<script>
+  // Like Instagram, the ring turns grey once the intro has been seen (remembered per browser).
+  const KEY = 'bhoomi:seen:intro';
+  const markSeen = () =>
+    document.querySelectorAll('.avatar-link .avatar').forEach((a) => a.classList.add('seen'));
+  try {
+    if (localStorage.getItem(KEY)) markSeen();
+  } catch {
+    // Storage can be blocked; the ring just stays in its unseen colour.
+  }
+  document.querySelector('a.avatar-link')?.addEventListener('click', () => {
+    try {
+      localStorage.setItem(KEY, '1');
+    } catch {
+      // See above.
+    }
+    markSeen();
+  });
+</script>
+
+<style>
+  .avatar-link {
+    display: inline-flex;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 50%;
+  }
+
+  .profile {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-areas:
+      'avatar name'
+      'avatar stats'
+      'about about'
+      'actions actions';
+    align-items: center;
+    gap: var(--space-2) 28px;
+    max-width: 935px;
+    margin: 0 auto;
+    padding: var(--space-4);
+  }
+
+  .avatar-cell {
+    grid-area: avatar;
+  }
+
+  .full-name {
+    grid-area: name;
+    align-self: end;
+    margin: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    font-weight: var(--weight-semibold);
+  }
+
+  .username {
+    display: none;
+    grid-area: username;
+    margin: 0;
+    font-size: var(--fs-20);
+    line-height: var(--lh-20);
+    font-weight: var(--weight-regular);
+  }
+
+  .profile :global(.stats) {
+    grid-area: stats;
+    align-self: start;
+  }
+
+  .about {
+    grid-area: about;
+    margin-top: var(--space-1);
+  }
+
+  .profile :global(.actions) {
+    grid-area: actions;
+    margin-top: var(--space-2);
+  }
+
+  .category,
+  .bio {
+    margin: 0;
+  }
+
+  .category {
+    color: var(--text-secondary);
+  }
+
+  .bio {
+    white-space: pre-line;
+  }
+
+  .bio-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-top: var(--space-1);
+    color: var(--accent-text);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .bio-link:hover span {
+    text-decoration: underline;
+  }
+
+  .profile :global(.avatar-wide) {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .profile {
+      grid-template-columns: minmax(0, 291px) auto minmax(0, 1fr);
+      grid-template-areas:
+        'avatar username actions'
+        'avatar stats stats'
+        'avatar name name'
+        'avatar about about';
+      align-items: start;
+      gap: 0;
+      padding: 30px 20px 0;
+      margin-bottom: var(--space-11);
+    }
+
+    .avatar-cell {
+      display: flex;
+      justify-content: center;
+      align-self: center;
+      margin-right: 30px;
+    }
+
+    .profile :global(.avatar-wide) {
+      display: inline-flex;
+    }
+
+    .profile :global(.avatar-narrow) {
+      display: none;
+    }
+
+    .username {
+      display: block;
+      align-self: center;
+      margin-right: var(--space-5);
+    }
+
+    .profile :global(.actions) {
+      align-self: center;
+      margin-top: 0;
+    }
+
+    .profile :global(.stats) {
+      margin: var(--space-5) 0;
+    }
+
+    .about {
+      margin-top: 0;
+    }
+  }
+</style>

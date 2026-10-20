@@ -1,0 +1,74 @@
+---
+interface Props {
+  headline: string;
+  detail?: string;
+  /** 1: teal canvas, 2: slate canvas, 3: solid accent. Grid tiles rotate through them. */
+  tone?: 1 | 2 | 3;
+}
+
+const { headline, detail, tone = 1 } = Astro.props;
+---
+
+<!-- A text post, Instagram "Create" style: type on a colour field, scaled to the tile. -->
+<div class:list={['type-tile', `tone-${tone}`]}>
+  <div class="content">
+    <p class="headline">{headline}</p>
+    {detail && <p class="detail">{detail}</p>}
+  </div>
+</div>
+
+<style>
+  .type-tile {
+    container-type: inline-size;
+    width: 100%;
+    height: 100%;
+    color: var(--on-story);
+  }
+
+  .tone-1 {
+    background: linear-gradient(160deg, var(--story-start), var(--story-end));
+  }
+
+  .tone-2 {
+    background: linear-gradient(160deg, var(--tile-slate), var(--story-end));
+  }
+
+  .tone-3 {
+    background: var(--accent);
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4cqi;
+    height: 100%;
+    padding: 9cqi;
+  }
+
+  .headline,
+  .detail {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .headline {
+    font-size: clamp(14px, 13cqi, 48px);
+    line-height: 1.1;
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.02em;
+  }
+
+  .detail {
+    font-size: clamp(11px, 5.5cqi, 20px);
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+
+  /* On the smallest phone tiles the detail line would be unreadable, so only the headline shows. */
+  @container (max-width: 150px) {
+    .detail {
+      display: none;
+    }
+  }
+</style>

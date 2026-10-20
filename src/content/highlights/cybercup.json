@@ -1,0 +1,21 @@
+{
+  "label": "CyberCup",
+  "order": 6,
+  "cover": {
+    "type": "text",
+    "text": "1st"
+  },
+  "figures": ["cybercup"],
+  "frames": [
+    {
+      "type": "text",
+      "heading": "1st of 160 teams",
+      "body": "Winner of CyberCup 4.0, a national-level hackathon."
+    },
+    {
+      "type": "text",
+      "heading": "36 hours",
+      "body": "I led the team that delivered a working prototype end to end inside the build window."
+    }
+  ]
+}

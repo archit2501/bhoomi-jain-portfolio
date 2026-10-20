@@ -1,0 +1,115 @@
+---
+import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import ChevronRight from '@lucide/astro/icons/chevron-right';
+import X from '@lucide/astro/icons/x';
+import type { Post, Profile } from '../../lib/content-schema';
+import { pageTitle } from '../../lib/site';
+import PostView from './PostView.astro';
+
+interface Props {
+  posts: { id: string; data: Post; body: string }[];
+  profile: Profile;
+}
+
+const { posts, profile } = Astro.props;
+---
+
+<dialog id="post-modal" class="post-modal">
+  <button class="post-close" type="button" aria-label="Close">
+    <X size={28} aria-hidden="true" />
+  </button>
+  <button class="post-prev" type="button" aria-label="Previous post">
+    <ChevronLeft size={20} aria-hidden="true" />
+  </button>
+  <div class="modal-body"></div>
+  <button class="post-next" type="button" aria-label="Next post">
+    <ChevronRight size={20} aria-hidden="true" />
+  </button>
+</dialog>
+
+{posts.map((post) => (
+  <template id={`post-template-${post.id}`} data-title={pageTitle(post.data.title)}>
+    <PostView post={post} profile={profile} variant="modal" />
+  </template>
+))}
+
+<script>
+  import { initPostModal } from '../../scripts/post-modal';
+
+  initPostModal();
+</script>
+
+<style>
+  .post-modal {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+
+  .post-modal[open] {
+    display: grid;
+    place-items: center;
+  }
+
+  /* ::backdrop doesn't reliably inherit custom properties, so the scrim colour is literal here. */
+  .post-modal::backdrop {
+    background: rgb(0 0 0 / 65%);
+  }
+
+  .modal-body {
+    max-width: calc(100vw - 128px);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .post-close,
+  .post-prev,
+  .post-next {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #ffffff;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .post-close {
+    top: var(--space-3);
+    right: var(--space-3);
+    width: 44px;
+    height: 44px;
+  }
+
+  .post-prev,
+  .post-next {
+    top: 50%;
+    width: 32px;
+    height: 32px;
+    color: #0c1014;
+    background: rgb(255 255 255 / 85%);
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+
+  .post-prev {
+    left: var(--space-6);
+  }
+
+  .post-next {
+    right: var(--space-6);
+  }
+
+  .post-close:focus-visible,
+  .post-prev:focus-visible,
+  .post-next:focus-visible {
+    outline-color: #ffffff;
+  }
+</style>

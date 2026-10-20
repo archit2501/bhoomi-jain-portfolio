@@ -1,0 +1,419 @@
+---
+import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import ChevronRight from '@lucide/astro/icons/chevron-right';
+import Heart from '@lucide/astro/icons/heart';
+import Link2 from '@lucide/astro/icons/link-2';
+import { Picture } from 'astro:assets';
+import type { Post, Profile } from '../../lib/content-schema';
+import { mediaImage } from '../../lib/media';
+import { postDate } from '../../lib/post-date';
+import { tileTone } from '../../lib/site';
+import Avatar from '../Avatar.astro';
+import TypeTile from './TypeTile.astro';
+
+interface Props {
+  post: { id: string; data: Post; body: string };
+  profile: Profile;
+  /** "page" for /p/<slug>/, "modal" inside the desktop pop-up. */
+  variant: 'page' | 'modal';
+}
+
+const { post, profile, variant } = Astro.props;
+const { id } = post;
+const { title, media, location, org, date, dateLabel, order, testimonials } = post.data;
+const when = postDate(date, dateLabel);
+const tone = tileTone(order);
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2);
+const initials = initialsOf(profile.displayName);
+const Heading = variant === 'page' ? 'h1' : 'h2';
+---
+
+<article class:list={['post-view', variant]} data-slug={id} aria-labelledby={`post-title-${id}`}>
+  <Heading id={`post-title-${id}`} class="visually-hidden">
+    {title}
+  </Heading>
+
+  <header class="head">
+    <Avatar size={32} src={profile.avatar.src} alt="" initials={initials} />
+    <div>
+      <p class="username">{profile.username}</p>
+      {location && <p class="place">{location}</p>}
+    </div>
+  </header>
+
+  <div class="media">
+    <div
+      class="track"
+      tabindex={media.length > 1 ? 0 : undefined}
+      aria-label={media.length > 1 ? `${media.length} slides` : undefined}
+    >
+      {media.map((item, i) => (
+        <div
+          class="slide"
+          role="group"
+          aria-roledescription="slide"
+          aria-label={`${i + 1} of ${media.length}`}
+        >
+          {item.type === 'image' ? (
+            <Picture
+              src={mediaImage(item.src)}
+              alt={item.alt}
+              formats={['avif', 'webp']}
+              widths={[480, 720, 1080]}
+              sizes="(min-width: 768px) 600px, 100vw"
+            />
+          ) : (
+            <TypeTile headline={item.headline} detail={item.detail} tone={tone} />
+          )}
+        </div>
+      ))}
+    </div>
+    {media.length > 1 && (
+      <>
+        <button class="slide-nav prev" type="button" aria-label="Previous slide" hidden>
+          <ChevronLeft size={18} aria-hidden="true" />
+        </button>
+        <button class="slide-nav next" type="button" aria-label="Next slide">
+          <ChevronRight size={18} aria-hidden="true" />
+        </button>
+        <div class="dots" aria-hidden="true">
+          {media.map((_, i) => (
+            <span class:list={{ on: i === 0 }} />
+          ))}
+        </div>
+        <p class="slide-status visually-hidden" aria-live="polite" />
+      </>
+    )}
+    <span class="burst" aria-hidden="true">
+      <Heart size={96} fill="currentColor" stroke-width={0} />
+    </span>
+  </div>
+
+  <div class="comments">
+    <div class="comment">
+      <Avatar size={32} src={profile.avatar.src} alt="" initials={initials} />
+      <div>
+        <p class="text">
+          <strong>{profile.username}</strong>
+          <span class="caption">{post.body.trim()}</span>
+        </p>
+        <p class="meta">{org}</p>
+      </div>
+    </div>
+    {testimonials.map((t) => (
+      <div class="comment">
+        <Avatar size={32} alt="" initials={initialsOf(t.name)} />
+        <div>
+          <p class="text">
+            <strong>{t.name}</strong>
+            <span class="caption">{t.quote}</span>
+          </p>
+          <p class="meta">{[t.role, t.source].filter(Boolean).join(' · ')}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <footer class="actions">
+    <div class="buttons">
+      <button class="like" type="button" aria-pressed="false" aria-label="Like">
+        <Heart size={24} aria-hidden="true" />
+      </button>
+      <button
+        class="share"
+        type="button"
+        aria-label="Copy link to this post"
+        data-href={`/p/${id}/`}
+      >
+        <Link2 size={24} aria-hidden="true" />
+      </button>
+    </div>
+    {when && (
+      <p class="date">
+        {when.datetime ? <time datetime={when.datetime}>{when.text}</time> : when.text}
+      </p>
+    )}
+    <p class="status visually-hidden" role="status"></p>
+  </footer>
+</article>
+
+<style>
+  .post-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'head'
+      'media'
+      'actions'
+      'comments';
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  .modal {
+    background: var(--bg-elevated);
+  }
+
+  .head {
+    grid-area: head;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 60px;
+    padding: 0 var(--space-4);
+  }
+
+  .head p,
+  .comment p,
+  .actions p {
+    margin: 0;
+  }
+
+  .username,
+  .text strong {
+    font-weight: var(--weight-semibold);
+  }
+
+  .place,
+  .meta,
+  .date {
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+  }
+
+  .media {
+    grid-area: media;
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--story-end);
+  }
+
+  .track {
+    display: flex;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .track:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .slide {
+    flex: 0 0 100%;
+    height: 100%;
+    scroll-snap-align: start;
+  }
+
+  .slide :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .slide-nav {
+    position: absolute;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    color: #0c1014;
+    background: rgb(255 255 255 / 85%);
+    border: 0;
+    border-radius: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+
+  .prev {
+    left: var(--space-3);
+  }
+
+  .next {
+    right: var(--space-3);
+  }
+
+  .dots {
+    position: absolute;
+    bottom: var(--space-4);
+    left: 50%;
+    display: flex;
+    gap: var(--space-1);
+    transform: translateX(-50%);
+  }
+
+  .dots span {
+    width: 6px;
+    height: 6px;
+    background: rgb(255 255 255 / 40%);
+    border-radius: 50%;
+  }
+
+  .dots span.on {
+    background: #ffffff;
+  }
+
+  .burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: #ffffff;
+    filter: drop-shadow(0 0 12px rgb(0 0 0 / 35%));
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+  }
+
+  .burst.play {
+    animation: burst 1s ease-in-out;
+  }
+
+  @keyframes burst {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0);
+    }
+    15% {
+      opacity: 0.9;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+    30% {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+    45%,
+    80% {
+      opacity: 0.9;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  .comments {
+    grid-area: comments;
+    display: grid;
+    align-content: start;
+    gap: var(--space-4);
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+
+  .comment {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .caption {
+    margin-left: var(--space-1);
+    white-space: pre-line;
+  }
+
+  .actions {
+    grid-area: actions;
+    padding: var(--space-1) var(--space-2) var(--space-2);
+  }
+
+  .buttons {
+    display: flex;
+  }
+
+  .like,
+  .share {
+    display: flex;
+    padding: var(--space-2);
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .like[aria-pressed='true'] {
+    color: var(--like);
+  }
+
+  .like[aria-pressed='true'] :global(svg) {
+    fill: currentColor;
+    animation: pop 0.45s ease-out;
+  }
+
+  @keyframes pop {
+    40% {
+      transform: scale(1.2);
+    }
+    70% {
+      transform: scale(0.95);
+    }
+  }
+
+  .date {
+    padding: 0 var(--space-2);
+  }
+
+  @media (min-width: 768px) {
+    .post-view {
+      grid-template-columns: auto minmax(335px, 500px);
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        'media head'
+        'media comments'
+        'media actions';
+    }
+
+    .head,
+    .comments,
+    .actions {
+      border-left: 1px solid var(--separator);
+    }
+
+    .head {
+      border-bottom: 1px solid var(--separator);
+    }
+
+    .comments {
+      overflow-y: auto;
+      padding-top: var(--space-4);
+    }
+
+    .actions {
+      border-top: 1px solid var(--separator);
+    }
+
+    .page {
+      max-width: 935px;
+      margin: 0 auto;
+      border: 1px solid var(--separator);
+    }
+
+    .page .media {
+      width: min(600px, 60vw);
+    }
+
+    /* 4:5 media as tall as the viewport allows, leaving room for the 335px details column. */
+    .modal {
+      --media-h: min(calc(100dvh - 48px), 900px, calc((100vw - 128px - 335px) * 1.25));
+    }
+
+    .modal .media {
+      width: calc(var(--media-h) * 0.8);
+      height: var(--media-h);
+      aspect-ratio: auto;
+    }
+  }
+</style>

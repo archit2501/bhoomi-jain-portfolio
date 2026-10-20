@@ -1,0 +1,16 @@
+---
+import Clapperboard from '@lucide/astro/icons/clapperboard';
+import House from '@lucide/astro/icons/house';
+import Send from '@lucide/astro/icons/send';
+import type { NavId } from './nav-items';
+
+interface Props {
+  name: NavId;
+  active?: boolean;
+}
+
+const { name, active = false } = Astro.props;
+const Icon = { home: House, reels: Clapperboard, messages: Send }[name];
+---
+
+<Icon size={24} stroke-width={active ? 2.75 : 2} aria-hidden="true" focusable="false" />
