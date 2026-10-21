@@ -1,0 +1,44 @@
+---
+import FeedCard from '../components/feed/FeedCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../lib/content';
+
+const { posts, profile } = await loadSiteContent();
+// Newest work first: unpinned order, as a dev log reads (task 4.1.3 adds the full feed).
+const feed = [...posts].sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="Home" current="home" image="/og/pages/feed.png">
+  <section class="feed" aria-labelledby="feed-title">
+    <h1 id="feed-title" class="visually-hidden">
+      Home
+    </h1>
+    {feed.map((post) => (
+      <FeedCard post={post} profile={profile} />
+    ))}
+    <p class="caught-up">You're all caught up.</p>
+  </section>
+</BaseLayout>
+
+<style>
+  .feed {
+    display: grid;
+    gap: var(--space-4);
+    max-width: 470px;
+    margin: 0 auto;
+    padding: 0 0 var(--space-8);
+  }
+
+  @media (min-width: 470px) {
+    .feed {
+      padding-top: var(--space-6);
+    }
+  }
+
+  .caught-up {
+    margin: 0;
+    padding: var(--space-6) var(--space-4);
+    color: var(--text-secondary);
+    text-align: center;
+  }
+</style>

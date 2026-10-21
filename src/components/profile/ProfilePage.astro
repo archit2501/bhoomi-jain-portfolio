@@ -21,7 +21,7 @@ const intro = highlights.find((h) => h.data.inRow === false);
 <!-- "/" and "/reels/" are the same profile with a different tab selected, as on Instagram. -->
 <BaseLayout
   title={tab === 'reels' ? 'Reels' : undefined}
-  current={tab === 'reels' ? 'reels' : 'home'}
+  current={tab === 'reels' ? 'reels' : 'profile'}
 >
   <ProfileHeader profile={profile} figures={figures} intro={intro} />
   <Highlights highlights={highlights.filter((h) => h.data.inRow !== false)} />

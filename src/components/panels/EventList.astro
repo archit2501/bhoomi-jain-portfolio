@@ -1,0 +1,116 @@
+---
+import type { Event } from '../../lib/content-schema';
+import { postDate } from '../../lib/post-date';
+import Icon from '../Icon.astro';
+import type { IconName } from '../icon-names';
+
+interface Props {
+  events: { id: string; data: Event }[];
+}
+
+const { events } = Astro.props;
+const ICON: Record<Event['kind'], IconName> = {
+  job: 'resume',
+  education: 'grid',
+  project: 'reels',
+  achievement: 'heart',
+  certification: 'pin',
+  site: 'home',
+};
+// Grouped by year, newest first (the content loader sorts events newest first).
+const years = [...new Set(events.map((e) => e.data.date.slice(0, 4)))];
+---
+
+{events.length === 0 ? (
+  <p class="empty">You're all caught up.</p>
+) : (
+  years.map((year) => (
+    <section class="group" aria-labelledby={`events-${year}`}>
+      <h3 id={`events-${year}`}>{year}</h3>
+      <ul role="list">
+        {events
+          .filter((e) => e.data.date.startsWith(year))
+          .map(({ data }) => {
+            const when = postDate(data.date);
+            return (
+              <li class="event">
+                <span class="badge">
+                  <Icon name={ICON[data.kind]} size={20} />
+                </span>
+                <p class="text">
+                  <span>{data.title}</span>
+                  {data.org && <span class="org"> · {data.org}</span>}
+                  {when && (
+                    <time class="when" datetime={when.datetime}>
+                      {when.text}
+                    </time>
+                  )}
+                </p>
+              </li>
+            );
+          })}
+      </ul>
+    </section>
+  ))
+)}
+
+<style>
+  .group {
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--separator);
+  }
+
+  h3 {
+    margin: 0;
+    padding: var(--space-2) var(--space-6);
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-bold);
+  }
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .event {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 60px;
+    padding: var(--space-2) var(--space-6);
+  }
+
+  .badge {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--accent-text);
+    background: var(--bg-secondary);
+    border-radius: 50%;
+  }
+
+  .text {
+    margin: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  .org,
+  .when {
+    color: var(--text-secondary);
+  }
+
+  .when::before {
+    content: ' ';
+  }
+
+  .empty {
+    margin: 0;
+    padding: var(--space-6);
+    color: var(--text-secondary);
+  }
+</style>

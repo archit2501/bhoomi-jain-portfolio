@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import { postSchema, resumeSchema } from '../src/lib/content-schema';
+import type { SiteContent } from '../src/lib/content-guards';
 import { checkResume, findPhoneNumbers, resumeCounts } from '../src/lib/resume';
+import { buildSearchIndex, search } from '../src/lib/search';
 
 /**
  * The real content, checked the same way the build checks it, so a wrong title or a phone number
@@ -60,5 +62,32 @@ describe('her real content', () => {
       return findPhoneNumbers(text).map((phone) => `${path}: ${phone}`);
     });
     expect(found).toEqual([]);
+  });
+});
+
+describe('the search index built from her content', () => {
+  const highlights = files(join(CONTENT, 'highlights'), /\.json$/).map((path) => ({
+    id: path.replace(/^.*\/(.+)\.json$/, '$1'),
+    data: { inRow: true, ...JSON.parse(readFileSync(path, 'utf8')) },
+  }));
+  const index = buildSearchIndex({
+    posts: posts.map((p) => ({ ...p, id: p.id.replace(/^.*\/(.+)\.md$/, '$1') })),
+    highlights,
+    reels: [],
+    resume,
+  } as unknown as SiteContent);
+
+  it('has every post, every highlight in the row, and every skill on the résumé', () => {
+    const skills = Object.values(resume.skills).flat().length;
+    const row = highlights.filter((h) => h.data.inRow).length;
+    expect(index).toHaveLength(posts.length + row + skills);
+  });
+
+  it('finds a project by a technology in its stack', () => {
+    expect(search(index, 'mongodb').map((i) => i.title)).toEqual(['MongoDB', 'SmartBlog AI']);
+    expect(search(index, 'fastapi').map((i) => i.title)).toEqual([
+      'FastAPI',
+      'Conversational AI Web App',
+    ]);
   });
 });

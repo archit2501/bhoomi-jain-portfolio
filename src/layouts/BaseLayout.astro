@@ -8,10 +8,14 @@ import Footer from '../components/Footer.astro';
 import AppBar from '../components/nav/AppBar.astro';
 import BottomTabs from '../components/nav/BottomTabs.astro';
 import SideNav from '../components/nav/SideNav.astro';
+import CreateSheet from '../components/panels/CreateSheet.astro';
+import NotificationsPanel from '../components/panels/NotificationsPanel.astro';
+import SearchPanel from '../components/panels/SearchPanel.astro';
 import type { NavId } from '../components/nav/nav-items';
 import { loadSiteContent } from '../lib/content';
 import { jsonLdScript, personJsonLd } from '../lib/seo';
 import { pageTitle } from '../lib/site';
+import { THEME_BOOT_SCRIPT } from '../lib/theme';
 
 interface Props {
   /** Inner pages put their name first; the home page leaves this out. */
@@ -40,6 +44,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script is:inline set:html={THEME_BOOT_SCRIPT} />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
@@ -65,7 +70,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
       Skip to content
     </a>
     <SideNav current={current} />
-    <AppBar />
+    <AppBar current={current} />
     <div class="page">
       <main id="main" tabindex="-1">
         <slot />
@@ -74,6 +79,12 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
     </div>
     <BottomTabs current={current} />
     <ContactSheet profile={profile} />
+    <SearchPanel />
+    <NotificationsPanel />
+    <CreateSheet />
+    <script>
+      import '../scripts/shell';
+    </script>
   </body>
 </html>
 
@@ -97,7 +108,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
 
   .page {
     min-height: 100dvh;
-    padding-bottom: calc(49px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px));
   }
 
   @media (min-width: 768px) {

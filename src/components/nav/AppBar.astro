@@ -1,10 +1,32 @@
 ---
 import Wordmark from '../../assets/wordmark.svg';
+import Icon from '../Icon.astro';
+import { TOP_BAR, type NavId } from './nav-items';
+
+interface Props {
+  current?: NavId;
+}
+
+const { current } = Astro.props;
+const { create, notifications } = TOP_BAR;
 ---
 
+<!-- The app's 2026 top bar: Create on the left, the wordmark, the Notifications heart on the right. -->
 <header class="app-bar">
-  <a class="logo" href="/" aria-label="bhoomi, home">
+  <a class="icon-link" href={create.href} data-opens={create.opens} aria-haspopup="dialog">
+    <Icon name={create.icon} size={24} />
+    <span class="visually-hidden">{create.label}</span>
+  </a>
+  <a class="logo" href="/" aria-label="bhoomi, profile">
     <Wordmark height={26} aria-hidden="true" />
+  </a>
+  <a
+    class="icon-link"
+    href={notifications.href}
+    aria-current={current === 'notifications' ? 'page' : undefined}
+  >
+    <Icon name={notifications.icon} size={24} filled={current === 'notifications'} />
+    <span class="visually-hidden">{notifications.label}</span>
   </a>
 </header>
 
@@ -13,12 +35,14 @@ import Wordmark from '../../assets/wordmark.svg';
     position: sticky;
     top: 0;
     z-index: 20;
-    display: flex;
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
     align-items: center;
-    min-height: calc(44px + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) max(var(--space-4), env(safe-area-inset-right, 0px)) 0
-      max(var(--space-4), env(safe-area-inset-left, 0px));
-    background: var(--bg);
+    min-height: calc(var(--top-bar-h) + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) max(var(--space-2), env(safe-area-inset-right, 0px)) 0
+      max(var(--space-2), env(safe-area-inset-left, 0px));
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid var(--separator);
   }
 
@@ -30,7 +54,27 @@ import Wordmark from '../../assets/wordmark.svg';
 
   .logo {
     display: flex;
+    justify-self: start;
+    padding: 0 var(--space-2);
     color: var(--text);
     border-radius: var(--radius-button);
+  }
+
+  .icon-link {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--text);
+    border-radius: var(--radius-button);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .icon-link :global(svg) {
+    transition: transform var(--dur-press) var(--ease-ig);
+  }
+
+  .icon-link:active :global(svg) {
+    transform: scale(var(--press-scale-icon));
   }
 </style>

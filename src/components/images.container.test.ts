@@ -18,6 +18,14 @@ vi.mock('../lib/content', () => ({
       avatar: { alt: 'Test Person' },
       links: { linkedin: 'https://www.linkedin.com/in/example' },
     },
+    // The layout's search, notifications and create sheet read these; empty is enough here.
+    resume: { projects: {}, skills: {} },
+    figures: {},
+    posts: [],
+    highlights: [],
+    reels: [],
+    events: [],
+    dmThreads: [],
   }),
 }));
 

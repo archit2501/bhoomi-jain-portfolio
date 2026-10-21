@@ -1,0 +1,152 @@
+---
+import { loadSiteContent } from '../../lib/content';
+import { buildSearchIndex } from '../../lib/search';
+import SlidePanel from './SlidePanel.astro';
+
+const index = buildSearchIndex(await loadSiteContent());
+---
+
+<SlidePanel id="panel-search" title="Search">
+  <form class="search-form" role="search" action="/explore/" data-search-form>
+    <label class="visually-hidden" for="search-input">
+      Search projects, skills and stories
+    </label>
+    <input
+      id="search-input"
+      class="search-input"
+      type="search"
+      name="q"
+      placeholder="Search"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      enterkeyhint="search"
+      data-search-input
+    />
+  </form>
+  <p class="status visually-hidden" role="status" data-search-status></p>
+  <ul class="results" role="list" data-search-results></ul>
+  <p class="hint" data-search-hint>
+    Projects, skills, experience and stories.
+  </p>
+  <script type="application/json" data-search-index set:html={JSON.stringify(index)} />
+</SlidePanel>
+
+<script>
+  import { search, type SearchItem } from '../../lib/search';
+
+  const panel = document.getElementById('panel-search');
+  const input = panel?.querySelector<HTMLInputElement>('[data-search-input]');
+  const list = panel?.querySelector<HTMLUListElement>('[data-search-results]');
+  const status = panel?.querySelector<HTMLElement>('[data-search-status]');
+  const hint = panel?.querySelector<HTMLElement>('[data-search-hint]');
+  const raw = panel?.querySelector('[data-search-index]')?.textContent ?? '[]';
+  const index = JSON.parse(raw) as SearchItem[];
+
+  const render = () => {
+    if (!input || !list || !status || !hint) return;
+    const query = input.value.trim();
+    const results = search(index, query);
+    list.replaceChildren(
+      ...results.map((item) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.className = 'result';
+        a.href = item.href;
+        const title = document.createElement('span');
+        title.className = 'result-title';
+        title.textContent = item.title;
+        const kind = document.createElement('span');
+        kind.className = 'result-kind';
+        kind.textContent = item.kind;
+        a.append(title, kind);
+        li.append(a);
+        return li;
+      }),
+    );
+    hint.hidden = query.length > 0;
+    status.textContent = query
+      ? results.length
+        ? `${results.length} result${results.length === 1 ? '' : 's'}`
+        : `No results for "${query}"`
+      : '';
+    if (query && !results.length) {
+      const li = document.createElement('li');
+      li.className = 'no-results';
+      li.textContent = `No results for "${query}".`;
+      list.append(li);
+    }
+  };
+
+  input?.addEventListener('input', render);
+  panel?.querySelector('[data-search-form]')?.addEventListener('submit', (event) => {
+    // Enter opens the first result rather than reloading the page.
+    const first = list?.querySelector<HTMLAnchorElement>('a.result');
+    if (first) {
+      event.preventDefault();
+      first.click();
+    }
+  });
+</script>
+
+<style>
+  .search-form {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .search-input {
+    width: 100%;
+    height: 40px;
+    padding: 0 var(--space-4);
+    color: var(--text);
+    font: inherit;
+    background: var(--bg-secondary);
+    border: 0;
+    border-radius: var(--radius-card);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-secondary);
+  }
+
+  .results {
+    margin: 0;
+    padding: var(--space-2) 0;
+    list-style: none;
+    border-top: 1px solid var(--separator);
+  }
+
+  .results :global(.result) {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 50px;
+    padding: var(--space-2) var(--space-6);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .results :global(.result:hover) {
+      background: var(--hover-overlay);
+    }
+  }
+
+  .results :global(.result-title) {
+    font-weight: var(--weight-semibold);
+  }
+
+  .results :global(.result-kind),
+  .results :global(.no-results),
+  .hint {
+    color: var(--text-secondary);
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  .results :global(.no-results),
+  .hint {
+    margin: 0;
+    padding: var(--space-4) var(--space-6);
+  }
+</style>

@@ -1,0 +1,166 @@
+---
+import { loadSiteContent } from '../../lib/content';
+import Icon from '../Icon.astro';
+
+const { profile } = await loadSiteContent();
+---
+
+<!-- Instagram's "More" menu, as a native popover: light dismiss and Esc come for free. -->
+<div id="more-menu" class="more-menu" popover role="dialog" aria-label="More">
+  <a class="row" href="/insights/">
+    <Icon name="insights" size={20} />
+    <span>Insights</span>
+  </a>
+  {profile.links.resume && (
+    <a class="row" href={profile.links.resume}>
+      <Icon name="resume" size={20} />
+      <span>Résumé</span>
+    </a>
+  )}
+  <fieldset class="appearance">
+    <legend>Switch appearance</legend>
+    <div class="choices">
+      {(['auto', 'light', 'dark'] as const).map((value) => (
+        <label class="choice">
+          <input type="radio" name="theme" value={value} />
+          <span>{value === 'auto' ? 'Automatic' : value === 'light' ? 'Light' : 'Dark'}</span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+  <p class="legal">Design inspired by Instagram. Not affiliated with Instagram or Meta.</p>
+</div>
+
+<script>
+  import { applyTheme, readTheme, saveTheme, type ThemeChoice } from '../../scripts/theme';
+
+  const menu = document.getElementById('more-menu');
+  const radios = [...(menu?.querySelectorAll<HTMLInputElement>('input[name="theme"]') ?? [])];
+  const current = readTheme();
+  for (const radio of radios) {
+    radio.checked = radio.value === current;
+    radio.addEventListener('change', () => {
+      const choice = radio.value as ThemeChoice;
+      saveTheme(choice);
+      applyTheme(choice);
+    });
+  }
+</script>
+
+<style>
+  .more-menu {
+    position: fixed;
+    inset: auto auto 72px var(--space-3);
+    width: 266px;
+    margin: 0;
+    padding: var(--space-2);
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 0;
+    border-radius: var(--radius-dialog);
+    box-shadow: var(--shadow-strong);
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+    transition:
+      opacity var(--dur-fade-in) var(--ease-ig),
+      transform var(--dur-fade-in) var(--ease-ig),
+      display var(--dur-fade-in) allow-discrete,
+      overlay var(--dur-fade-in) allow-discrete;
+  }
+
+  .more-menu:popover-open {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    .more-menu:popover-open {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 48px;
+    padding: 0 var(--space-4);
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--radius-button);
+  }
+
+  @media (hover: hover) {
+    .row:hover {
+      background: var(--hover-overlay);
+    }
+  }
+
+  .appearance {
+    margin: var(--space-1) 0 0;
+    padding: var(--space-3) var(--space-4);
+    border: 0;
+    border-top: 1px solid var(--separator);
+  }
+
+  legend {
+    padding: 0;
+    margin-bottom: var(--space-2);
+    font-weight: var(--weight-semibold);
+  }
+
+  .choices {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-1);
+    padding: 2px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-button);
+  }
+
+  .choice {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 32px;
+    font-size: var(--fs-12);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .choice input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .choice:has(input:checked) {
+    font-weight: var(--weight-semibold);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-1);
+  }
+
+  .choice:has(input:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 1px;
+  }
+
+  .legal {
+    margin: 0;
+    padding: var(--space-3) var(--space-4) var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    border-top: 1px solid var(--separator);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .more-menu {
+      transform: none;
+      transition-property: opacity, display, overlay;
+    }
+  }
+</style>
