@@ -1,0 +1,18 @@
+---
+import Conversations from '../../components/dm/Conversations.astro';
+import DmShell from '../../components/dm/DmShell.astro';
+import ThreadView from '../../components/dm/ThreadView.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../../lib/content';
+
+// A visitor's own conversation: /direct/thread/#<id>.<secret>. The key stays in the fragment, so
+// it never reaches a server log; the page itself is the same for everyone and never indexed.
+const { dmThreads, profile } = await loadSiteContent();
+---
+
+<BaseLayout title="Your conversation · Messages" current="messages" noindex>
+  <DmShell phone="pane">
+    <Conversations slot="list" threads={dmThreads} profile={profile} />
+    <ThreadView profile={profile} mode="private" topics={dmThreads} />
+  </DmShell>
+</BaseLayout>

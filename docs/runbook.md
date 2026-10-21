@@ -106,6 +106,14 @@ npx wrangler d1 execute DB --remote -c wrangler.jsonc --command "UPDATE comments
 
 Rotating `APPROVAL_SECRET` invalidates every link that has been sent.
 
+## Messages
+
+A visitor picks a topic (`/direct/<topic>/`; the topics and her opening lines are in `src/content/dm-threads.json`), writes, and lands on their private conversation: `/direct/thread/#<id>.<secret>`. The key stays in the link's fragment, so it never reaches a server log. Only a hash of the secret is stored. This browser lists the visitor's own conversations; anyone with the link can read that conversation, and the page says so.
+
+Bhoomi gets each new message, the first and every one after, through the same channels as comments, with a **Read and reply** link. It's signed with `APPROVAL_SECRET` and valid for 30 days. The link opens the conversation (with their email, if they gave one) and a reply box. Her reply appears on the visitor's private link within 20 seconds while they have it open.
+
+The `dms` switch stops new messages. Reading a conversation and replying keep working.
+
 ## Roll back a bad deploy
 
 ```bash

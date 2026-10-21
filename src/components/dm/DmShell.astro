@@ -1,0 +1,58 @@
+---
+/**
+ * Messages, laid out as Instagram does: on desktop the conversation list sits beside the open
+ * conversation; on a phone one shows at a time (the list on /direct/, the conversation elsewhere).
+ */
+interface Props {
+  /** Which half a phone shows. */
+  phone: 'list' | 'pane';
+}
+
+const { phone } = Astro.props;
+---
+
+<div class:list={['dm', `phone-${phone}`]}>
+  <div class="dm-side">
+    <slot name="list" />
+  </div>
+  <div class="dm-main">
+    <slot />
+  </div>
+</div>
+
+<script>
+  import { initDm } from '../../scripts/dm';
+
+  initDm();
+</script>
+
+<style>
+  .dm {
+    max-width: 935px;
+    margin: 0 auto;
+  }
+
+  .phone-list .dm-main,
+  .phone-pane .dm-side {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .dm {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      min-height: 100dvh;
+      border-right: 1px solid var(--separator);
+      border-left: 1px solid var(--separator);
+    }
+
+    .phone-list .dm-main,
+    .phone-pane .dm-side {
+      display: block;
+    }
+
+    .dm-side {
+      border-right: 1px solid var(--separator);
+    }
+  }
+</style>

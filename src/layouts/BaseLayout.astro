@@ -27,6 +27,8 @@ interface Props {
   current?: NavId;
   /** Full-screen pages (the reels feed): no phone top bar, as in the app. The footer stays. */
   immersive?: boolean;
+  /** Private pages (a visitor's own conversation) stay out of search engines. */
+  noindex?: boolean;
 }
 
 const { profile } = await loadSiteContent();
@@ -37,6 +39,7 @@ const {
   type = 'website',
   current,
   immersive = false,
+  noindex = false,
 } = Astro.props;
 const fullTitle = pageTitle(title);
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
@@ -50,6 +53,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
     <script is:inline set:html={THEME_BOOT_SCRIPT} />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0c1014" media="(prefers-color-scheme: dark)" />
     <title>{fullTitle}</title>

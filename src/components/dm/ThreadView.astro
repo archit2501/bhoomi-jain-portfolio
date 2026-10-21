@@ -1,0 +1,412 @@
+---
+/**
+ * One conversation with Bhoomi. "starter": a topic she invites messages about, with her opening
+ * line and the first-message form. "private": the visitor's own conversation, loaded with the key
+ * in the URL's fragment (/direct/thread/#<id>.<secret>), with her replies and a reply box.
+ * src/scripts/dm.ts does the sending and loading. Without JavaScript, the starter shows her email
+ * and LinkedIn instead of a form.
+ *
+ * Safeguards: it says who receives the message and how, that only she reads it, and that she
+ * never asks for passwords or account details; the form asks for neither.
+ */
+import Avatar from '../Avatar.astro';
+import Icon from '../Icon.astro';
+import type { DmThread, Profile } from '../../lib/content-schema';
+
+interface Props {
+  profile: Profile;
+  mode: 'starter' | 'private';
+  /** The topic (starter pages). */
+  topic?: { id: string; data: DmThread };
+  /** Every topic's label and opener, for a private conversation to show its own. */
+  topics?: { id: string; data: DmThread }[];
+}
+
+const { profile, mode, topic, topics = [] } = Astro.props;
+const firstName = profile.displayName.split(/\s+/)[0];
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
+const mailto = profile.links.email
+  ? `mailto:${profile.links.email}?subject=${encodeURIComponent(`${topic?.data.label ?? 'Hello'}, from your portfolio`)}`
+  : undefined;
+const openers = Object.fromEntries(
+  topics.map(({ id, data }) => [id, { label: data.label, opener: data.opener }]),
+);
+---
+
+<section
+  class="dm-pane"
+  aria-labelledby="thread-title"
+  data-mode={mode}
+  data-topic={topic?.id}
+  data-label={topic?.data.label}
+>
+  <header class="pane-head">
+    <a class="back" href="/direct/" aria-label="Back to messages">
+      <Icon name="back" size={24} />
+    </a>
+    <Avatar size={36} src={profile.avatar.src} alt="" initials={initials} />
+    <div class="who">
+      <h1 id="thread-title">Message {firstName}</h1>
+      <p class="topic" data-topic-label>
+        {topic?.data.label ?? 'Your conversation'}
+      </p>
+    </div>
+  </header>
+
+  <p class="safety">
+    <Icon name="mail" size={16} />
+    <span>
+      Goes straight to {firstName}: she's told by Telegram or email, and only she reads it. She'll
+      never ask for a password or account details.
+    </span>
+  </p>
+
+  <ol class="messages" aria-label="Conversation" aria-live="polite" data-messages>
+    {topic && (
+      <li class="msg from-her">
+        <Avatar size={28} src={profile.avatar.src} alt="" initials={initials} />
+        <p class="bubble">
+          <span class="visually-hidden">{firstName}: </span>
+          {topic.data.opener}
+        </p>
+      </li>
+    )}
+  </ol>
+
+  <div class="private-link" data-private-link hidden>
+    <p>
+      <strong>Your private link to this conversation.</strong> Bookmark it to see {firstName}'s
+      reply. Anyone with the link can read the conversation, so keep it to yourself.
+    </p>
+    <div class="link-row">
+      <label class="visually-hidden" for="private-url">
+        Private link
+      </label>
+      <input id="private-url" readonly data-private-url />
+      <button type="button" class="copy" data-copy-link>
+        Copy link
+      </button>
+    </div>
+  </div>
+
+  {topic?.data.ai ? (
+    <p class="soon">The AI assistant is coming soon. Until then, pick another conversation.</p>
+  ) : (
+    <form class="dm-form" data-dm-form novalidate>
+      {mode === 'starter' && (
+        <div class="who-fields">
+          <label for="dm-name">Your name</label>
+          <input id="dm-name" name="name" maxlength="60" autocomplete="name" required />
+          <label for="dm-email">
+            Your email <span class="optional">(optional, so she can also reply by email)</span>
+          </label>
+          <input id="dm-email" name="email" type="email" maxlength="120" autocomplete="email" />
+        </div>
+      )}
+      <div class="compose-row">
+        <label class="visually-hidden" for="dm-body">
+          Message
+        </label>
+        <textarea
+          id="dm-body"
+          name="body"
+          rows="1"
+          maxlength="2000"
+          placeholder={`Message ${firstName}…`}
+          required
+        />
+        <button type="submit" class="send">
+          Send
+        </button>
+      </div>
+      <p class="dm-status" role="status" data-dm-status />
+    </form>
+  )}
+
+  {mode === 'starter' && !topic?.data.ai && (
+    <p class="fallback">
+      {mailto && (
+        <a href={mailto}>
+          <Icon name="mail" size={18} /> Email {firstName}
+        </a>
+      )}
+      <a href={profile.links.linkedin} rel="noopener noreferrer" target="_blank">
+        <Icon name="linkedin" size={18} /> LinkedIn
+      </a>
+    </p>
+  )}
+
+  {mode === 'private' && (
+    <script type="application/json" data-dm-topics set:html={JSON.stringify(openers)} />
+  )}
+</section>
+
+<style>
+  .dm-pane {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--top-bar-h) - var(--bottom-bar-h));
+  }
+
+  .pane-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--separator);
+  }
+
+  .back {
+    display: flex;
+    margin-left: calc(-1 * var(--space-2));
+    padding: var(--space-1);
+    color: var(--text);
+    border-radius: var(--radius-button);
+  }
+
+  .who h1 {
+    margin: 0;
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-bold);
+  }
+
+  .topic {
+    margin: 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+  }
+
+  .safety {
+    display: flex;
+    gap: var(--space-2);
+    margin: var(--space-3) var(--space-4) 0;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-button);
+  }
+
+  .safety :global(.icon) {
+    flex: none;
+  }
+
+  /* ---- bubbles: hers on the left in grey, the visitor's on the right in her accent ---- */
+  .messages {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-4);
+    list-style: none;
+  }
+
+  .msg,
+  .messages :global(.msg) {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+    max-width: 80%;
+  }
+
+  .messages :global(.msg.grouped) {
+    margin-top: calc(-1 * var(--space-1) - 2px);
+  }
+
+  .messages :global(.from-you) {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .bubble,
+  .messages :global(.bubble) {
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-bubble);
+  }
+
+  .messages :global(.from-you .bubble) {
+    color: var(--on-accent);
+    background: var(--accent);
+  }
+
+  /* Instagram rounds a run of bubbles as one shape. */
+  .messages :global(.from-her.grouped .bubble) {
+    border-top-left-radius: 6px;
+  }
+
+  .messages :global(.from-her.continues .bubble) {
+    border-bottom-left-radius: 6px;
+  }
+
+  .messages :global(.from-you.grouped .bubble) {
+    border-top-right-radius: 6px;
+  }
+
+  .messages :global(.from-you.continues .bubble) {
+    border-bottom-right-radius: 6px;
+  }
+
+  /* A placeholder the size of the avatar keeps a run of her bubbles aligned. */
+  .messages :global(.avatar-space) {
+    flex: none;
+    width: 28px;
+  }
+
+  .messages :global(.note) {
+    align-self: center;
+    font-size: var(--fs-12);
+    color: var(--text-secondary);
+  }
+
+  .private-link {
+    margin: 0 var(--space-4) var(--space-3);
+    padding: var(--space-3);
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    border: 1px solid var(--separator);
+    border-radius: var(--radius-card);
+  }
+
+  .private-link p {
+    margin: 0 0 var(--space-2);
+  }
+
+  .link-row {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .link-row input {
+    flex: 1;
+    min-width: 0;
+    padding: var(--space-2);
+    font: inherit;
+    color: var(--text);
+    background: var(--bg-secondary);
+    border: 0;
+    border-radius: var(--radius-button);
+  }
+
+  .copy,
+  .send {
+    padding: var(--space-2) var(--space-4);
+    font: inherit;
+    font-weight: var(--weight-semibold);
+    color: var(--on-accent);
+    background: var(--accent);
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .send:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .dm-form {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4) var(--space-4);
+    border-top: 1px solid var(--separator);
+  }
+
+  .who-fields {
+    display: grid;
+    gap: var(--space-1);
+    font-size: var(--fs-14);
+  }
+
+  .optional {
+    color: var(--text-secondary);
+  }
+
+  .who-fields input,
+  .compose-row textarea {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    font: inherit;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-button);
+  }
+
+  .compose-row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-2);
+  }
+
+  .compose-row textarea {
+    flex: 1;
+    min-height: 44px;
+    max-height: 160px;
+    resize: none;
+    border-radius: var(--radius-bubble);
+    field-sizing: content;
+  }
+
+  .dm-status,
+  .soon {
+    margin: 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+  }
+
+  .dm-status:empty {
+    display: none;
+  }
+
+  .soon {
+    padding: var(--space-4);
+  }
+
+  /* Without JavaScript there's no form: her email and LinkedIn take its place. */
+  :global(html:not(.js)) .dm-form,
+  :global(html.js) .fallback {
+    display: none;
+  }
+
+  .fallback {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  .fallback a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 32px;
+    padding: 0 var(--space-4);
+    font-weight: var(--weight-semibold);
+    color: var(--button-secondary-text);
+    text-decoration: none;
+    background: var(--button-secondary);
+    border-radius: var(--radius-button);
+  }
+
+  @media (min-width: 768px) {
+    .back {
+      display: none;
+    }
+
+    .dm-pane {
+      min-height: 100dvh;
+    }
+  }
+</style>

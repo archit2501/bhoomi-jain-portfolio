@@ -1,34 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
-import { INBOX_PORT, posts } from './fixtures';
-import { ownIp, stubTurnstile } from './live';
+import { expect, test, type Page } from '@playwright/test';
+import { posts } from './fixtures';
+import { inboxLink, ownIp, stubTurnstile } from './live';
 
 // Comments with Bhoomi's approval (task 3.1.3), against the local database. Her approve and
 // reject links normally reach her by Telegram or webhook; here the preview Worker posts them to a
 // local inbox (scripts/e2e-inbox.mjs), and the tests follow the very links it generated.
 const post = posts.find((p) => p.data.tldr) ?? posts[0];
 const view = (page: Page) => page.locator('.post-view').first();
-
-interface Notice {
-  title: string;
-  lines: string[];
-  links?: { label: string; url: string }[];
-}
-
-/** The link Bhoomi would get for this comment, as a path on the preview server. */
-async function linkFor(request: APIRequestContext, body: string, label: 'Approve' | 'Reject') {
-  let notice: Notice | undefined;
-  await expect
-    .poll(async () => {
-      const res = await request.get(`http://localhost:${INBOX_PORT}/notices`);
-      const notices = (await res.json()) as Notice[];
-      notice = notices.find((n) => n.lines.includes(body));
-      return Boolean(notice);
-    })
-    .toBe(true);
-  const url = new URL(notice!.links!.find((l) => l.label === label)!.url);
-  return url.pathname + url.search;
-}
 
 test.beforeEach(async ({ page }, testInfo) => {
   await stubTurnstile(page);
@@ -58,7 +37,7 @@ test.describe('desktop', () => {
     await expect(view(page).locator('.comments')).not.toContainText(body);
 
     // Her link opens a page with one button; nothing happens until she presses it.
-    await page.goto(await linkFor(request, body, 'Approve'));
+    await page.goto(await inboxLink(request, body, 'Approve'));
     await expect(page.getByRole('heading', { name: 'Approve this comment?' })).toBeVisible();
     await expect(page.locator('blockquote')).toHaveText(body);
     await page.getByRole('button', { name: 'Approve' }).click();
@@ -83,10 +62,10 @@ test.describe('desktop', () => {
     await form.getByLabel('Add a comment').fill(body);
     await form.getByLabel('Add a comment').press('Enter');
     await expect(form.locator('.comment-status')).toHaveText(/Thanks!/);
-    await page.goto(await linkFor(request, body, 'Reject'));
+    await page.goto(await inboxLink(request, body, 'Reject'));
     await page.getByRole('button', { name: 'Reject' }).click();
     await expect(page.getByRole('heading', { name: 'Rejected' })).toBeVisible();
-    await page.goto(await linkFor(request, body, 'Approve'));
+    await page.goto(await inboxLink(request, body, 'Approve'));
     await expect(page.getByRole('heading', { name: 'Already rejected' })).toBeVisible();
     await page.goto(`/p/${post.id}/`);
     await expect(view(page).locator('.comments')).not.toContainText(body);

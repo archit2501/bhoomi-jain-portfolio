@@ -190,13 +190,13 @@ export function createRepo(db: D1Like, now: () => number = Date.now) {
         ]);
         return id;
       },
-      /** The thread, if the secret matches; null otherwise (no hint which part was wrong). */
-      async open(threadId: string, secret: string): Promise<DmThread | null> {
+      /** The thread for Bhoomi, through a signed link: no visitor secret needed. */
+      async read(threadId: string): Promise<DmThread | null> {
         const thread = await db
           .prepare(
-            'SELECT id, topic, name, email, created_at AS createdAt, updated_at AS updatedAt FROM dm_threads WHERE id = ? AND secret_hash = ?',
+            'SELECT id, topic, name, email, created_at AS createdAt, updated_at AS updatedAt FROM dm_threads WHERE id = ?',
           )
-          .bind(threadId, await sha256(secret))
+          .bind(threadId)
           .first<Omit<DmThread, 'messages'>>();
         if (!thread) return null;
         const { results } = await db
@@ -206,6 +206,14 @@ export function createRepo(db: D1Like, now: () => number = Date.now) {
           .bind(threadId)
           .all<DmMessage>();
         return { ...thread, messages: results };
+      },
+      /** The thread, if the secret matches; null otherwise (no hint which part was wrong). */
+      async open(threadId: string, secret: string): Promise<DmThread | null> {
+        const match = await db
+          .prepare('SELECT 1 AS yes FROM dm_threads WHERE id = ? AND secret_hash = ?')
+          .bind(threadId, await sha256(secret))
+          .first();
+        return match ? this.read(threadId) : null;
       },
     },
 
