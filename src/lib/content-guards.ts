@@ -10,6 +10,7 @@ import {
   type Resume,
 } from './content-schema';
 import { checkResume, findPhoneNumbers } from './resume';
+import { hasPhoto, slideText } from './slides';
 
 export interface SiteContent {
   profile: Profile;
@@ -79,10 +80,7 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
     if (orders.has(data.order)) errors.push(`${where}: order ${data.order} is already used`);
     orders.add(data.order);
     if (data.pinned) pinned++;
-    const shown = [
-      caption,
-      ...data.media.map((m) => (m.type === 'text' ? `${m.headline} ${m.detail ?? ''}` : '')),
-    ].join(' ');
+    const shown = [caption, ...data.media.map(slideText), data.tldr ?? ''].join(' ');
     data.figures.forEach((fid) => requireMention(where, fid, shown));
   }
   if (pinned > LIMITS.pinned) {
@@ -126,7 +124,7 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
 
   // Real photos and screens are what make it look like Instagram. Until they arrive the grid uses
   // text tiles; a production build allows one text post (a deliberate quote), not a grid of them.
-  const textOnly = content.posts.filter((p) => p.data.media.every((m) => m.type === 'text'));
+  const textOnly = content.posts.filter((p) => !hasPhoto(p));
   if (options.requireVerified && textOnly.length > 1) {
     errors.push(
       `${textOnly.length} posts have no photo or screen (one text post is allowed): ${textOnly.map((p) => p.id).join(', ')}`,

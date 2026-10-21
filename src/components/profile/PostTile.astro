@@ -3,6 +3,7 @@ import Icon from '../Icon.astro';
 import type { Post } from '../../lib/content-schema';
 import { tileTone } from '../../lib/site';
 import Media from '../Media.astro';
+import { slideFace } from '../../lib/slides';
 import TypeTile from '../post/TypeTile.astro';
 
 interface Props {
@@ -25,7 +26,12 @@ const tone = tileTone(order);
 ---
 
 <li class="tile">
-  <a href={`/p/${post.id}/`} aria-label={label} data-post={post.id}>
+  <a
+    href={`/p/${post.id}/`}
+    aria-label={label}
+    data-post={post.id}
+    style={`--vt-name: post-${post.id}`}
+  >
     {first.type === 'image' ? (
       <Media
         src={first.src}
@@ -38,7 +44,7 @@ const tone = tileTone(order);
         fill
       />
     ) : (
-      <TypeTile headline={first.headline} detail={first.detail} tone={tone} />
+      <TypeTile {...slideFace(first)} tone={tone} />
     )}
     <span class="badges" aria-hidden="true">
       {pinned && <Icon name="pin" filled size={20} />}

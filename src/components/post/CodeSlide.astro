@@ -1,0 +1,49 @@
+---
+import { Code } from 'astro:components';
+
+interface Props {
+  code: string;
+  lang: string;
+  caption?: string;
+}
+
+const { code, lang, caption } = Astro.props;
+---
+
+<!-- Real code she wrote, highlighted at build time with Shiki: text, never a screenshot of text. -->
+<figure class="code-slide">
+  <Code code={code} lang={lang as never} theme="github-dark" wrap />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .code-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-3);
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 6%;
+    color: var(--on-story);
+    background: #0d1117;
+    container-type: inline-size;
+  }
+
+  .code-slide :global(pre) {
+    margin: 0;
+    padding: var(--space-4);
+    overflow: auto;
+    border-radius: var(--radius-card);
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 3.4cqi, 15px);
+    line-height: 1.55;
+  }
+
+  figcaption {
+    font-family: var(--font-display);
+    font-size: clamp(12px, 4cqi, 16px);
+    opacity: 0.8;
+  }
+</style>

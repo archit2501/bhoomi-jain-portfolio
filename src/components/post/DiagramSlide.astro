@@ -1,0 +1,141 @@
+---
+import type { DiagramEdge, DiagramNode } from '../../lib/diagram';
+import { describeDiagram, layoutDiagram } from '../../lib/diagram';
+
+interface Props {
+  title: string;
+  nodes: DiagramNode[];
+  edges: DiagramEdge[];
+  /** Unique within the page, for the arrowhead marker's id. */
+  id: string;
+}
+
+const { title, nodes, edges, id } = Astro.props;
+const { width, height, boxes, arrows } = layoutDiagram(nodes, edges);
+const marker = `arrow-${id}`;
+const LINE = 18;
+---
+
+<!-- How the system fits together, drawn at build time from what the résumé says it is. -->
+<figure class="diagram-slide">
+  <figcaption class="diagram-title">{title}</figcaption>
+  <svg
+    viewBox={`0 0 ${width} ${height}`}
+    role="img"
+    aria-label={`${title}: ${describeDiagram(nodes, edges)}`}
+    preserveAspectRatio="xMidYMid meet"
+  >
+    <defs>
+      <marker
+        id={marker}
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="7"
+        markerHeight="7"
+        orient="auto-start-reverse"
+      >
+        <path d="M0 0 L10 5 L0 10 z" class="arrowhead"></path>
+      </marker>
+    </defs>
+    {arrows.map((a) => (
+      <g class="edge">
+        <line x1={a.x1} y1={a.y1 + 4} x2={a.x2} y2={a.y2 - 6} marker-end={`url(#${marker})`} />
+        {a.label && (
+          <text x={a.labelX} y={a.labelY} class="edge-label">
+            {a.label}
+          </text>
+        )}
+      </g>
+    ))}
+    {boxes.map((b) => {
+      const lines = b.label.length + b.detail.length;
+      const top = b.y + b.height / 2 - ((lines - 1) * LINE) / 2 + 5;
+      return (
+        <g class="node">
+          <rect x={b.x} y={b.y} width={b.width} height={b.height} rx="14" />
+          {b.label.map((line, i) => (
+            <text x={b.x + b.width / 2} y={top + i * LINE} class="node-label">
+              {line}
+            </text>
+          ))}
+          {b.detail.map((line, i) => (
+            <text x={b.x + b.width / 2} y={top + (b.label.length + i) * LINE} class="node-detail">
+              {line}
+            </text>
+          ))}
+        </g>
+      );
+    })}
+  </svg>
+</figure>
+
+<style>
+  .diagram-slide {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 7% 6% 4%;
+    color: var(--on-story);
+    background:
+      radial-gradient(circle at 20% 0%, rgb(101 163 13 / 18%), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgb(3 105 161 / 35%), transparent 50%), var(--story-end);
+    font-family: var(--font-display);
+    container-type: inline-size;
+  }
+
+  .diagram-title {
+    font-size: clamp(14px, 6cqi, 24px);
+    line-height: 1.15;
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.01em;
+  }
+
+  svg {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .node rect {
+    fill: rgb(255 255 255 / 7%);
+    stroke: rgb(255 255 255 / 28%);
+    stroke-width: 1.2;
+  }
+
+  .node-label,
+  .node-detail,
+  .edge-label {
+    fill: currentColor;
+    font-family: var(--font-display);
+    text-anchor: middle;
+  }
+
+  .node-label {
+    font-size: 15px;
+    font-weight: var(--weight-semibold);
+  }
+
+  .node-detail {
+    font-size: 12px;
+    opacity: 0.75;
+  }
+
+  .edge line {
+    stroke: #22d3ee;
+    stroke-width: 2;
+  }
+
+  .arrowhead {
+    fill: #22d3ee;
+  }
+
+  .edge-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-anchor: start;
+    fill: #a5f3fc;
+  }
+</style>

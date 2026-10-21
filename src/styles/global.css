@@ -67,6 +67,29 @@ a {
   display: none !important;
 }
 
+/*
+ * Page-to-page transitions (Chromium and Safari 18.2+; elsewhere a normal navigation). A grid tile
+ * and its post page share a name (--vt-name, set per post), so the tile grows into the post.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(*) {
+  animation-duration: 250ms;
+  animation-timing-function: var(--ease-ig);
+}
+
+[style*='--vt-name'] {
+  view-transition-name: var(--vt-name);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
 /* astro:assets wraps each photo in <picture>; let the <img> lay out as if it were the child. */
 picture {
   display: contents;

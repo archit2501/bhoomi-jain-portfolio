@@ -102,9 +102,49 @@ export const profileSchema = z.object({
   note: noteSchema.optional(),
 });
 
-const imageMedia = z.object({ type: z.literal('image'), src: text, alt: altText });
+/** A label pinned on a screenshot, like a tag on an Instagram photo; it opens a search for it. */
+const mediaTag = z.object({
+  label: text,
+  /** Position as a percentage of the image, from the top-left corner. */
+  x: z.number().min(0).max(100),
+  y: z.number().min(0).max(100),
+});
+const imageMedia = z.object({
+  type: z.literal('image'),
+  src: text,
+  alt: altText,
+  tags: z.array(mediaTag).max(8).default([]),
+});
 const textMedia = z.object({ type: z.literal('text'), headline: text, detail: text.optional() });
-export const mediaSchema = z.discriminatedUnion('type', [imageMedia, textMedia]);
+/** An architecture slide, drawn at build time from what the résumé says the system is. */
+const diagramMedia = z
+  .object({
+    type: z.literal('diagram'),
+    title: text,
+    nodes: z
+      .array(z.object({ id: text, label: text, detail: text.optional() }))
+      .min(2)
+      .max(6),
+    edges: z.array(z.object({ from: text, to: text, label: text.optional() })).min(1),
+  })
+  .refine(
+    (d) => {
+      const ids = new Set(d.nodes.map((n) => n.id));
+      return d.edges.every((e) => ids.has(e.from) && ids.has(e.to));
+    },
+    { message: 'Every edge must join two nodes of the diagram' },
+  );
+/** Real code she wrote, highlighted at build time (never an image of code). */
+const codeMedia = z.object({
+  type: z.literal('code'),
+  lang: text,
+  code: z
+    .string()
+    .min(1)
+    .refine((c) => c.split('\n').length <= 18, 'Code slides fit 18 lines'),
+  caption: text.optional(),
+});
+export const mediaSchema = z.union([imageMedia, textMedia, diagramMedia, codeMedia]);
 
 /** Comments under a post are real testimonials only: a named person and where it came from. */
 export const testimonialSchema = z.object({
@@ -142,7 +182,10 @@ export const postSchema = z.object({
   dateLabel: text.optional(),
   location: text.optional(),
   org: text.optional(),
-  media: z.array(mediaSchema).min(1),
+  /** Carousel slides, as Instagram allows: up to 20. */
+  media: z.array(mediaSchema).min(1).max(20),
+  /** Her own one-line summary, pinned as the first comment. */
+  tldr: text.optional(),
   figures: z.array(text).default([]),
   testimonials: z.array(testimonialSchema).default([]),
 });

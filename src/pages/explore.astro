@@ -20,6 +20,19 @@ const ordered = [...posts].sort((a, b) => a.data.order - b.data.order);
   </section>
 </BaseLayout>
 
+<script>
+  // /explore/?q=react (a tag on a screenshot, or a shared link) opens search with that query.
+  const query = new URLSearchParams(location.search).get('q');
+  if (query) {
+    document.querySelector<HTMLElement>('.explore [data-opens="panel-search"]')?.click();
+    const input = document.querySelector<HTMLInputElement>('#panel-search [data-search-input]');
+    if (input) {
+      input.value = query;
+      input.dispatchEvent(new Event('input'));
+    }
+  }
+</script>
+
 <style>
   .explore {
     max-width: 935px;
