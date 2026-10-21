@@ -9,6 +9,7 @@ import Media from '../Media.astro';
 import CodeSlide from './CodeSlide.astro';
 import DiagramSlide from './DiagramSlide.astro';
 import TypeTile from './TypeTile.astro';
+import ActionRow from './ActionRow.astro';
 
 interface Props {
   post: { id: string; data: Post; body: string };
@@ -168,28 +169,7 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     ))}
   </div>
 
-  <footer class="actions">
-    <div class="buttons">
-      <button class="like" type="button" aria-pressed="false" aria-label="Like">
-        <Icon name="heart" class="heart-off" size={24} />
-        <Icon name="heart" filled class="heart-on" size={24} />
-      </button>
-      <button
-        class="share"
-        type="button"
-        aria-label="Copy link to this post"
-        data-href={`/p/${id}/`}
-      >
-        <Icon name="link" size={24} />
-      </button>
-    </div>
-    {when && (
-      <p class="date">
-        {when.datetime ? <time datetime={when.datetime}>{when.text}</time> : when.text}
-      </p>
-    )}
-    <p class="status visually-hidden" role="status"></p>
-  </footer>
+  <ActionRow class="actions" id={id} when={when} />
 </article>
 
 <style>
@@ -219,8 +199,7 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
   }
 
   .head p,
-  .comment p,
-  .actions p {
+  .comment p {
     margin: 0;
   }
 
@@ -380,42 +359,17 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     background: #ffffff;
   }
 
+  /* The double-tap heart: a hidden template that src/scripts/like.ts copies to each tap point. */
   .burst {
     position: absolute;
     top: 50%;
     left: 50%;
+    z-index: 2;
     color: #ffffff;
     filter: drop-shadow(0 0 12px rgb(0 0 0 / 35%));
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0);
+    translate: -50% -50%;
     pointer-events: none;
-  }
-
-  .burst.play {
-    animation: burst 1s ease-in-out;
-  }
-
-  @keyframes burst {
-    0% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0);
-    }
-    15% {
-      opacity: 0.9;
-      transform: translate(-50%, -50%) scale(1.2);
-    }
-    30% {
-      transform: translate(-50%, -50%) scale(0.95);
-    }
-    45%,
-    80% {
-      opacity: 0.9;
-      transform: translate(-50%, -50%) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(1);
-    }
   }
 
   .comments {
@@ -478,49 +432,6 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
   .actions {
     grid-area: actions;
     padding: var(--space-1) var(--space-2) var(--space-2);
-  }
-
-  .buttons {
-    display: flex;
-  }
-
-  .like,
-  .share {
-    display: flex;
-    padding: var(--space-2);
-    color: var(--text);
-    background: none;
-    border: 0;
-    border-radius: var(--radius-button);
-    cursor: pointer;
-  }
-
-  .like[aria-pressed='true'] {
-    color: var(--like);
-  }
-
-  /* Outline heart until liked, then the filled one pops in (the full like moment is task 2.2.4). */
-  .like :global(.heart-on),
-  .like[aria-pressed='true'] :global(.heart-off) {
-    display: none;
-  }
-
-  .like[aria-pressed='true'] :global(.heart-on) {
-    display: block;
-    animation: pop 0.45s ease-out;
-  }
-
-  @keyframes pop {
-    40% {
-      transform: scale(1.2);
-    }
-    70% {
-      transform: scale(0.95);
-    }
-  }
-
-  .date {
-    padding: 0 var(--space-2);
   }
 
   @media (min-width: 768px) {

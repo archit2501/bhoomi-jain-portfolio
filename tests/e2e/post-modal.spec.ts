@@ -92,7 +92,7 @@ test.describe('desktop pop-up', () => {
     await expect(view.getByRole('button', { name: 'Previous slide' })).toBeVisible();
   });
 
-  test('double-click likes the post with the heart burst', async ({ page }) => {
+  test('double-click likes the post; the heart button unlikes it', async ({ page }) => {
     await page.goto('/');
     await page.locator(tile(middle.id)).click();
     const view = page.locator('#post-modal .post-view');
@@ -101,7 +101,7 @@ test.describe('desktop pop-up', () => {
       'aria-pressed',
       'true',
     );
-    await expect(view.locator('.burst')).toHaveClass(/play/);
+    await expect(view.getByText('Liked by you')).toBeVisible();
     await view.getByRole('button', { name: 'Like' }).click();
     await expect(view.getByRole('button', { name: 'Like' })).toHaveAttribute(
       'aria-pressed',
@@ -119,7 +119,7 @@ test.describe('desktop pop-up', () => {
       'aria-pressed',
       'true',
     );
-    await expect(view.locator('.burst')).not.toHaveClass(/play/);
+    await expect(view.locator('.burst.flying')).toHaveCount(0);
   });
 
   test('copy link puts the post URL on the clipboard', async ({ page, context, browserName }) => {
