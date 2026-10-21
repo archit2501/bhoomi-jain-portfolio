@@ -15,6 +15,8 @@ async function openHighlight(page: Page, label: string) {
   await page.goto('/');
   await page.getByRole('link', { name: new RegExp(`^Highlight: ${label},`) }).click();
   await expect(viewer(page)).toBeVisible();
+  // The viewer fades in; measuring (or running axe) mid-fade reads half-transparent colours.
+  await expect(viewer(page)).toHaveCSS('opacity', '1');
 }
 
 async function cardBox(page: Page) {

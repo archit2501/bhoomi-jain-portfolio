@@ -21,7 +21,7 @@ const initials = profile.displayName
   .slice(0, 2);
 ---
 
-<dialog id="story-viewer" class="story-viewer" aria-label="Stories">
+<dialog data-motion="fade" id="story-viewer" class="story-viewer" aria-label="Stories">
   <div class="stage">
     <button class="peek peek-prev" type="button" hidden>
       <span class="peek-cover" aria-hidden="true"></span>
@@ -400,8 +400,10 @@ const initials = profile.displayName
       transition: filter 0.15s ease;
     }
 
-    .peek:hover {
-      filter: brightness(0.75);
+    @media (hover: hover) {
+      .peek:hover {
+        filter: brightness(0.75);
+      }
     }
 
     .peek-prev {

@@ -185,8 +185,10 @@ const moreLinks = [profile.links.email, profile.links.github, profile.links.resu
     text-decoration: none;
   }
 
-  .more-links:hover {
-    text-decoration: underline;
+  @media (hover: hover) {
+    .more-links:hover {
+      text-decoration: underline;
+    }
   }
 
   .bio-link {
@@ -199,8 +201,10 @@ const moreLinks = [profile.links.email, profile.links.github, profile.links.resu
     overflow-wrap: anywhere;
   }
 
-  .bio-link:hover span {
-    text-decoration: underline;
+  @media (hover: hover) {
+    .bio-link:hover span {
+      text-decoration: underline;
+    }
   }
 
   .profile :global(.avatar-wide) {

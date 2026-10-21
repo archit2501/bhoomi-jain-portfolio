@@ -11,7 +11,7 @@ const { links } = profile;
 const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
 ---
 
-<dialog id="contact-sheet" class="sheet" aria-labelledby="contact-title">
+<dialog id="contact-sheet" class="sheet" aria-labelledby="contact-title" data-motion="sheet">
   <div class="panel">
     <div class="head">
       <h2 id="contact-title">Links</h2>
@@ -162,9 +162,11 @@ const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
     cursor: pointer;
   }
 
-  .close:hover,
-  .copy:hover {
-    background: var(--hover-overlay);
+  @media (hover: hover) {
+    .close:hover,
+    .copy:hover {
+      background: var(--hover-overlay);
+    }
   }
 
   ul {
@@ -184,9 +186,11 @@ const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
     border-radius: var(--radius-button);
   }
 
-  a.row:hover,
-  .row-main:hover {
-    background: var(--hover-overlay);
+  @media (hover: hover) {
+    a.row:hover,
+    .row-main:hover {
+      background: var(--hover-overlay);
+    }
   }
 
   .row-main {
