@@ -67,6 +67,9 @@ export function initLike(root: HTMLElement): void {
   let state: { liked: boolean; count?: number } = { liked: isLiked(storage(), id) };
   // What the database last said, and whether to talk to it at all.
   let serverLiked: boolean | undefined;
+  // What a refused save goes back to: the database's last word, or before it has said anything,
+  // what showed before the tap.
+  let settled = state;
   let localOnly = false;
   // Once the visitor has tapped, a slow first read must not undo what they just did.
   let touched = false;
@@ -139,11 +142,13 @@ export function initLike(root: HTMLElement): void {
   void fetch(endpoint, { credentials: 'same-origin' })
     .then(async (res) => {
       if (res.status === 503) localOnly = true;
-      if (!res.ok || touched) return;
+      if (!res.ok) return;
       const data = (await res.json()) as { liked: boolean; count: number };
       serverLiked = data.liked;
+      settled = { liked: data.liked, count: data.count };
+      if (touched) return;
       saveLiked(storage(), id, data.liked);
-      show({ liked: data.liked, count: data.count });
+      show(settled);
     })
     .catch(() => {
       // Offline or no API: the local like stands.
@@ -171,6 +176,7 @@ export function initLike(root: HTMLElement): void {
         if (!res.ok) throw new Error(`like ${res.status}`);
         const data = (await res.json()) as { liked: boolean; count: number };
         serverLiked = data.liked;
+        settled = { liked: data.liked, count: data.count };
         // A newer tap may be waiting: keep showing it while the loop catches up.
         show({ liked: wanted ?? data.liked, count: data.count }, true);
         tell(true);
@@ -178,11 +184,9 @@ export function initLike(root: HTMLElement): void {
       wanted = null;
     } catch {
       wanted = null;
-      if (serverLiked !== undefined) {
-        saveLiked(storage(), id, serverLiked);
-        show({ liked: serverLiked, count: state.count === undefined ? undefined : state.count });
-        tell(true);
-      }
+      saveLiked(storage(), id, settled.liked);
+      show(settled);
+      tell(true);
       if (status) status.textContent = "Couldn't save your like. Try again.";
     } finally {
       syncing = false;

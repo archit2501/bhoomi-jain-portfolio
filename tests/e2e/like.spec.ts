@@ -188,6 +188,30 @@ test('a server that refuses the like puts it back and says so', async ({ page })
   );
 });
 
+test('a tap before the count has loaded, then a refused save, still puts it back', async ({
+  page,
+}) => {
+  // Hold the first read until after the tap, so the save fails with nothing heard from the server.
+  let release!: () => void;
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route('**/api/likes/**', async (route) => {
+    if (route.request().method() === 'POST') {
+      return route.fulfill({ status: 429, json: { ok: false, error: 'rate_limited' } });
+    }
+    await held;
+    return route.fallback();
+  });
+  await page.goto(`/p/${post.id}/`);
+  await likeButton(page).click();
+  await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'false');
+  await expect(view(page).locator('.action-row .status')).toHaveText(
+    "Couldn't save your like. Try again.",
+  );
+  release();
+  await page.waitForTimeout(300);
+  await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'false');
+});
+
 test('with likes switched off, a like still shows, in this browser only', async ({ page }) => {
   await page.route('**/api/likes/**', (route) =>
     route.fulfill({ status: 503, json: { ok: false, error: 'disabled' } }),
