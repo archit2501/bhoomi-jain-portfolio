@@ -1,4 +1,5 @@
-import { isDoubleTap, slideIndex } from '../lib/post-nav';
+import { slideIndex } from '../lib/post-nav';
+import { initLike } from './like';
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -55,37 +56,10 @@ export function enhancePostView(root: HTMLElement): void {
     });
   });
 
-  const like = root.querySelector<HTMLButtonElement>('.like');
-  const burst = root.querySelector<HTMLElement>('.burst');
-  const setLiked = (on: boolean) => like?.setAttribute('aria-pressed', String(on));
-  like?.addEventListener('click', () => setLiked(like.getAttribute('aria-pressed') !== 'true'));
-
-  const heartBurst = () => {
-    setLiked(true);
-    if (!burst || reducedMotion()) return;
-    burst.classList.remove('play');
-    void burst.offsetWidth; // restart the animation
-    burst.classList.add('play');
-  };
-  const media = root.querySelector<HTMLElement>('.media');
-  media?.addEventListener('dblclick', (event) => {
-    if ((event.target as Element).closest('button')) return;
-    event.preventDefault();
-    heartBurst();
-  });
-  let lastTap: number | undefined;
-  media?.addEventListener('pointerup', (event) => {
-    if (event.pointerType !== 'touch' || (event.target as Element).closest('button')) return;
-    if (isDoubleTap(lastTap, event.timeStamp)) {
-      heartBurst();
-      lastTap = undefined;
-    } else {
-      lastTap = event.timeStamp;
-    }
-  });
+  initLike(root);
 
   const share = root.querySelector<HTMLButtonElement>('.share');
-  const shareStatus = root.querySelector('.actions .status');
+  const shareStatus = root.querySelector('.action-row .status');
   share?.addEventListener('click', async () => {
     const url = new URL(share.dataset.href ?? location.pathname, location.origin).href;
     try {
