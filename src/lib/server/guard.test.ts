@@ -6,6 +6,7 @@ import {
   defineWrite,
   MAX_BODY_BYTES,
   sameSite,
+  TURNSTILE_TEST_SECRET,
   underDailyCap,
   verifyTurnstile,
   visitorCookie,
@@ -235,6 +236,15 @@ describe('verifyTurnstile', () => {
     expect(await verifyTurnstile('tok', { secret: undefined, fetch: never })).toBe(false);
     expect(await verifyTurnstile('', { secret: 's', fetch: never })).toBe(false);
     expect(await verifyTurnstile('x'.repeat(2049), { secret: 's', fetch: never })).toBe(false);
+    expect(never).not.toHaveBeenCalled();
+  });
+
+  it("Cloudflare's always-pass test secret passes any token without the network", async () => {
+    const never = answer({ success: false });
+    expect(await verifyTurnstile('any', { secret: TURNSTILE_TEST_SECRET, fetch: never })).toBe(
+      true,
+    );
+    expect(await verifyTurnstile('', { secret: TURNSTILE_TEST_SECRET, fetch: never })).toBe(false);
     expect(never).not.toHaveBeenCalled();
   });
 

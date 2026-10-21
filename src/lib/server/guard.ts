@@ -63,6 +63,7 @@ export interface WriteSpec<T> {
 }
 
 export type ErrorCode =
+  | 'not_found'
   | 'disabled'
   | 'cross_site'
   | 'bad_request'
@@ -104,6 +105,13 @@ export function sameSite(request: Request): boolean {
 const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 /**
+ * Cloudflare's published always-pass test secret. Local runs and the end-to-end tests use it
+ * (.dev.vars.example); since Cloudflare would pass any token for it anyway, the network call is
+ * skipped. Production has a real secret, so this never applies there.
+ */
+export const TURNSTILE_TEST_SECRET = '1x0000000000000000000000000000000AA';
+
+/**
  * Asks Cloudflare whether a Turnstile token is good. Fails closed: no secret, no token, a network
  * error or any answer but success is a "no".
  */
@@ -112,6 +120,7 @@ export async function verifyTurnstile(
   options: { secret: string | undefined; ip?: string; fetch?: typeof fetch },
 ): Promise<boolean> {
   if (!options.secret || !token || token.length > 2048) return false;
+  if (options.secret === TURNSTILE_TEST_SECRET) return true;
   const form = new FormData();
   form.append('secret', options.secret);
   form.append('response', token);

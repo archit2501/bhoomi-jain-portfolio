@@ -101,7 +101,7 @@ test.describe('desktop pop-up', () => {
       'aria-pressed',
       'true',
     );
-    await expect(view.getByText('Liked by you')).toBeVisible();
+    await expect(view.locator('.likes')).toHaveText(/^Liked by you/);
     await view.getByRole('button', { name: 'Like' }).click();
     await expect(view.getByRole('button', { name: 'Like' })).toHaveAttribute(
       'aria-pressed',

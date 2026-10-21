@@ -73,6 +73,22 @@ const { id, when, class: className, ...attributes } = Astro.props;
     font-weight: var(--weight-semibold);
   }
 
+  /* The count rolls digit by digit when it changes (src/scripts/like.ts). */
+  .likes :global(.odometer) {
+    display: inline-flex;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .likes :global(.odometer-cell) {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+
+  .likes :global(.odometer-cell > span) {
+    display: inline-block;
+  }
+
   .date {
     margin: 0;
     padding: 0 var(--space-2);

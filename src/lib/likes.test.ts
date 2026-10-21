@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { isLiked, likeKey, likesLine, saveLiked, type LikeStore } from './likes';
+import {
+  isLiked,
+  likeKey,
+  likesLine,
+  likesParts,
+  odometer,
+  saveLiked,
+  type LikeStore,
+} from './likes';
 
 function memoryStore(): LikeStore & { data: Map<string, string> } {
   const data = new Map<string, string>();
@@ -45,14 +53,21 @@ describe('like storage', () => {
 });
 
 describe('likesLine', () => {
-  it('shows only the visitor’s own like until there is a count', () => {
+  it('shows only the visitor’s own like until the database answers', () => {
     expect(likesLine(true)).toBe('Liked by you');
     expect(likesLine(false)).toBeNull();
   });
 
-  it('keeps counts under 10 to itself', () => {
-    expect(likesLine(false, 9)).toBeNull();
-    expect(likesLine(true, 9)).toBe('Liked by you');
+  it('says nothing about a post nobody has liked', () => {
+    expect(likesLine(false, 0)).toBeNull();
+    expect(likesLine(true, 0)).toBe('Liked by you');
+  });
+
+  it("keeps counts under 10 to itself: 'Liked by visitors'", () => {
+    expect(likesLine(false, 9)).toBe('Liked by visitors');
+    expect(likesLine(false, 1)).toBe('Liked by visitors');
+    expect(likesLine(true, 1)).toBe('Liked by you');
+    expect(likesLine(true, 9)).toBe('Liked by you and others');
   });
 
   it('words counts from 10 up as Instagram does', () => {
@@ -60,5 +75,46 @@ describe('likesLine', () => {
     expect(likesLine(false, 1234)).toBe('1,234 likes');
     expect(likesLine(true, 10)).toBe('Liked by you and 9 others');
     expect(likesLine(true, 1235)).toBe('Liked by you and 1,234 others');
+  });
+});
+
+describe('likesParts', () => {
+  it('splits out the number the odometer rolls', () => {
+    expect(likesParts(true, 25)).toEqual({
+      before: 'Liked by you and ',
+      count: 24,
+      after: ' others',
+    });
+    expect(likesParts(false, 25)).toEqual({ before: '', count: 25, after: ' likes' });
+    expect(likesParts(false, 5)).toEqual({ before: 'Liked by visitors', count: null, after: '' });
+    expect(likesParts(false)).toBeNull();
+  });
+});
+
+describe('odometer', () => {
+  it('rolls only the digits that change, in the direction of the change', () => {
+    expect(odometer(10, 11)).toEqual([
+      { char: '1', roll: null },
+      { char: '1', roll: 'up' },
+    ]);
+    expect(odometer(20, 19)).toEqual([
+      { char: '1', roll: 'down' },
+      { char: '9', roll: 'down' },
+    ]);
+  });
+
+  it('rolls new places in and keeps the grouping comma', () => {
+    expect(
+      odometer(999, 1000)
+        .map((d) => d.char)
+        .join(''),
+    ).toBe('1,000');
+    expect(odometer(999, 1000).every((d) => d.roll === 'up')).toBe(true);
+    expect(
+      odometer(1000, 999)
+        .map((d) => d.char)
+        .join(''),
+    ).toBe('999');
+    expect(odometer(42, 42).every((d) => d.roll === null)).toBe(true);
   });
 });

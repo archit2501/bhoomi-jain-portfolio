@@ -1,9 +1,15 @@
 import { expect, test, type Page } from '@playwright/test';
 import { LIKE_HAPTIC_MS } from '../../src/lib/likes';
-import { posts } from './fixtures';
+import { BASE, posts } from './fixtures';
+import { ownIp, stubTurnstile } from './live';
 
-// The like moment (task 2.2.4), on a post page and in the pop-up. Content-driven: any post works.
+// The like moment (task 2.2.4) and real likes (task 3.1.2), on a post page and in the pop-up.
+// Likes now reach the local database, which every test and device shares, so the UI tests only
+// assert what depends on this visitor's own like ("Liked by you…"); the count test has a post
+// nobody else likes.
 const post = posts[0];
+const counted = posts[5 % posts.length];
+const youLiked = /^Liked by you/;
 
 interface Recorded {
   target: string;
@@ -52,14 +58,24 @@ async function openPost(page: Page) {
   await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'false');
 }
 
-test.beforeEach(async ({ page }) => record(page));
+test.beforeEach(async ({ page }, testInfo) => {
+  await record(page);
+  await stubTurnstile(page);
+  await ownIp(page, testInfo);
+});
+
+/** Waits for the like to reach the database (the optimistic UI shows it before it lands). */
+const saved = (page: Page, method: 'POST' | 'DELETE') =>
+  page.waitForResponse(
+    (r) => r.url().includes('/api/likes/') && r.request().method() === method && r.ok(),
+  );
 
 test('tapping the heart springs the icon alone; tapping again unlikes', async ({ page }) => {
   await openPost(page);
-  await expect(view(page).locator('.likes')).toBeHidden();
+  await expect(view(page).locator('.likes')).not.toContainText('you');
   await likeButton(page).click();
   await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'true');
-  await expect(view(page).locator('.likes')).toHaveText('Liked by you');
+  await expect(view(page).locator('.likes')).toHaveText(youLiked);
 
   const [spring] = await springs(page, 'heart-on');
   expect(spring.duration).toBe(420);
@@ -68,7 +84,7 @@ test('tapping the heart springs the icon alone; tapping again unlikes', async ({
 
   await likeButton(page).click();
   await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'false');
-  await expect(view(page).locator('.likes')).toBeHidden();
+  await expect(view(page).locator('.likes')).not.toContainText('you');
   expect((await springs(page, 'heart-off')).map((a) => a.keyframes[0].scale)).toEqual([0.8]);
 });
 
@@ -78,7 +94,7 @@ test('a double-tap on the media plays the heart burst with the icon spring', asy
   const box = (await media.boundingBox())!;
   await media.dblclick({ position: { x: box.width * 0.3, y: box.height * 0.4 } });
   await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'true');
-  await expect(view(page).locator('.likes')).toHaveText('Liked by you');
+  await expect(view(page).locator('.likes')).toHaveText(youLiked);
 
   const [burst] = await bursts(page);
   expect(burst.duration).toBe(900);
@@ -94,16 +110,24 @@ test('a double-tap on the media plays the heart burst with the icon spring', asy
   await expect(view(page).locator('.burst.flying')).toHaveCount(0, { timeout: 3000 });
 });
 
-test('a like survives reloads, and unliking forgets it', async ({ page }) => {
+test('a like is saved: it survives a reload, even with this browser’s storage cleared', async ({
+  page,
+}) => {
   await openPost(page);
+  const like = saved(page, 'POST');
   await likeButton(page).click();
+  await like;
+  await page.evaluate(() => localStorage.clear());
   await page.reload();
+  // Only the database (through the visitor cookie) can know it now.
   await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'true');
-  await expect(view(page).locator('.likes')).toHaveText('Liked by you');
+  await expect(view(page).locator('.likes')).toHaveText(youLiked);
+  const unlike = saved(page, 'DELETE');
   await likeButton(page).click();
+  await unlike;
   await page.reload();
   await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'false');
-  await expect(view(page).locator('.likes')).toBeHidden();
+  await expect(view(page).locator('.likes')).not.toContainText('you');
 });
 
 test('keyboard users like and unlike with the button', async ({ page }) => {
@@ -142,8 +166,98 @@ test('a like in the pop-up shows on the post page too', async ({ page, isMobile 
   await page.goto('/');
   await page.locator(`#panel-posts a[data-post="${post.id}"]`).click();
   const modal = page.locator('#post-modal .post-view');
+  const like = saved(page, 'POST');
   await modal.getByRole('button', { name: 'Like' }).click();
-  await expect(modal.getByText('Liked by you')).toBeVisible();
+  await expect(modal.locator('.likes')).toHaveText(youLiked);
+  await like;
   await page.goto(`/p/${post.id}/`);
   await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('a server that refuses the like puts it back and says so', async ({ page }) => {
+  await openPost(page);
+  await page.route('**/api/likes/**', (route) =>
+    route.request().method() === 'POST'
+      ? route.fulfill({ status: 429, json: { ok: false, error: 'rate_limited' } })
+      : route.fallback(),
+  );
+  await likeButton(page).click();
+  await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'false');
+  await expect(view(page).locator('.action-row .status')).toHaveText(
+    "Couldn't save your like. Try again.",
+  );
+});
+
+test('with likes switched off, a like still shows, in this browser only', async ({ page }) => {
+  await page.route('**/api/likes/**', (route) =>
+    route.fulfill({ status: 503, json: { ok: false, error: 'disabled' } }),
+  );
+  await openPost(page);
+  await likeButton(page).click();
+  await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'true');
+  await expect(view(page).locator('.likes')).toHaveText('Liked by you');
+  await page.reload();
+  await expect(likeButton(page)).toHaveAttribute('aria-pressed', 'true');
+});
+
+/**
+ * A likes line with a number holds it twice: once for screen readers (visually hidden) and once
+ * as the rolling odometer (hidden from them). Both must read the same.
+ */
+async function expectLine(page: Page, text: string) {
+  const line = view(page).locator('.likes');
+  if (!/\d/.test(text)) return expect(line).toHaveText(text);
+  await expect(line.locator('.visually-hidden')).toHaveText(text);
+  await expect(line.locator('[aria-hidden="true"]')).toHaveText(text);
+}
+
+test.describe('counts', () => {
+  // Exact counts need a post no other test touches, so this runs in one project only.
+  test.skip(
+    ({ browserName, isMobile, viewport }) =>
+      browserName !== 'chromium' || isMobile || viewport?.width !== 1280,
+    'the laptop project only',
+  );
+
+  test("'Liked by visitors' until 10 likes, then the real number, which rolls", async ({
+    page,
+    playwright,
+  }) => {
+    // Other visitors like the post, each a stranger (no cookie) from their own address.
+    const likeAs = async (i: number) => {
+      const stranger = await playwright.request.newContext({ baseURL: BASE });
+      const res = await stranger.post(`/api/likes/${counted.id}`, {
+        headers: { Origin: BASE, 'cf-connecting-ip': `192.0.2.${i}` },
+        data: { turnstile: 'e2e-token' },
+      });
+      await stranger.dispose();
+      return res;
+    };
+    for (let i = 1; i <= 9; i++) expect((await likeAs(i)).ok()).toBe(true);
+
+    await page.goto(`/p/${counted.id}/`);
+    await expectLine(page, 'Liked by visitors');
+
+    // A tenth like: from here the real number shows.
+    expect((await likeAs(10)).ok()).toBe(true);
+    await page.reload();
+    await expectLine(page, '10 likes');
+
+    const like = saved(page, 'POST');
+    await likeButton(page).click();
+    await like;
+    await expectLine(page, 'Liked by you and 10 others');
+
+    // Someone else likes it meanwhile. When she unlikes, the server's count wins, and the
+    // number rolls from what she saw (10) to what the database says (11).
+    expect((await likeAs(11)).ok()).toBe(true);
+    const unlike = saved(page, 'DELETE');
+    await likeButton(page).click();
+    await unlike;
+    await expectLine(page, '11 likes');
+    const rolls = (await animations(page)).filter((a) =>
+      String(a.keyframes[0]?.transform ?? '').startsWith('translateY('),
+    );
+    expect(rolls.length).toBeGreaterThan(0);
+  });
 });
