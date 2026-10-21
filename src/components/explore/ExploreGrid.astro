@@ -1,0 +1,203 @@
+---
+/**
+ * Explore's mosaic (task 4.1.2): every kind of thing she's published in one grid, the way
+ * Instagram's Explore mixes them. Her reels stand tall beside blocks of four posts and stories,
+ * alternating sides (src/lib/explore.ts); the tiles are the same ones her profile uses.
+ */
+import Icon from '../Icon.astro';
+import type { Highlight, Post, Reel } from '../../lib/content-schema';
+import { exploreLayout, interleave } from '../../lib/explore';
+import TypeTile from '../post/TypeTile.astro';
+import PostTile from '../profile/PostTile.astro';
+
+interface Props {
+  posts: { id: string; data: Post }[];
+  reels: { id: string; data: Reel }[];
+  /** The highlights in her row (the intro opens from her photo instead). */
+  highlights: { id: string; data: Highlight }[];
+  /** The first tiles load eagerly where the grid is the page's largest paint. */
+  eager?: boolean;
+}
+
+const { posts, reels, highlights, eager = false } = Astro.props;
+type Tile =
+  | { kind: 'post'; post: Props['posts'][number] }
+  | { kind: 'story'; story: Props['highlights'][number]; tone: 1 | 2 | 3 }
+  | { kind: 'reel'; reel: Props['reels'][number]; tone: 1 | 2 | 3 };
+
+const regular: Tile[] = interleave<Tile>(
+  posts.map((post) => ({ kind: 'post', post })),
+  highlights.map((story, i) => ({ kind: 'story', story, tone: ((i % 3) + 1) as 1 | 2 | 3 })),
+);
+const tall: Tile[] = reels.map((reel, i) => ({
+  kind: 'reel',
+  reel,
+  tone: ((i % 3) + 1) as 1 | 2 | 3,
+}));
+const tiles = exploreLayout(tall, regular);
+const stories = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
+---
+
+<ul class="explore-grid" role="list">
+  {tiles.map(({ item, tall: isTall }, i) =>
+    item.kind === 'post' ? (
+      <PostTile post={item.post} eager={eager && i < 3} />
+    ) : item.kind === 'story' ? (
+      <li class="tile story">
+        <a
+          href={`/stories/${item.story.id}/`}
+          data-story={item.story.id}
+          aria-label={`Highlight: ${item.story.data.label}, ${stories(item.story.data.frames.length)}`}
+        >
+          <TypeTile
+            headline={item.story.data.label}
+            detail={stories(item.story.data.frames.length)}
+            tone={item.tone}
+          />
+          <span class="badge story-badge" aria-hidden="true" />
+        </a>
+      </li>
+    ) : (
+      <li
+        class:list={['tile', 'reel', { tall: isTall }]}
+        style={isTall ? `grid-column: ${isTall.column}` : undefined}
+      >
+        <a
+          href={`/reels/${item.reel.id}/`}
+          data-reel={item.reel.id}
+          aria-label={`Reel: ${item.reel.data.title}`}
+        >
+          {item.reel.data.poster ? (
+            <>
+              <img
+                class="backdrop"
+                src={item.reel.data.poster}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+              />
+              <img
+                class="poster"
+                src={item.reel.data.poster}
+                alt=""
+                width="540"
+                height="960"
+                loading={eager && i < 3 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+            </>
+          ) : (
+            <TypeTile headline={item.reel.data.title} tone={item.tone} />
+          )}
+          <span class="badge" aria-hidden="true">
+            <Icon name="reels" filled size={20} />
+          </span>
+        </a>
+      </li>
+    ),
+  )}
+</ul>
+
+<style>
+  /* Three columns; "dense" lets the four regular tiles of a block fill in around its tall reel. */
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: row dense;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .story a,
+  .reel a {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
+    background: var(--story-end);
+  }
+
+  /* A tall reel spans two rows, and takes its height from them. */
+  .reel.tall {
+    grid-row: span 2;
+  }
+
+  .reel.tall a {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  /*
+   * A tile is narrower than a reel's 9:16 poster, and cropping would cut its title: the poster
+   * shows whole, centred over a blurred copy of itself.
+   */
+  .reel img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .reel .backdrop {
+    object-fit: cover;
+    filter: blur(20px) brightness(0.7);
+    transform: scale(1.2);
+  }
+
+  .reel .poster {
+    object-fit: contain;
+  }
+
+  .story a::after,
+  .reel a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transition: background-color 0.1s cubic-bezier(0.17, 0.17, 0, 1);
+  }
+
+  @media (hover: hover) {
+    .story a:hover::after,
+    .reel a:hover::after {
+      background: rgb(0 0 0 / 30%);
+    }
+  }
+
+  .story a:focus-visible,
+  .reel a:focus-visible {
+    outline: none;
+  }
+
+  .story a:focus-visible::after,
+  .reel a:focus-visible::after {
+    box-shadow: var(--focus-media);
+  }
+
+  .badge {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    z-index: 1;
+    color: #ffffff;
+    filter: drop-shadow(0 0 2px rgb(0 0 0 / 50%));
+  }
+
+  /* A story's mark: a ring, as on her highlights. */
+  .story-badge {
+    width: 18px;
+    height: 18px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+  }
+
+  @media (min-width: 768px) {
+    .explore-grid {
+      gap: 4px;
+    }
+  }
+</style>
