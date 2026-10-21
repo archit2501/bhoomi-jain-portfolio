@@ -1,0 +1,158 @@
+{
+  "bhoomi": {
+    "source": "Bhoomi Jain 2026 résumé (PDF), transcribed word for word. The phone number is left out on purpose.",
+    "name": "Bhoomi Jain",
+    "location": "Delhi, India",
+    "email": "bhoomijain10@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/bhoomi21",
+    "experience": {
+      "themobiadz": {
+        "org": "TheMobiAdz",
+        "role": "Front-End & UI/UX Developer (Intern)",
+        "start": "2023-07",
+        "end": "2023-09",
+        "bullets": [
+          "Engineered 12+ responsive, cross-platform web interface modules for a Metaverse-themed product using HTML5, CSS3, JavaScript, and Figma-driven design systems, lifting average user interaction time by 35% in 8 weeks.",
+          "Constructed reusable component layouts in close collaboration with creative and product partners, accelerating brand engagement by 20% through structured A/B testing validated via Google Analytics and Hotjar heatmaps.",
+          "Profiled and refactored render performance across iterations, reducing layout shift and improving Lighthouse mobile scores by 18 points across 3 high-traffic breakpoints."
+        ]
+      },
+      "wearduds": {
+        "org": "Wearduds",
+        "role": "Web Content & Social Media Associate (Intern)",
+        "start": "2023-05",
+        "end": "2023-07",
+        "bullets": [
+          "Authored a data-informed content strategy integrating analytics dashboards and audience segmentation, amplifying engagement by 30% and reach by 20% across owned channels in 12 weeks.",
+          "Produced 25+ web-ready multimedia assets—blog landing visuals, banners, and ad creatives—using Figma, Canva, and Adobe Spark, generating a 15% uplift in click-through rate."
+        ]
+      },
+      "gatsby-club": {
+        "org": "Gatsby Club",
+        "role": "Marketing & Digital Operations (Intern)",
+        "start": "2022-05",
+        "end": "2023-04",
+        "bullets": [
+          "Spearheaded multi-channel campaigns across Instagram, Facebook, and LinkedIn, increasing audience engagement by 20% across 3 platforms through funnel-tested creatives and iterative copy variants.",
+          "Automated 4 reporting dashboards in Google Data Studio with Excel macros, eliminating 3 hrs/week of manual effort and improving campaign tracking efficiency by 10%."
+        ]
+      }
+    },
+    "projects": {
+      "smartblog-ai": {
+        "name": "SmartBlog AI",
+        "subtitle": "Full-Stack AI Blogging Platform",
+        "years": "2024 – 2025",
+        "stack": [
+          "ReactJS",
+          "Tailwind",
+          "React Router",
+          "React Query",
+          "Node.js",
+          "MongoDB",
+          "JWT"
+        ],
+        "bullets": [
+          "Crafted a responsive single-page web application in ReactJS with reusable functional components, React Router-based navigation, and Tailwind utility-first styling, delivering a mobile-first UI across 320px–1440px breakpoints.",
+          "Implemented secure authentication and protected routes with JWT, React Context, and bcrypt-hashed credentials, integrating frontend forms with a Node.js/Express REST API and Mongoose-backed MongoDB schemas.",
+          "Modularized the dashboard into composable UI primitives and instrumented client-side caching with React Query, cutting redundant network calls by ~45%; validated component logic with unit and integration tests."
+        ]
+      },
+      "conversational-ai-web-app": {
+        "name": "Conversational AI Web App",
+        "years": "2024",
+        "stack": ["ReactJS", "JavaScript", "CSS3", "FastAPI", "REST", "AWS EC2"],
+        "bullets": [
+          "Devised a real-time chat interface in ReactJS with optimistic UI updates, controlled inputs, and custom hooks for streaming responses, supporting 500+ test sessions without UI regressions.",
+          "Integrated the React client with a FastAPI backend over REST and deployed to AWS EC2, slashing end-to-end latency by 40% through request batching, lazy loading, and asset compression."
+        ]
+      },
+      "ai-resume-shortlisting-tool": {
+        "name": "AI Resume Shortlisting Tool",
+        "subtitle": "Web UI",
+        "years": "2024",
+        "stack": ["JavaScript", "HTML5", "CSS3", "Bootstrap", "Flask"],
+        "bullets": [
+          "Designed a recruiter-facing web interface with Bootstrap grid, client-side form validation, and drag-and-drop resume upload, surfacing skill-gap insights with sub-1.5s perceived response time."
+        ]
+      }
+    },
+    "skills": {
+      "Front-End": [
+        "ReactJS",
+        "JavaScript (ES6+)",
+        "TypeScript (familiar)",
+        "HTML5",
+        "CSS3",
+        "Responsive Design",
+        "Tailwind CSS",
+        "Bootstrap",
+        "SASS/LESS",
+        "Material Design",
+        "jQuery",
+        "React Native (familiar)"
+      ],
+      "Back-End & APIs": [
+        "Node.js",
+        "Express.js",
+        "REST APIs",
+        "JWT Authentication",
+        "MongoDB",
+        "MySQL",
+        "FastAPI",
+        "Postman"
+      ],
+      "Testing & Tooling": [
+        "Jest",
+        "React Testing Library",
+        "ESLint",
+        "Webpack",
+        "npm",
+        "Chrome DevTools",
+        "Lighthouse",
+        "Hotjar",
+        "Figma"
+      ],
+      "DevOps, Cloud & Other": [
+        "Git",
+        "GitHub",
+        "AWS (EC2, S3)",
+        "Docker",
+        "Vercel",
+        "Netlify",
+        "Cross-Platform Component Architecture",
+        "A/B Testing",
+        "WBS & Estimation",
+        "Agile Collaboration"
+      ]
+    },
+    "education": {
+      "amity-mca": {
+        "degree": "Master of Computer Applications (MCA)",
+        "school": "Amity University, Uttar Pradesh",
+        "start": "2025-07",
+        "end": "2027-06",
+        "expected": true
+      },
+      "amity-bca": {
+        "degree": "Bachelor of Computer Applications (BCA)",
+        "school": "Amity University, Uttar Pradesh",
+        "start": "2022-09",
+        "end": "2025-04"
+      }
+    },
+    "achievements": {
+      "cybercup-4-winner": {
+        "title": "Winner — CyberCup 4.0 National-Level Hackathon",
+        "detail": "Led a team to 1st place out of 160 competing teams, delivering a working prototype end-to-end under a tight 36-hour build window."
+      }
+    },
+    "certifications": [
+      { "name": "AWS Cloud Practitioner Essentials" },
+      { "name": "Microsoft Azure AI Fundamentals (AI-900)", "issuer": "Microsoft / Coursera" },
+      { "name": "Microsoft Azure Fundamentals (AZ-900)", "issuer": "Microsoft / Coursera" },
+      { "name": "Introduction to Cybersecurity", "issuer": "Cisco" },
+      { "name": "Elements of AI", "issuer": "Univ. of Helsinki" }
+    ]
+  }
+}

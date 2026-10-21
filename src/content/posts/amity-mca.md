@@ -1,5 +1,7 @@
 ---
-title: 'Master of Computer Applications'
+title: 'Master of Computer Applications (MCA)'
+kind: 'education'
+resumeRef: 'education/amity-mca'
 order: 8
 date: '2025-07'
 dateLabel: 'Jul 2025 – Jun 2027 (expected)'

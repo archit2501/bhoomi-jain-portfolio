@@ -1,0 +1,23 @@
+{
+  "hire": {
+    "order": 1,
+    "label": "Hire me",
+    "opener": "Hi! Thanks for stopping by. Tell me about the role and your team, and I'll reply from my inbox."
+  },
+  "collaborate": {
+    "order": 2,
+    "label": "Collaborate",
+    "opener": "Hey! Building something? Tell me what it is and where you'd like a hand."
+  },
+  "hello": {
+    "order": 3,
+    "label": "Just say hi",
+    "opener": "Hi there! Say anything: feedback on this site, a question, or just hello."
+  },
+  "ask-ai": {
+    "order": 4,
+    "label": "Ask my AI",
+    "opener": "I'm an AI assistant that answers from Bhoomi's résumé and projects. Ask me about her work.",
+    "ai": true
+  }
+}

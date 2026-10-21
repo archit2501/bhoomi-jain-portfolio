@@ -1,0 +1,62 @@
+{
+  "gatsby-club": {
+    "date": "2022-05",
+    "kind": "job",
+    "title": "Started as Marketing & Digital Operations (Intern)",
+    "org": "Gatsby Club",
+    "ref": "experience/gatsby-club"
+  },
+  "amity-bca-start": {
+    "date": "2022-09",
+    "kind": "education",
+    "title": "Started the Bachelor of Computer Applications (BCA)",
+    "org": "Amity University, Uttar Pradesh",
+    "ref": "education/amity-bca"
+  },
+  "wearduds": {
+    "date": "2023-05",
+    "kind": "job",
+    "title": "Started as Web Content & Social Media Associate (Intern)",
+    "org": "Wearduds",
+    "ref": "experience/wearduds"
+  },
+  "themobiadz": {
+    "date": "2023-07",
+    "kind": "job",
+    "title": "Started as Front-End & UI/UX Developer (Intern)",
+    "org": "TheMobiAdz",
+    "ref": "experience/themobiadz"
+  },
+  "conversational-ai-web-app": {
+    "date": "2024",
+    "kind": "project",
+    "title": "Built the Conversational AI Web App",
+    "ref": "projects/conversational-ai-web-app"
+  },
+  "ai-resume-shortlisting-tool": {
+    "date": "2024",
+    "kind": "project",
+    "title": "Built the AI Resume Shortlisting Tool",
+    "ref": "projects/ai-resume-shortlisting-tool"
+  },
+  "smartblog-ai": {
+    "date": "2024",
+    "kind": "project",
+    "title": "Started SmartBlog AI",
+    "ref": "projects/smartblog-ai"
+  },
+  "amity-bca-end": {
+    "date": "2025-04",
+    "kind": "education",
+    "title": "Finished the Bachelor of Computer Applications (BCA)",
+    "org": "Amity University, Uttar Pradesh",
+    "ref": "education/amity-bca"
+  },
+  "amity-mca-start": {
+    "date": "2025-07",
+    "kind": "education",
+    "title": "Started the Master of Computer Applications (MCA)",
+    "org": "Amity University, Uttar Pradesh",
+    "ref": "education/amity-mca"
+  }
+}

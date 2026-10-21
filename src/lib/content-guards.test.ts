@@ -1,12 +1,31 @@
 import { describe, expect, it, vi } from 'vitest';
 import { assertContent, checkContent, type SiteContent } from './content-guards';
 import {
+  dmThreadSchema,
+  eventSchema,
+  figureSchema,
   highlightSchema,
   postSchema,
   profileSchema,
   testimonialSchema,
   type Figure,
+  type Resume,
 } from './content-schema';
+
+/** No résumé entries, so the résumé checks (tested in resume.test.ts) stay out of the way. */
+const emptyResume: Resume = {
+  source: 'test',
+  name: 'Bhoomi Jain',
+  location: 'Delhi, India',
+  email: 'test@example.com',
+  linkedin: 'https://www.linkedin.com/in/example',
+  experience: {},
+  projects: {},
+  skills: {},
+  education: {},
+  achievements: {},
+  certifications: [],
+};
 
 const figure = (value: string, label: string, verified = true): Figure => ({
   value,
@@ -27,6 +46,7 @@ function site(overrides: Partial<SiteContent> = {}): SiteContent {
       stats: ['revenue', 'deals', 'workflow'],
       links: { linkedin: 'https://www.linkedin.com/in/example' },
     }),
+    resume: emptyResume,
     figures: {
       revenue: figure('$100K+', 'revenue'),
       deals: figure('7+', 'deals'),
@@ -38,6 +58,7 @@ function site(overrides: Partial<SiteContent> = {}): SiteContent {
         body: 'I generated $100K+ in revenue through 7+ sales.',
         data: postSchema.parse({
           title: '$100K+ in revenue',
+          kind: 'log',
           order: 1,
           pinned: true,
           date: '2026-05-01',
@@ -59,6 +80,8 @@ function site(overrides: Partial<SiteContent> = {}): SiteContent {
       },
     ],
     reels: [{ id: 'revenue', data: { title: '$100K+ in revenue', order: 1, figure: 'revenue' } }],
+    events: [],
+    dmThreads: [],
     ...overrides,
   };
 }
@@ -73,6 +96,7 @@ const post = (
   body,
   data: postSchema.parse({
     title: id,
+    kind: 'log',
     order,
     date: '2025-01-01',
     media: [{ type: 'text', headline: id }],
@@ -166,6 +190,96 @@ describe('checkContent', () => {
   });
 });
 
+describe('résumé, events, DM threads and privacy', () => {
+  const thread = (order: number, ai = false) =>
+    dmThreadSchema.parse({ order, label: `t${order}`, opener: 'Hi', ai });
+
+  it('passes the résumé checks through, so a wrong job title fails the build', () => {
+    const resume: Resume = {
+      ...emptyResume,
+      experience: {
+        acme: {
+          org: 'Acme',
+          role: 'Developer (Intern)',
+          start: '2023-07',
+          end: '2023-09',
+          bullets: ['x'],
+        },
+      },
+    };
+    const content = site({
+      resume,
+      posts: [
+        post('acme', 1, { kind: 'experience', resumeRef: 'experience/acme', title: 'AI Lead' }),
+      ],
+    });
+    expect(checkContent(content, { requireVerified: false }).errors).toEqual([
+      'post acme: title "AI Lead" differs from the résumé\'s "Developer (Intern)"',
+    ]);
+  });
+
+  it('accepts events that point at any résumé list', () => {
+    const resume: Resume = {
+      ...emptyResume,
+      projects: { app: { name: 'App', years: '2024', stack: ['React'], bullets: ['x'] } },
+      experience: {
+        acme: { org: 'Acme', role: 'Dev', start: '2023-07', end: '2023-09', bullets: ['x'] },
+      },
+      education: {
+        bca: { degree: 'BCA', school: 'Uni', start: '2022-09', end: '2025-04', expected: false },
+      },
+      achievements: { win: { title: 'Winner', detail: '1st' } },
+      certifications: [{ name: 'Cert' }],
+    };
+    const events = [
+      'projects/app',
+      'experience/acme',
+      'education/bca',
+      'achievements/win',
+      'certifications',
+    ].map((ref, i) => ({
+      id: `e${i}`,
+      data: eventSchema.parse({ date: '2024', kind: 'site', title: 'x', ref }),
+    }));
+    const { errors } = checkContent(site({ resume, events }), { requireVerified: false });
+    expect(errors.filter((e) => e.startsWith('event'))).toEqual([]);
+  });
+
+  it('rejects events that point at something not on the résumé', () => {
+    const event = (ref: string) =>
+      eventSchema.parse({ date: '2024', kind: 'project', title: 'x', ref });
+    const content = site({ events: [{ id: 'e', data: event('projects/ghost') }] });
+    expect(checkContent(content, { requireVerified: false }).errors).toEqual([
+      'event e: "projects/ghost" isn\'t on the résumé',
+    ]);
+  });
+
+  it('wants unique DM thread order and at most one AI thread', () => {
+    const content = site({
+      dmThreads: [
+        { id: 'a', data: thread(1, true) },
+        { id: 'b', data: thread(1) },
+        { id: 'c', data: thread(2, true) },
+      ],
+    });
+    expect(checkContent(content, { requireVerified: false }).errors).toEqual([
+      'dm thread b: order 1 is already used',
+      'only one DM thread can be the AI assistant',
+    ]);
+  });
+
+  it('fails on a phone number anywhere: captions, stories, the résumé', () => {
+    const content = site({
+      resume: { ...emptyResume, location: 'Delhi, call +91 98765 43210' },
+      posts: [post('a', 1, {}, 'Reach me at 98765-43210')],
+    });
+    expect(checkContent(content, { requireVerified: false }).errors).toEqual([
+      'a phone number is in the content: "98765-43210"',
+      'a phone number is in the content: "+91 98765 43210"',
+    ]);
+  });
+});
+
 describe('assertContent', () => {
   it('throws with every error listed', () => {
     const content = site({ posts: [post('a', 1, {}, '')] });
@@ -205,6 +319,23 @@ describe('schemas', () => {
       media: [{ type: 'image', src: '/a.webp', alt: '  ' }],
     });
     expect(result.success).toBe(false);
+  });
+
+  it('rejects a figure with both or neither of value and count', () => {
+    const base = { label: 'x', source: 's', verified: true };
+    expect(figureSchema.safeParse({ ...base, value: '3', count: 'projects' }).success).toBe(false);
+    expect(figureSchema.safeParse(base).success).toBe(false);
+    expect(figureSchema.safeParse({ ...base, count: 'projects' }).success).toBe(true);
+  });
+
+  it('keeps Notes to 60 characters, as Instagram does', () => {
+    const profile = site().profile;
+    expect(profileSchema.safeParse({ ...profile, note: { text: 'x'.repeat(60) } }).success).toBe(
+      true,
+    );
+    expect(profileSchema.safeParse({ ...profile, note: { text: 'x'.repeat(61) } }).success).toBe(
+      false,
+    );
   });
 
   it('rejects photos in a text-only highlight', () => {

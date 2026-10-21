@@ -1,5 +1,7 @@
 ---
 title: 'Certifications'
+kind: 'certification'
+resumeRef: 'certifications'
 order: 10
 media:
   - type: 'text'

@@ -1,5 +1,7 @@
 ---
 title: 'Conversational AI Web App'
+kind: 'project'
+resumeRef: 'projects/conversational-ai-web-app'
 order: 2
 pinned: true
 date: '2024'

@@ -1,5 +1,7 @@
 ---
-title: 'Web Content & Social Media Associate intern'
+title: 'Web Content & Social Media Associate (Intern)'
+kind: 'experience'
+resumeRef: 'experience/wearduds'
 order: 6
 date: '2023-05'
 dateLabel: 'May – Jul 2023'

@@ -1,5 +1,7 @@
 ---
-title: 'Front-End & UI/UX Developer intern'
+title: 'Front-End & UI/UX Developer (Intern)'
+kind: 'experience'
+resumeRef: 'experience/themobiadz'
 order: 5
 date: '2023-07'
 dateLabel: 'Jul – Sep 2023'

@@ -1,5 +1,7 @@
 ---
 title: 'SmartBlog AI'
+kind: 'project'
+resumeRef: 'projects/smartblog-ai'
 order: 1
 pinned: true
 date: '2024'

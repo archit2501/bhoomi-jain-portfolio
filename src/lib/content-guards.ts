@@ -1,18 +1,37 @@
 import {
   LIMITS,
+  type DmThread,
+  type Event,
   type Figure,
   type Highlight,
   type Post,
   type Profile,
   type Reel,
+  type Resume,
 } from './content-schema';
+import { checkResume, findPhoneNumbers } from './resume';
 
 export interface SiteContent {
   profile: Profile;
+  resume: Resume;
+  /** Resolved: counted figures already carry their value from the résumé. */
   figures: Record<string, Figure>;
   posts: { id: string; data: Post; body: string }[];
   highlights: { id: string; data: Highlight }[];
   reels: { id: string; data: Reel }[];
+  events: { id: string; data: Event }[];
+  dmThreads: { id: string; data: DmThread }[];
+}
+
+/** Every résumé entry an event may point at, as "list/key" (or "certifications"). */
+function resumeRefs(resume: Resume): Set<string> {
+  return new Set([
+    ...Object.keys(resume.projects).map((k) => `projects/${k}`),
+    ...Object.keys(resume.experience).map((k) => `experience/${k}`),
+    ...Object.keys(resume.education).map((k) => `education/${k}`),
+    ...Object.keys(resume.achievements).map((k) => `achievements/${k}`),
+    'certifications',
+  ]);
 }
 
 export interface GuardOptions {
@@ -80,6 +99,30 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
   for (const { id, data } of content.reels) {
     requireMention(`reel ${id}`, data.figure, data.title);
   }
+
+  errors.push(...checkResume(content.resume, content.posts));
+
+  const refs = resumeRefs(content.resume);
+  for (const { id, data } of content.events) {
+    if (data.ref && !refs.has(data.ref)) {
+      errors.push(`event ${id}: "${data.ref}" isn't on the résumé`);
+    }
+  }
+
+  const threadOrders = new Set<number>();
+  for (const { id, data } of content.dmThreads) {
+    if (threadOrders.has(data.order))
+      errors.push(`dm thread ${id}: order ${data.order} is already used`);
+    threadOrders.add(data.order);
+  }
+  if (content.dmThreads.filter((t) => t.data.ai).length > 1) {
+    errors.push('only one DM thread can be the AI assistant');
+  }
+
+  // Her phone number is on the résumé PDF but never on the site, in any field of any entry.
+  const phones = findPhoneNumbers(JSON.stringify({ ...content, resume: undefined }));
+  phones.push(...findPhoneNumbers(JSON.stringify(content.resume)));
+  for (const phone of phones) errors.push(`a phone number is in the content: "${phone}"`);
 
   const unverified = Object.entries(figures)
     .filter(([, f]) => !f.verified)

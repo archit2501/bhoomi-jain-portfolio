@@ -1,8 +1,8 @@
 {
   "projects": {
-    "value": "3",
+    "count": "projects",
     "label": "projects",
-    "source": "Resume 2026, Projects: SmartBlog AI, Conversational AI Web App, AI Resume Shortlisting Tool",
+    "source": "Resume 2026, Projects: counted from src/content/resume.json",
     "verified": true
   },
   "cybercup": {
@@ -12,9 +12,9 @@
     "verified": true
   },
   "certifications": {
-    "value": "5",
+    "count": "certifications",
     "label": "certifications",
-    "source": "Resume 2026: AWS Cloud Practitioner Essentials, Microsoft Azure AI Fundamentals (AI-900), Microsoft Azure Fundamentals (AZ-900), Introduction to Cybersecurity (Cisco), Elements of AI (Univ. of Helsinki)",
+    "source": "Resume 2026, Certifications & Achievements: counted from src/content/resume.json",
     "verified": true
   },
   "network-calls": {
