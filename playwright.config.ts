@@ -29,7 +29,8 @@ export default defineConfig({
   ],
   webServer: {
     // --ignore-lock keeps astro preview in the foreground; Astro 7 backgrounds it when an agent runs it.
-    command: `npm run build && npm run preview -- --port ${PORT} --ignore-lock`,
+    // A fresh local database and the Turnstile test secret first (scripts/e2e-setup.mjs).
+    command: `node scripts/e2e-setup.mjs && npm run build && npm run preview -- --port ${PORT} --ignore-lock`,
     url: `http://localhost:${PORT}`,
     // Never reuse a running server: on a shared machine it may be another project's site.
     // A busy port then fails loudly instead of testing the wrong pages.

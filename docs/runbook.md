@@ -24,7 +24,7 @@ Every write goes through one pipeline (`src/lib/server/guard.ts`), in this order
 3. In GitHub, go to the repository, then Settings, Secrets and variables, Actions:
    - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
    - Variables: `SITE_URL` (the workers.dev URL until her domain is connected, then `https://<her domain>`), and `DEPLOY_ENABLED` = `true`.
-4. Create a Turnstile widget (dashboard, Turnstile, Add widget) for her domain and the workers.dev host. Then set its secret on both Workers. Previews can use Cloudflare's always-pass test secret, `1x0000000000000000000000000000000AA`:
+4. Create a Turnstile widget (dashboard, Turnstile, Add widget) for her domain and the workers.dev host, in **Managed** mode. Add its site key as the repository variable `TURNSTILE_SITE_KEY` (it's public). Then set its secret on both Workers. Previews keep Cloudflare's test keys: the always-pass test secret, `1x0000000000000000000000000000000AA`, accepts the test site key the preview build uses:
 
    ```bash
    npx wrangler secret put TURNSTILE_SECRET -c wrangler.jsonc                  # the real secret key

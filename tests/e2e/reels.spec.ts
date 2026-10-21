@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { feedOrder } from '../../src/lib/reels';
 import { pageTitle, reels, videoReels } from './fixtures';
+import { ownIp, stubTurnstile } from './live';
 
 // Reels v2 (task 2.3.1): the profile's Reels tab, and the full-screen feed at /reels/<id>/.
 // Content-driven: the reels, and which of them have a video and poster, come from src/content.
@@ -111,12 +112,19 @@ test.describe('the feed', () => {
     );
   });
 
-  test('a like on the rail survives a reload', async ({ page }) => {
+  test('a like on the rail is saved and survives a reload', async ({ page }, testInfo) => {
+    await stubTurnstile(page);
+    await ownIp(page, testInfo);
     await page.goto(`/reels/${first.id}/`);
     await page.evaluate(() => localStorage.clear());
     const like = () => item(page, first.id).getByRole('button', { name: 'Like' });
+    const saved = page.waitForResponse(
+      (r) => r.url().endsWith(`/api/likes/reel-${first.id}`) && r.request().method() === 'POST',
+    );
     await like().click();
     await expect(like()).toHaveAttribute('aria-pressed', 'true');
+    expect((await saved).ok()).toBe(true);
+    await page.evaluate(() => localStorage.clear());
     await page.reload();
     await expect(like()).toHaveAttribute('aria-pressed', 'true');
   });
@@ -243,7 +251,11 @@ test.describe('video reels', () => {
     await expect(reel.getByRole('button', { name: 'Play' })).toBeVisible();
   });
 
-  test('a tap on the video pauses it; a double-tap likes it instead', async ({ page }) => {
+  test('a tap on the video pauses it; a double-tap likes it instead', async ({
+    page,
+  }, testInfo) => {
+    await stubTurnstile(page);
+    await ownIp(page, testInfo);
     await page.goto(`/reels/${firstVideo.id}/`);
     await page.evaluate(() => localStorage.clear());
     const reel = item(page, firstVideo.id);

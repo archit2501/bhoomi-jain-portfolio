@@ -112,6 +112,9 @@ jobs:
         env:
           REQUIRE_VERIFIED: '1'
           SITE_URL: ${{ vars.SITE_URL }}
+          # Turnstile's public site key; without it the build falls back to the test key, which
+          # the production secret rejects (every write would fail).
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
 
       - name: Brand guard on the built site and the domain
         run: npx vitest run tests/brand-guard.test.ts
