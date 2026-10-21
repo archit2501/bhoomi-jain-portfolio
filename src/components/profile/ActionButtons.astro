@@ -59,8 +59,10 @@ const { links } = Astro.props;
     background: var(--accent);
   }
 
-  .primary:hover {
-    background: var(--accent-hover);
+  @media (hover: hover) {
+    .primary:hover {
+      background: var(--accent-hover);
+    }
   }
 
   .secondary {
@@ -68,8 +70,10 @@ const { links } = Astro.props;
     background: var(--button-secondary);
   }
 
-  .secondary:hover {
-    background: var(--button-secondary-hover);
+  @media (hover: hover) {
+    .secondary:hover {
+      background: var(--button-secondary-hover);
+    }
   }
 
   @media (min-width: 768px) {

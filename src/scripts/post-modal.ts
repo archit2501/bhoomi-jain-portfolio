@@ -53,6 +53,7 @@ export function initPostModal(): void {
     }
     // The tile grows into the pop-up's media: the name moves from one to the other mid-transition.
     let media: HTMLElement | null = null;
+    dialog.classList.add('in-view-transition');
     const transition = document.startViewTransition(() => {
       from.style.setProperty('view-transition-name', 'none');
       if (!show(slug)) return;
@@ -61,6 +62,7 @@ export function initPostModal(): void {
       media?.style.setProperty('view-transition-name', `post-${slug}`);
     });
     void transition.finished.finally(() => {
+      dialog.classList.remove('in-view-transition');
       from.style.removeProperty('view-transition-name');
       media?.style.removeProperty('view-transition-name');
     });

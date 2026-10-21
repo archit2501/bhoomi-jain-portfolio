@@ -118,8 +118,10 @@ const count = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
     white-space: nowrap;
   }
 
-  .highlight:hover .ring {
-    border-color: var(--text-secondary);
+  @media (hover: hover) {
+    .highlight:hover .ring {
+      border-color: var(--text-secondary);
+    }
   }
 
   @media (min-width: 768px) {

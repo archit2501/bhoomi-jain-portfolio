@@ -9,7 +9,7 @@ interface Props {
 const playable = Astro.props.reels.filter((r) => r.data.video);
 ---
 
-<dialog id="reel-player" class="reel-player" aria-label="Reels">
+<dialog data-motion="fade" id="reel-player" class="reel-player" aria-label="Reels">
   <button class="reel-close" type="button" aria-label="Close">
     <Icon name="close" size={28} />
   </button>

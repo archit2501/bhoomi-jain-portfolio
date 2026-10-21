@@ -73,8 +73,10 @@ const { reels } = Astro.props;
     transition: background-color 0.1s cubic-bezier(0.17, 0.17, 0, 1);
   }
 
-  .reel-link:hover::after {
-    background: rgb(0 0 0 / 30%);
+  @media (hover: hover) {
+    .reel-link:hover::after {
+      background: rgb(0 0 0 / 30%);
+    }
   }
 
   .reel-link:focus-visible {

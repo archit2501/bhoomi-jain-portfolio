@@ -78,8 +78,10 @@ const tone = tileTone(order);
     transition: background-color 0.1s cubic-bezier(0.17, 0.17, 0, 1);
   }
 
-  .tile a:hover::after {
-    background: rgb(0 0 0 / 30%);
+  @media (hover: hover) {
+    .tile a:hover::after {
+      background: rgb(0 0 0 / 30%);
+    }
   }
 
   /* The ring is drawn on the overlay, above the photo or tile, in two tones (tokens.css). */

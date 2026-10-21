@@ -90,6 +90,150 @@ a {
   }
 }
 
+/*
+ * Dialog motion, from Instagram's own values (tokens.css). Opt in with data-motion:
+ *   modal: fades in from 1.2× scale in 100ms (the post pop-up);
+ *   sheet: slides up on a spring on phones, opens like a modal on desktop (the links sheet);
+ *   fade:  fades (the full-screen story and reel players).
+ * Closing plays too: the dialog stays in the top layer while it animates out, ignoring clicks.
+ */
+dialog[data-motion] {
+  transition:
+    opacity var(--dur-modal) var(--ease-out),
+    transform var(--dur-modal) var(--ease-out),
+    display var(--dur-modal) allow-discrete,
+    overlay var(--dur-modal) allow-discrete;
+}
+
+dialog[data-motion]::backdrop {
+  opacity: 0;
+  transition:
+    opacity var(--dur-fade-in) var(--ease-ig),
+    display var(--dur-fade-in) allow-discrete,
+    overlay var(--dur-fade-in) allow-discrete;
+}
+
+dialog[data-motion][open]::backdrop {
+  opacity: 1;
+}
+
+@starting-style {
+  dialog[data-motion][open]::backdrop {
+    opacity: 0;
+  }
+}
+
+dialog[data-motion]:not([open]),
+dialog[data-motion]:not([open])::backdrop {
+  pointer-events: none;
+}
+
+dialog[data-motion='modal'],
+dialog[data-motion='fade'] {
+  opacity: 0;
+}
+
+dialog[data-motion='modal'] {
+  transform: scale(var(--modal-from-scale));
+}
+
+dialog[data-motion='modal'][open],
+dialog[data-motion='fade'][open] {
+  opacity: 1;
+  transform: none;
+}
+
+dialog[data-motion='fade'] {
+  transition-duration: var(--dur-fade-in);
+}
+
+@starting-style {
+  dialog[data-motion='modal'][open] {
+    opacity: 0;
+    transform: scale(var(--modal-from-scale));
+  }
+
+  dialog[data-motion='fade'][open] {
+    opacity: 0;
+  }
+}
+
+/* While the tile grows into the pop-up (a view transition), the pop-up itself doesn't scale. */
+dialog[data-motion].in-view-transition {
+  transition: none;
+}
+
+@media (max-width: 767px) {
+  dialog[data-motion='sheet'] {
+    transform: translateY(100%);
+    transition-duration: var(--dur-sheet-out);
+    transition-timing-function: var(--ease-ig);
+  }
+
+  dialog[data-motion='sheet'][open] {
+    transform: none;
+    transition-duration: var(--dur-sheet-in);
+    transition-timing-function: var(--ease-sheet);
+  }
+
+  @starting-style {
+    dialog[data-motion='sheet'][open] {
+      transform: translateY(100%);
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  dialog[data-motion='sheet'] {
+    opacity: 0;
+    transform: scale(var(--modal-from-scale));
+  }
+
+  dialog[data-motion='sheet'][open] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    dialog[data-motion='sheet'][open] {
+      opacity: 0;
+      transform: scale(var(--modal-from-scale));
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[data-motion],
+  dialog[data-motion][open] {
+    transform: none;
+    transition-property: opacity, display, overlay;
+  }
+
+  @starting-style {
+    dialog[data-motion][open] {
+      transform: none;
+    }
+  }
+}
+
+/*
+ * Press feedback on every control, as in the app: a quick scale-down while pressed. `scale` is its
+ * own property, so it never fights a control's positioning transform.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  :where(button, a.btn, [role='tab'], .tab, .item, .row) {
+    transition: scale var(--dur-press) var(--ease-ig);
+  }
+
+  :where(button, a.btn, [role='tab'], .tab, .item, .row):not(:disabled):active {
+    scale: var(--press-scale-button);
+  }
+
+  :where(.icon-btn, .icon-link, .close, .post-close, .slide-nav, .like, .share):active {
+    scale: var(--press-scale-icon);
+  }
+}
+
 /* astro:assets wraps each photo in <picture>; let the <img> lay out as if it were the child. */
 picture {
   display: contents;
