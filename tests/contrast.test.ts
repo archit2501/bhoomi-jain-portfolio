@@ -89,10 +89,17 @@ describe('design tokens', () => {
         }
       });
 
-      it('the story ring and primary button stand out 3:1 from the page', () => {
-        expect(contrastRatio(t['ring-start'], t.bg)).toBeGreaterThanOrEqual(3);
-        expect(contrastRatio(t['ring-end'], t.bg)).toBeGreaterThanOrEqual(3);
+      it('every story-ring stop and the primary button stand out 3:1 from the page', () => {
+        for (const stop of ['ring-1', 'ring-2', 'ring-3', 'ring-4']) {
+          expect(contrastRatio(t[stop], t.bg), stop).toBeGreaterThanOrEqual(3);
+        }
         expect(contrastRatio(t.accent, t.bg)).toBeGreaterThanOrEqual(3);
+      });
+
+      it('the ring ends on her button colour, so ring and buttons read as one system', () => {
+        expect(name === 'light' ? t['ring-4'] : t['accent-text']).toBe(
+          name === 'light' ? t.accent : t['ring-4'],
+        );
       });
     });
   }

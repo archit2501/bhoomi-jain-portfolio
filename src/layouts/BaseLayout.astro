@@ -1,4 +1,7 @@
 ---
+// Her content fonts (task 1.2.1). Each @font-face only downloads when text on the page uses it.
+import '@fontsource-variable/geist-mono';
+import '@fontsource-variable/plus-jakarta-sans';
 import '../styles/global.css';
 import ContactSheet from '../components/ContactSheet.astro';
 import Footer from '../components/Footer.astro';
@@ -52,6 +55,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="canonical" href={pageUrl} />
     <link rel="sitemap" href="/sitemap.xml" />
     <script type="application/ld+json" set:html={person} />

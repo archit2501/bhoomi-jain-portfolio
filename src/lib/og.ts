@@ -3,10 +3,11 @@
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 
+// Same colours as the text tiles (tokens.css: --story-start, --tile-slate, --accent).
 const TONES = {
-  1: ['#0b5e7a', '#0c1014'],
+  1: ['#075985', '#0c1014'],
   2: ['#2b3036', '#0c1014'],
-  3: ['#0b7a75', '#0b7a75'],
+  3: ['#0369a1', '#0369a1'],
 } as const;
 
 export function escapeXml(text: string): string {
