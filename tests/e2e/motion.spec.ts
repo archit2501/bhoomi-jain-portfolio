@@ -46,13 +46,16 @@ test.describe('nothing pops in instantly', () => {
   test('a story grows out of its ring, solid from the first frame', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 860 });
     await page.goto('/');
-    const trigger = `a.highlight[data-story="${row[0].id}"]`;
-    const viewer = await firstFrame(page, trigger, '#story-viewer');
-    const card = await page.locator('#story-viewer .card').evaluate((el) => ({
-      transform: getComputedStyle(el).transform,
-    }));
-    expect(viewer.opacity).toBe(1);
-    expect(card.transform).not.toBe('none');
+    // Click and read in the same task, so the zoom's first frame is caught on any machine.
+    const start = await page.evaluate((trigger) => {
+      (document.querySelector(trigger) as HTMLElement).click();
+      return {
+        viewer: Number(getComputedStyle(document.querySelector('#story-viewer')!).opacity),
+        card: getComputedStyle(document.querySelector('#story-viewer .card')!).transform,
+      };
+    }, `a.highlight[data-story="${row[0].id}"]`);
+    expect(start.viewer).toBe(1);
+    expect(start.card).not.toBe('none');
     await expect(page.locator('#story-viewer')).not.toHaveClass(/zooming/);
     expect(await page.locator('#story-viewer .card').evaluate((el) => el.style.transform)).toBe('');
   });
