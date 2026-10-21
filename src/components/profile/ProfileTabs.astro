@@ -1,6 +1,5 @@
 ---
-import Grid3x3 from '@lucide/astro/icons/grid-3x3';
-import SquarePlay from '@lucide/astro/icons/square-play';
+import Icon from '../Icon.astro';
 import type { Post, Reel } from '../../lib/content-schema';
 import { pageTitle } from '../../lib/site';
 import ReelsGrid from '../reels/ReelsGrid.astro';
@@ -16,14 +15,14 @@ interface Props {
 
 const { selected, posts, reels } = Astro.props;
 const tabs = [
-  { id: 'posts', label: 'Posts', href: '/', title: pageTitle(), Icon: Grid3x3 },
-  { id: 'reels', label: 'Reels', href: '/reels/', title: pageTitle('Reels'), Icon: SquarePlay },
+  { id: 'posts', label: 'Posts', href: '/', title: pageTitle(), icon: 'grid' },
+  { id: 'reels', label: 'Reels', href: '/reels/', title: pageTitle('Reels'), icon: 'reels' },
 ] as const;
 ---
 
 <section class="profile-tabs">
   <div class="tabs" role="tablist" aria-label="Profile sections">
-    {tabs.map(({ id, label, href, title, Icon }) => (
+    {tabs.map(({ id, label, href, title, icon }) => (
       <a
         class="tab"
         role="tab"
@@ -33,7 +32,7 @@ const tabs = [
         aria-selected={id === selected ? 'true' : 'false'}
         data-title={title}
       >
-        <Icon size={24} aria-hidden="true" />
+        <Icon name={icon} size={24} />
         <span class="tab-label">{label}</span>
       </a>
     ))}

@@ -1,9 +1,5 @@
 ---
-import Copy from '@lucide/astro/icons/copy';
-import FileText from '@lucide/astro/icons/file-text';
-import Link from '@lucide/astro/icons/link';
-import Mail from '@lucide/astro/icons/mail';
-import X from '@lucide/astro/icons/x';
+import Icon from './Icon.astro';
 import type { Profile } from '../lib/content-schema';
 
 interface Props {
@@ -20,13 +16,13 @@ const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
     <div class="head">
       <h2 id="contact-title">Contact {profile.displayName}</h2>
       <button class="close" type="button" data-close aria-label="Close">
-        <X size={24} aria-hidden="true" />
+        <Icon name="close" size={24} />
       </button>
     </div>
     <ul role="list">
       <li>
         <a class="row" href={links.linkedin} target="_blank" rel="noopener noreferrer">
-          <Link size={22} aria-hidden="true" />
+          <Icon name="link" size={22} />
           <span>
             <span class="row-title">LinkedIn</span>
             <span class="row-detail">{linkedinLabel}</span>
@@ -35,7 +31,7 @@ const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
       </li>
       {links.email && (
         <li class="row">
-          <Mail size={22} aria-hidden="true" />
+          <Icon name="mail" size={22} />
           <a class="row-main" href={`mailto:${links.email}`}>
             <span class="row-title">Email</span>
             <span class="row-detail">{links.email}</span>
@@ -46,14 +42,14 @@ const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
             data-copy={links.email}
             aria-label="Copy email address"
           >
-            <Copy size={20} aria-hidden="true" />
+            <Icon name="copy" size={20} />
           </button>
         </li>
       )}
       {links.resume && (
         <li>
           <a class="row" href={links.resume}>
-            <FileText size={22} aria-hidden="true" />
+            <Icon name="resume" size={22} />
             <span>
               <span class="row-title">Resume</span>
               <span class="row-detail">PDF</span>

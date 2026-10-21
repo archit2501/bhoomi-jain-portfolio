@@ -1,7 +1,5 @@
 ---
-import ChevronLeft from '@lucide/astro/icons/chevron-left';
-import ChevronRight from '@lucide/astro/icons/chevron-right';
-import X from '@lucide/astro/icons/x';
+import Icon from '../Icon.astro';
 import type { Post, Profile } from '../../lib/content-schema';
 import { pageTitle } from '../../lib/site';
 import PostView from './PostView.astro';
@@ -16,14 +14,14 @@ const { posts, profile } = Astro.props;
 
 <dialog id="post-modal" class="post-modal">
   <button class="post-close" type="button" aria-label="Close">
-    <X size={28} aria-hidden="true" />
+    <Icon name="close" size={28} />
   </button>
   <button class="post-prev" type="button" aria-label="Previous post">
-    <ChevronLeft size={20} aria-hidden="true" />
+    <Icon name="back" size={20} />
   </button>
   <div class="modal-body"></div>
   <button class="post-next" type="button" aria-label="Next post">
-    <ChevronRight size={20} aria-hidden="true" />
+    <Icon name="forward" size={20} />
   </button>
 </dialog>
 

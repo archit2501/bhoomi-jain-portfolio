@@ -1,5 +1,5 @@
 ---
-import Clapperboard from '@lucide/astro/icons/clapperboard';
+import Icon from '../Icon.astro';
 import type { Reel } from '../../lib/content-schema';
 import TypeTile from '../post/TypeTile.astro';
 
@@ -28,7 +28,7 @@ const { reels } = Astro.props;
             <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
           )}
           <span class="badge" aria-hidden="true">
-            <Clapperboard size={20} />
+            <Icon name="reels" filled size={20} />
           </span>
         </a>
       ) : (
