@@ -1,0 +1,183 @@
+---
+import Grid3x3 from '@lucide/astro/icons/grid-3x3';
+import SquarePlay from '@lucide/astro/icons/square-play';
+import type { Post, Reel } from '../../lib/content-schema';
+import { pageTitle } from '../../lib/site';
+import ReelsGrid from '../reels/ReelsGrid.astro';
+import PostGrid from './PostGrid.astro';
+
+export type ProfileTab = 'posts' | 'reels';
+
+interface Props {
+  selected: ProfileTab;
+  posts: { id: string; data: Post }[];
+  reels: { id: string; data: Reel }[];
+}
+
+const { selected, posts, reels } = Astro.props;
+const tabs = [
+  { id: 'posts', label: 'Posts', href: '/', title: pageTitle(), Icon: Grid3x3 },
+  { id: 'reels', label: 'Reels', href: '/reels/', title: pageTitle('Reels'), Icon: SquarePlay },
+] as const;
+---
+
+<section class="profile-tabs">
+  <div class="tabs" role="tablist" aria-label="Profile sections">
+    {tabs.map(({ id, label, href, title, Icon }) => (
+      <a
+        class="tab"
+        role="tab"
+        id={`tab-${id}`}
+        href={href}
+        aria-controls={`panel-${id}`}
+        aria-selected={id === selected ? 'true' : 'false'}
+        data-title={title}
+      >
+        <Icon size={24} aria-hidden="true" />
+        <span class="tab-label">{label}</span>
+      </a>
+    ))}
+  </div>
+  <div role="tabpanel" id="panel-posts" aria-labelledby="tab-posts" hidden={selected !== 'posts'}>
+    <PostGrid posts={posts} />
+  </div>
+  <div role="tabpanel" id="panel-reels" aria-labelledby="tab-reels" hidden={selected !== 'reels'}>
+    <ReelsGrid reels={reels} />
+  </div>
+</section>
+
+<script>
+  // Tabs are real links (they work without JavaScript); this upgrades them to switch in place,
+  // with arrow keys moving between them (WAI-ARIA tabs pattern, automatic activation).
+  const tablist = document.querySelector<HTMLElement>('[role="tablist"]');
+  if (tablist) {
+    const tabs = [...tablist.querySelectorAll<HTMLAnchorElement>('[role="tab"]')];
+
+    const select = (tab: HTMLAnchorElement, options: { focus?: boolean; push?: boolean } = {}) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(t.getAttribute('aria-controls') ?? '');
+        if (panel) panel.hidden = !on;
+      }
+      const href = tab.getAttribute('href');
+      document
+        .querySelectorAll('nav a[aria-current="page"]')
+        .forEach((a) => a.removeAttribute('aria-current'));
+      document
+        .querySelectorAll(`nav a[href="${href}"]`)
+        .forEach((a) => a.setAttribute('aria-current', 'page'));
+      if (tab.dataset.title) document.title = tab.dataset.title;
+      if (options.focus) tab.focus();
+      if (options.push && location.pathname !== tab.pathname) history.pushState({}, '', tab.href);
+    };
+
+    for (const tab of tabs) {
+      tab.tabIndex = tab.getAttribute('aria-selected') === 'true' ? 0 : -1;
+      tab.addEventListener('click', (event) => {
+        event.preventDefault();
+        select(tab, { push: true });
+      });
+    }
+
+    tablist.addEventListener('keydown', (event) => {
+      const index = tabs.indexOf(document.activeElement as HTMLAnchorElement);
+      if (index < 0) return;
+      const target = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: tabs.length - 1 }[
+        event.key
+      ];
+      if (target === undefined) return;
+      event.preventDefault();
+      select(tabs[(target + tabs.length) % tabs.length], { focus: true, push: true });
+    });
+
+    window.addEventListener('popstate', () => {
+      const tab = tabs.find((t) => t.pathname === location.pathname);
+      if (tab) select(tab);
+    });
+  }
+</script>
+
+<style>
+  .profile-tabs {
+    max-width: 935px;
+    margin: 0 auto;
+  }
+
+  .tabs {
+    display: flex;
+    border-top: 1px solid var(--separator);
+  }
+
+  .tab {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 44px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+
+  .tab[aria-selected='true'] {
+    color: var(--text);
+    border-bottom-color: var(--text);
+  }
+
+  .tab-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .tab:focus-visible {
+    outline-offset: -2px;
+  }
+
+  @media (min-width: 768px) {
+    .profile-tabs {
+      padding: 0 20px;
+    }
+
+    .tabs {
+      justify-content: center;
+      gap: 60px;
+    }
+
+    .tab {
+      flex: none;
+      height: 52px;
+      margin-top: -1px;
+      border-top: 1px solid transparent;
+      border-bottom: 0;
+    }
+
+    .tab[aria-selected='true'] {
+      border-top-color: var(--text);
+    }
+
+    .tab :global(svg) {
+      width: 12px;
+      height: 12px;
+    }
+
+    .tab-label {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip: auto;
+      font-size: var(--fs-12);
+      line-height: var(--lh-12);
+      font-weight: var(--weight-semibold);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+  }
+</style>

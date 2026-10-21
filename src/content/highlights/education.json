@@ -1,0 +1,20 @@
+{
+  "label": "Education",
+  "order": 4,
+  "cover": {
+    "type": "text",
+    "text": "Edu"
+  },
+  "frames": [
+    {
+      "type": "text",
+      "heading": "MCA",
+      "body": "Master of Computer Applications, Amity University, Uttar Pradesh. Jul 2025 – Jun 2027 (expected)."
+    },
+    {
+      "type": "text",
+      "heading": "BCA",
+      "body": "Bachelor of Computer Applications, Amity University, Uttar Pradesh. Sep 2022 – Apr 2025."
+    }
+  ]
+}

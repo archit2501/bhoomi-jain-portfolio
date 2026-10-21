@@ -1,0 +1,19 @@
+{
+  "bhoomi": {
+    "username": "bhoomi.jain",
+    "displayName": "Bhoomi Jain",
+    "category": "Full Stack Developer",
+    "bio": "React · Node.js · FastAPI · MongoDB\nMCA at Amity University\n1st of 160 teams at CyberCup 4.0\nDelhi, India",
+    "location": "Delhi, India",
+    "avatar": {
+      "alt": "Bhoomi Jain"
+    },
+    "stats": ["projects", "cybercup", "certifications"],
+    "links": {
+      "linkedin": "https://www.linkedin.com/in/bhoomi21",
+      "email": "bhoomijain10@gmail.com"
+    },
+    "jobTitle": "Full Stack Developer",
+    "education": "Amity University"
+  }
+}

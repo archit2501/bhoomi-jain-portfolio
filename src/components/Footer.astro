@@ -1,0 +1,78 @@
+---
+import type { Profile } from '../lib/content-schema';
+
+interface Props {
+  profile: Profile;
+}
+
+const { profile } = Astro.props;
+const { links } = profile;
+const year = new Date().getFullYear();
+---
+
+<!-- Instagram-style footer. id="contact" is the no-JavaScript target of the Messages tab. -->
+<footer id="contact" class="site-footer">
+  <ul class="links" role="list">
+    <li>
+      <a href={links.linkedin} target="_blank" rel="noopener noreferrer">
+        LinkedIn
+      </a>
+    </li>
+    {links.email && (
+      <li>
+        <a href={`mailto:${links.email}`}>{links.email}</a>
+      </li>
+    )}
+    {links.resume && (
+      <li>
+        <a href={links.resume}>Resume</a>
+      </li>
+    )}
+    <li>
+      <a href="/">Posts</a>
+    </li>
+    <li>
+      <a href="/reels/">Reels</a>
+    </li>
+  </ul>
+  <p class="disclaimer">Not affiliated with Instagram or Meta.</p>
+  <p>
+    © {year} {profile.displayName}
+  </p>
+</footer>
+
+<style>
+  .site-footer {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-8) var(--space-4) var(--space-6);
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    text-align: center;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  p {
+    margin: 0;
+  }
+</style>

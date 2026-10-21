@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../../lib/content';
+import PostModal from '../post/PostModal.astro';
+import ReelPlayer from '../reels/ReelPlayer.astro';
+import StoryViewer from '../story/StoryViewer.astro';
+import Highlights from './Highlights.astro';
+import ProfileHeader from './ProfileHeader.astro';
+import ProfileTabs, { type ProfileTab } from './ProfileTabs.astro';
+
+interface Props {
+  tab: ProfileTab;
+}
+
+const { tab } = Astro.props;
+const { profile, figures, highlights, posts, reels } = await loadSiteContent();
+// `inRow` defaults to true; only an explicit false (the intro) leaves the row.
+const intro = highlights.find((h) => h.data.inRow === false);
+---
+
+<!-- "/" and "/reels/" are the same profile with a different tab selected, as on Instagram. -->
+<BaseLayout
+  title={tab === 'reels' ? 'Reels' : undefined}
+  current={tab === 'reels' ? 'reels' : 'home'}
+>
+  <ProfileHeader profile={profile} figures={figures} intro={intro} />
+  <Highlights highlights={highlights.filter((h) => h.data.inRow !== false)} />
+  <ProfileTabs selected={tab} posts={posts} reels={reels} />
+  <PostModal posts={posts} profile={profile} />
+  <StoryViewer highlights={highlights} profile={profile} />
+  <ReelPlayer reels={reels} />
+</BaseLayout>

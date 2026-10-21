@@ -1,0 +1,132 @@
+---
+import Mark from '../../assets/mark.svg';
+import Wordmark from '../../assets/wordmark.svg';
+import NavIcon from './NavIcon.astro';
+import { NAV_ITEMS, type NavId } from './nav-items';
+
+interface Props {
+  current?: NavId;
+}
+
+const { current } = Astro.props;
+---
+
+<nav class="side-nav" aria-label="Primary">
+  <a class="logo" href="/" aria-label="bhoomi, home">
+    <Wordmark class="logo-wide" height={29} aria-hidden="true" />
+    <Mark class="logo-narrow" height={24} aria-hidden="true" />
+  </a>
+  <ul role="list">
+    {NAV_ITEMS.map((item) => (
+      <li>
+        <a
+          class="item"
+          href={item.href}
+          aria-current={item.id === current ? 'page' : undefined}
+          data-open-contact={item.opensContact ? '' : undefined}
+        >
+          <NavIcon name={item.id} active={item.id === current} />
+          <span class="label">{item.label}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .side-nav {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .side-nav {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      width: 72px;
+      padding: var(--space-2) var(--space-3) var(--space-5);
+      background: var(--bg);
+      border-right: 1px solid var(--separator);
+    }
+  }
+
+  @media (min-width: 1264px) {
+    .side-nav {
+      width: 244px;
+    }
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    height: 73px;
+    padding: 0 var(--space-3);
+    margin-bottom: var(--space-4);
+    color: var(--text);
+    border-radius: var(--radius-button);
+  }
+
+  .logo-wide {
+    display: none;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3);
+    color: var(--text);
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    text-decoration: none;
+    border-radius: var(--radius-button);
+    transition: background-color 0.1s cubic-bezier(0.17, 0.17, 0, 1);
+  }
+
+  .item:hover {
+    background: var(--hover-overlay);
+  }
+
+  .item[aria-current='page'] .label {
+    font-weight: var(--weight-bold);
+  }
+
+  /* The 72px rail shows icons only; labels stay available to screen readers. */
+  .label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  @media (min-width: 1264px) {
+    .logo-wide {
+      display: block;
+    }
+
+    .logo-narrow {
+      display: none;
+    }
+
+    .label {
+      position: static;
+      width: auto;
+      height: auto;
+      overflow: visible;
+      clip: auto;
+    }
+  }
+</style>

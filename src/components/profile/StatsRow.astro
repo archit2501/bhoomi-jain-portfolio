@@ -1,0 +1,65 @@
+---
+import type { Figure } from '../../lib/content-schema';
+
+interface Props {
+  stats: Figure[];
+}
+
+const { stats } = Astro.props;
+---
+
+<ul class="stats" role="list" aria-label="Highlights in numbers">
+  {stats.map((stat) => (
+    <li>
+      <span class="num">{stat.value}</span> <span class="label">{stat.label}</span>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .num {
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-bold);
+  }
+
+  .label {
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  @media (min-width: 768px) {
+    .stats {
+      display: flex;
+      gap: 40px;
+    }
+
+    li {
+      display: block;
+      font-size: var(--fs-16);
+      line-height: var(--lh-16);
+    }
+
+    .num {
+      font-weight: var(--weight-semibold);
+    }
+
+    .label {
+      font-size: inherit;
+      line-height: inherit;
+    }
+  }
+</style>

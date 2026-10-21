@@ -1,0 +1,137 @@
+---
+import type { Highlight } from '../../lib/content-schema';
+
+interface Props {
+  highlights: { id: string; data: Highlight }[];
+}
+
+const { highlights } = Astro.props;
+const count = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
+---
+
+<section class="highlights" aria-label="Highlights">
+  <ul role="list">
+    {highlights.map(({ id, data }) => (
+      <li>
+        <a
+          class="highlight"
+          href={`/stories/${id}/`}
+          data-story={id}
+          aria-label={`Highlight: ${data.label}, ${count(data.frames.length)}`}
+        >
+          <span class="ring">
+            {data.cover.type === 'image' ? (
+              <img class="cover" src={data.cover.src} alt="" />
+            ) : (
+              <span class="cover" aria-hidden="true">
+                {data.cover.text}
+              </span>
+            )}
+          </span>
+          <span class="label" aria-hidden="true">
+            {data.label}
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .highlights {
+    max-width: 935px;
+    margin: 0 auto;
+  }
+
+  ul {
+    display: flex;
+    gap: var(--space-3);
+    margin: 0;
+    padding: var(--space-2) var(--space-4) var(--space-4);
+    overflow-x: auto;
+    list-style: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--space-4);
+    scrollbar-width: none;
+  }
+
+  ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  .highlight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    width: 74px;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: var(--radius-card);
+  }
+
+  /* Highlights never use the story gradient: a 1px neutral ring with a small gap. */
+  .ring {
+    display: flex;
+    padding: 2px;
+    border: 1px solid var(--stroke);
+    border-radius: 50%;
+  }
+
+  .cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    color: var(--text);
+    background: var(--bg-secondary);
+    border-radius: 50%;
+    font-size: var(--fs-20);
+    line-height: 1;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0;
+    object-fit: cover;
+  }
+
+  .label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    font-weight: var(--weight-semibold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .highlight:hover .ring {
+    border-color: var(--text-secondary);
+  }
+
+  @media (min-width: 768px) {
+    ul {
+      gap: 15px;
+      padding: 0 var(--space-5) var(--space-11);
+    }
+
+    .highlight {
+      width: 87px;
+      gap: var(--space-3);
+    }
+
+    .ring {
+      padding: 3px;
+    }
+
+    .cover {
+      width: 77px;
+      height: 77px;
+      font-size: var(--fs-24);
+    }
+  }
+</style>

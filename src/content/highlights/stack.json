@@ -1,0 +1,30 @@
+{
+  "label": "Stack",
+  "order": 3,
+  "cover": {
+    "type": "text",
+    "text": "{ }"
+  },
+  "frames": [
+    {
+      "type": "text",
+      "heading": "Front-end",
+      "body": "ReactJS, JavaScript (ES6+), TypeScript (familiar), HTML5, CSS3, Tailwind CSS, Bootstrap, SASS/LESS, Material Design, jQuery, React Native (familiar)"
+    },
+    {
+      "type": "text",
+      "heading": "Back-end & APIs",
+      "body": "Node.js, Express.js, REST APIs, JWT Authentication, MongoDB, MySQL, FastAPI, Postman"
+    },
+    {
+      "type": "text",
+      "heading": "Testing & tooling",
+      "body": "Jest, React Testing Library, ESLint, Webpack, npm, Chrome DevTools, Lighthouse, Hotjar, Figma"
+    },
+    {
+      "type": "text",
+      "heading": "DevOps & cloud",
+      "body": "Git, GitHub, AWS (EC2, S3), Docker, Vercel, Netlify"
+    }
+  ]
+}

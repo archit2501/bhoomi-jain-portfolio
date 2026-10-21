@@ -1,0 +1,98 @@
+---
+import Clapperboard from '@lucide/astro/icons/clapperboard';
+import type { Reel } from '../../lib/content-schema';
+import TypeTile from '../post/TypeTile.astro';
+
+interface Props {
+  reels: { id: string; data: Reel }[];
+}
+
+const { reels } = Astro.props;
+---
+
+<ul class="reels-grid" role="list">
+  {reels.map(({ id, data }, i) => (
+    <li class="reel">
+      {data.video ? (
+        <a class="reel-link" href={data.video} data-reel={id} aria-label={`Reel: ${data.title}`}>
+          {data.poster ? (
+            <img
+              src={data.poster}
+              alt=""
+              width="540"
+              height="960"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
+          )}
+          <span class="badge" aria-hidden="true">
+            <Clapperboard size={20} />
+          </span>
+        </a>
+      ) : (
+        <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
+      )}
+    </li>
+  ))}
+</ul>
+
+<style>
+  .reels-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .reel {
+    aspect-ratio: 9 / 16;
+    overflow: hidden;
+    background: var(--story-end);
+  }
+
+  .reel-link {
+    position: relative;
+    display: block;
+    height: 100%;
+  }
+
+  .reel-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .reel-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transition: background-color 0.1s cubic-bezier(0.17, 0.17, 0, 1);
+  }
+
+  .reel-link:hover::after {
+    background: rgb(0 0 0 / 30%);
+  }
+
+  .reel-link:focus-visible {
+    outline-offset: -3px;
+  }
+
+  .badge {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    z-index: 1;
+    color: #ffffff;
+    filter: drop-shadow(0 0 2px rgb(0 0 0 / 50%));
+  }
+
+  @media (min-width: 768px) {
+    .reels-grid {
+      gap: 4px;
+    }
+  }
+</style>

@@ -1,0 +1,37 @@
+{
+  "label": "Intro",
+  "order": 0,
+  "inRow": false,
+  "cover": {
+    "type": "text",
+    "text": "BJ"
+  },
+  "figures": ["cybercup"],
+  "frames": [
+    {
+      "type": "text",
+      "heading": "Hi, I'm Bhoomi",
+      "body": "A full stack developer in Delhi, India."
+    },
+    {
+      "type": "text",
+      "heading": "React to FastAPI",
+      "body": "I build React front ends on Node.js/Express and FastAPI back ends, with MongoDB and MySQL."
+    },
+    {
+      "type": "text",
+      "heading": "1st of 160",
+      "body": "I led my team to first place at the CyberCup 4.0 national-level hackathon."
+    },
+    {
+      "type": "text",
+      "heading": "Tap the highlights",
+      "body": "Each circle on my profile is one part of my story."
+    },
+    {
+      "type": "text",
+      "heading": "Let's talk",
+      "body": "Message me from my profile, or find me on LinkedIn."
+    }
+  ]
+}

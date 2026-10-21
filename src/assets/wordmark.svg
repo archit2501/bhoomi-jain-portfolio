@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 94 28" width="94" height="28" role="img" aria-label="bhoomi">
+  <g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 3v21"/>
+    <circle cx="8" cy="18" r="6"/>
+    <path d="M18 3v21M18 18a6 6 0 0 1 12 0v6"/>
+    <circle cx="40" cy="18" r="6"/>
+    <circle cx="56" cy="18" r="6"/>
+    <path d="M66 12v12M66 17a5 5 0 0 1 10 0v7M76 17a5 5 0 0 1 10 0v7"/>
+    <path d="M90 12v12"/>
+  </g>
+  <g fill="currentColor">
+    <circle cx="90" cy="6.5" r="1.7"/>
+  </g>
+</svg>

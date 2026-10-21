@@ -1,0 +1,31 @@
+{
+  "label": "Certs",
+  "order": 5,
+  "cover": {
+    "type": "text",
+    "text": "Cert"
+  },
+  "figures": ["certifications"],
+  "frames": [
+    {
+      "type": "text",
+      "heading": "5 certifications",
+      "body": "Cloud, AI and security, from AWS, Microsoft, Cisco and the University of Helsinki."
+    },
+    {
+      "type": "text",
+      "heading": "Cloud",
+      "body": "AWS Cloud Practitioner Essentials · Microsoft Azure Fundamentals (AZ-900)"
+    },
+    {
+      "type": "text",
+      "heading": "AI",
+      "body": "Microsoft Azure AI Fundamentals (AI-900) · Elements of AI, University of Helsinki"
+    },
+    {
+      "type": "text",
+      "heading": "Security",
+      "body": "Introduction to Cybersecurity, Cisco"
+    }
+  ]
+}

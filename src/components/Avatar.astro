@@ -1,0 +1,80 @@
+---
+interface Props {
+  /** Diameter of the photo itself, without the ring. */
+  size: number;
+  /** "story" draws her accent ring (an unseen story); "none" draws no ring. */
+  ring?: 'story' | 'none';
+  src?: string;
+  alt: string;
+  initials: string;
+  class?: string;
+}
+
+const { size, ring = 'none', src, alt, initials, class: className } = Astro.props;
+// Instagram's ring sits outside the photo with a gap the colour of the page.
+const ringWidth = size >= 120 ? 4 : size >= 64 ? 2 : 1.5;
+const gap = size >= 120 ? 5 : size >= 64 ? 3 : 2;
+const outer = ring === 'story' ? size + 2 * (ringWidth + gap) : size;
+---
+
+<span
+  class:list={['avatar', className, { 'has-ring': ring === 'story' }]}
+  style={`--size: ${size}px; --outer: ${outer}px; --ring-width: ${ringWidth}px; --gap: ${gap}px`}
+>
+  {src ? (
+    <img src={src} alt={alt} width={size} height={size} />
+  ) : (
+    <span
+      class="initials"
+      {...(alt ? { role: 'img', 'aria-label': alt } : { 'aria-hidden': 'true' })}
+    >
+      {initials}
+    </span>
+  )}
+</span>
+
+<style>
+  .avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--outer);
+    height: var(--outer);
+    border-radius: 50%;
+  }
+
+  .avatar.has-ring {
+    padding: var(--ring-width);
+    background: var(--ring);
+  }
+
+  .avatar.has-ring.seen {
+    background: var(--stroke);
+  }
+
+  img,
+  .initials {
+    width: var(--size);
+    height: var(--size);
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .has-ring img,
+  .has-ring .initials {
+    box-sizing: content-box;
+    border: var(--gap) solid var(--bg);
+  }
+
+  .initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
+    font-size: calc(var(--size) * 0.36);
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0;
+  }
+</style>

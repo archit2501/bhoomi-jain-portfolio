@@ -1,0 +1,65 @@
+---
+import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import PostView from '../../components/post/PostView.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const { posts } = await loadSiteContent();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { profile } = await loadSiteContent();
+const caption = post.body.trim();
+const description = caption.length > 155 ? `${caption.slice(0, 154).trimEnd()}…` : caption;
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={description}
+  image={`/og/p/${post.id}.png`}
+  type="article"
+  current="home"
+>
+  <div class="post-page">
+    <a class="back" href="/">
+      <ChevronLeft size={20} aria-hidden="true" />
+      <span>Back to profile</span>
+    </a>
+    <PostView post={post} profile={profile} variant="page" />
+  </div>
+</BaseLayout>
+
+<script>
+  import { enhancePostView } from '../../scripts/post-view';
+
+  document.querySelectorAll<HTMLElement>('.post-view').forEach(enhancePostView);
+</script>
+
+<style>
+  .post-page {
+    padding: var(--space-4) 0;
+  }
+
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0 var(--space-4) var(--space-3);
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  @media (min-width: 768px) {
+    .post-page {
+      max-width: 935px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    .back {
+      margin-left: 0;
+    }
+  }
+</style>

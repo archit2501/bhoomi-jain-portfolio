@@ -1,0 +1,13 @@
+dist/
+.astro/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+package-lock.json
+research/
+plan/
+.claude-protocol/
+.claude/
+media/

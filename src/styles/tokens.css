@@ -1,0 +1,105 @@
+/*
+ * Neutrals, type scale and spacing follow Instagram's 2026 web UI (research/03-uiux.md B1.7-B1.8).
+ * Her accent replaces Instagram's story gradient and primary blue: a peacock teal ring and teal buttons.
+ * tests/contrast.test.ts checks every pairing below in both themes.
+ */
+:root {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-secondary: #f3f5f7;
+  --bg-elevated: #ffffff;
+  --text: #0c1014;
+  --text-secondary: #6a717a;
+  --separator: #dbdfe4;
+  --stroke: #dbdbdb;
+  --button-secondary: #f0f2f5;
+  --button-secondary-hover: #e7eaee;
+  --button-secondary-text: #0c1014;
+  --hover-overlay: rgb(12 16 20 / 5%);
+  --scrim: rgb(0 0 0 / 65%);
+  --like: #ff3040;
+
+  --accent: #0b7a75;
+  --accent-hover: #09655f;
+  --on-accent: #ffffff;
+  --accent-text: #0b7a75;
+  --ring-start: #0e9f94;
+  --ring-end: #0b5e7a;
+  --ring: linear-gradient(45deg, var(--ring-start), var(--ring-end));
+  --focus: var(--accent-text);
+
+  /* Story canvas: always dark, like Instagram's, so it doesn't change with the theme. */
+  --story-start: #0b5e7a;
+  --story-end: #0c1014;
+  --on-story: #ffffff;
+  --tile-slate: #2b3036;
+
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --fs-12: 12px;
+  --lh-12: 16px;
+  --fs-14: 14px;
+  --lh-14: 18px;
+  --fs-16: 16px;
+  --lh-16: 20px;
+  --fs-20: 20px;
+  --lh-20: 25px;
+  --fs-24: 24px;
+  --lh-24: 27px;
+  --fs-32: 32px;
+  --lh-32: 40px;
+  --tracking-body: -0.15px;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-11: 44px;
+  --radius-button: 8px;
+  --radius-card: 12px;
+  --shadow-strong: 0 4px 32px 0 rgb(11 16 20 / 16%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0c1014;
+    --bg-secondary: #25292e;
+    --bg-elevated: #212328;
+    --text: #f8f9f9;
+    --text-secondary: #a2aab4;
+    --separator: #2b3036;
+    --stroke: #363636;
+    --button-secondary: #25292e;
+    --button-secondary-hover: #363c44;
+    --button-secondary-text: #ffffff;
+    --hover-overlay: rgb(255 255 255 / 10%);
+    --accent-text: #3fc9be;
+    --ring-start: #2ec4b6;
+    --ring-end: #4aa8d8;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0c1014;
+  --bg-secondary: #25292e;
+  --bg-elevated: #212328;
+  --text: #f8f9f9;
+  --text-secondary: #a2aab4;
+  --separator: #2b3036;
+  --stroke: #363636;
+  --button-secondary: #25292e;
+  --button-secondary-hover: #363c44;
+  --button-secondary-text: #ffffff;
+  --hover-overlay: rgb(255 255 255 / 10%);
+  --accent-text: #3fc9be;
+  --ring-start: #2ec4b6;
+  --ring-end: #4aa8d8;
+}
