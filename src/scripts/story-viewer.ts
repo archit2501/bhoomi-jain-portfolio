@@ -6,16 +6,26 @@ import {
   type StoryState,
 } from '../lib/story/controller';
 import { classify, dragTransform, HOLD_MS } from '../lib/story/gestures';
+import { framesToLoad, park, unpark } from '../lib/story/preload';
+import { asCard, asRing, isOnScreen } from '../lib/story/zoom';
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const storySlugFromPath = (pathname: string) =>
   /^\/stories\/([a-z0-9-]+)\/?$/.exec(pathname)?.[1] ?? null;
 const EASE = 'cubic-bezier(0.17, 0.17, 0, 1)';
+// tokens.css: --dur-story-open and --dur-story-cube.
+const ZOOM_MS = 280;
+const CUBE_MS = 350;
+const FADE_MS = 150;
 
 /**
  * Full-screen story viewer for the highlights. Logic lives in src/lib/story; this file renders
  * state, runs each frame's progress bar on the Web Animations API (so pausing is exact), and maps
  * pointer and keyboard input to controller events.
+ *
+ * Motion, as on Instagram: the card grows out of the ring that was tapped and shrinks back into
+ * the current highlight's ring when dismissed; highlights change with a two-face cube. With
+ * reduced motion the viewer fades and highlights cross-fade.
  */
 export function initStoryViewer(): void {
   const found = document.getElementById('story-viewer') as HTMLDialogElement | null;
@@ -30,6 +40,8 @@ export function initStoryViewer(): void {
   const shape = templates.map((t) => t.content.querySelectorAll('.frame').length);
   const q = <T extends Element>(selector: string) => dialog.querySelector<T>(selector);
   const card = q<HTMLElement>('.card');
+  const cardWrap = q<HTMLElement>('.card-wrap');
+  const preloadEl = q<HTMLElement>('.preload');
   const framesEl = q<HTMLElement>('.frames');
   const progressEl = q<HTMLElement>('.progress');
   const groupLabel = q<HTMLElement>('.group-label');
@@ -39,7 +51,18 @@ export function initStoryViewer(): void {
     prev: q<HTMLButtonElement>('.peek-prev'),
     next: q<HTMLButtonElement>('.peek-next'),
   };
-  if (!card || !framesEl || !progressEl || !groupLabel || !pauseButton || !status) return;
+  if (
+    !card ||
+    !cardWrap ||
+    !preloadEl ||
+    !framesEl ||
+    !progressEl ||
+    !groupLabel ||
+    !pauseButton ||
+    !status
+  ) {
+    return;
+  }
 
   let state: StoryState | null = null;
   let renderedGroup = -1;
@@ -49,10 +72,114 @@ export function initStoryViewer(): void {
   let returnTitle = document.title;
   // Safari doesn't focus a link on click; focus the opener explicitly when the viewer closes.
   let opener: HTMLElement | null = null;
+  // Highlights shown since the viewer opened; their rings turn "seen" when it closes.
+  const viewed = new Set<string>();
+  // Our own open and close animations, cancelled when the viewer closes.
+  let motion: Animation[] = [];
+  // Set while a focused sticker holds the story still, so leaving it resumes.
+  let pausedBySticker = false;
+
+  /** The on-screen ring (highlight circle or avatar) that opens a highlight, if any. */
+  const ringFor = (group: number, preferred?: Element | null): HTMLElement | null => {
+    const viewport = { width: innerWidth, height: innerHeight };
+    const links = [
+      ...(preferred ? [preferred] : []),
+      ...document.querySelectorAll(`a[data-story="${CSS.escape(ids[group])}"]`),
+    ];
+    for (const link of links) {
+      if (dialog.contains(link)) continue;
+      for (const ring of link.querySelectorAll<HTMLElement>('.ring, .avatar')) {
+        if (isOnScreen(ring.getBoundingClientRect(), viewport)) return ring;
+      }
+    }
+    return null;
+  };
+
+  const chrome = () => [...dialog.querySelectorAll<HTMLElement>('.frame-nav, .peek:not([hidden])')];
+
+  /** The card grows out of the ring while the black fades in behind it. */
+  const zoomIn = async (ring: HTMLElement) => {
+    busy = true;
+    const box = cardWrap.getBoundingClientRect();
+    const timing = { duration: ZOOM_MS, easing: EASE };
+    const grow = card.animate([asRing(box, ring.getBoundingClientRect()), asCard(box)], timing);
+    motion = [
+      grow,
+      dialog.animate([{ backgroundColor: 'transparent', offset: 0 }], timing),
+      ...chrome().map((el) => el.animate([{ opacity: 0, offset: 0 }], timing)),
+    ];
+    try {
+      await grow.finished;
+    } catch {
+      // Cancelled by a close mid-zoom.
+    } finally {
+      motion.forEach((a) => a.cancel());
+      motion = [];
+      dialog.classList.remove('zooming');
+      busy = false;
+    }
+  };
+
+  /**
+   * Close, shrinking the card back into its highlight's ring when that ring is on screen.
+   * `dragged` is where a downward swipe left the card, so the shrink starts from there.
+   */
+  const dismiss = async (dragged = 'none') => {
+    if (!state || !dialog.open) return;
+    const ring = reducedMotion() || busy ? null : ringFor(state.group);
+    if (!ring) {
+      dialog.close();
+      return;
+    }
+    busy = true;
+    progress?.pause();
+    const box = cardWrap.getBoundingClientRect();
+    const timing = { duration: ZOOM_MS, easing: EASE, fill: 'forwards' as const };
+    const from = asCard(box, dragged);
+    card.classList.add('dragging');
+    dialog.classList.add('shrinking');
+    const shrink = card.animate([from, asRing(box, ring.getBoundingClientRect())], timing);
+    motion = [
+      shrink,
+      dialog.animate([{ backgroundColor: 'transparent' }], timing),
+      ...chrome().map((el) => el.animate([{ opacity: 0 }], timing)),
+    ];
+    try {
+      await shrink.finished;
+    } catch {
+      // Cancelled; close anyway.
+    }
+    dialog.close();
+  };
+
+  /** Lets the frame on screen and the next one load their photos; nothing further ahead. */
+  const loadAhead = () => {
+    if (!state) return;
+    const frames = framesEl.querySelectorAll<HTMLElement>('.frame');
+    preloadEl.replaceChildren();
+    for (const ref of framesToLoad(shape, state)) {
+      if (ref.group === state.group) {
+        const frame = frames[ref.frame];
+        frame?.querySelectorAll('img, source').forEach(unpark);
+        frame?.querySelectorAll('img').forEach((img) => (img.loading = 'eager'));
+        continue;
+      }
+      // The next highlight's first story: fetch its photo out of sight.
+      const next = templates[ref.group].content.querySelectorAll('.frame')[ref.frame];
+      next?.querySelectorAll('picture').forEach((picture) => {
+        const copy = picture.cloneNode(true) as HTMLElement;
+        copy.querySelectorAll('img').forEach((img) => (img.loading = 'eager'));
+        preloadEl.append(copy);
+      });
+    }
+  };
 
   const renderGroup = (group: number) => {
     const template = templates[group];
-    framesEl.replaceChildren(template.content.cloneNode(true));
+    const content = template.content.cloneNode(true) as DocumentFragment;
+    // Nothing fetches until loadAhead says so.
+    content.querySelectorAll('img, source').forEach(park);
+    framesEl.replaceChildren(content);
     progressEl.replaceChildren(
       ...Array.from({ length: shape[group] }, () => {
         const bar = document.createElement('span');
@@ -91,11 +218,14 @@ export function initStoryViewer(): void {
 
   const render = (announce: boolean) => {
     if (!state) return;
+    const hadFocus = framesEl.contains(document.activeElement);
     if (state.group !== renderedGroup) renderGroup(state.group);
     const frames = framesEl.querySelectorAll<HTMLElement>('.frame');
     frames.forEach((frame, i) => frame.classList.toggle('active', i === state!.frame));
-    // Preload only the next frame's photo.
-    frames[state.frame + 1]?.querySelectorAll('img').forEach((img) => (img.loading = 'eager'));
+    loadAhead();
+    viewed.add(ids[state.group]);
+    // A focused sticker that just left the screen hands focus to the pause button.
+    if (hadFocus && !frames[state.frame]?.contains(document.activeElement)) pauseButton.focus();
 
     progress?.cancel();
     const fills = progressEl.querySelectorAll<HTMLElement>('.fill');
@@ -122,46 +252,75 @@ export function initStoryViewer(): void {
     if (template.dataset.title) document.title = template.dataset.title;
   };
 
-  // A cube turn between highlights, or a crossfade when the visitor prefers reduced motion.
+  const shade = (face: HTMLElement) => {
+    const layer = document.createElement('div');
+    layer.className = 'shade';
+    face.append(layer);
+    return layer;
+  };
+
+  /**
+   * A two-face cube between highlights: a frozen copy of the outgoing card and the real card,
+   * already showing the next highlight, turn together about an axis half a card behind the
+   * screen, each shaded as it faces away. Reduced motion cross-fades the two instead.
+   */
   const turn = async (direction: 1 | -1, swap: () => void) => {
     busy = true;
     const fade = reducedMotion();
     card.dataset.transition = fade ? 'fade' : 'cube';
-    const half = { duration: fade ? 100 : 150, fill: 'forwards' as const };
-    const out = fade
-      ? [{ opacity: 1 }, { opacity: 0 }]
-      : [
-          {
-            transformOrigin: direction > 0 ? 'right center' : 'left center',
-            transform: 'perspective(1200px) rotateY(0deg)',
-          },
-          {
-            transformOrigin: direction > 0 ? 'right center' : 'left center',
-            transform: `perspective(1200px) rotateY(${direction > 0 ? -90 : 90}deg)`,
-          },
-        ];
-    const into = fade
-      ? [{ opacity: 0 }, { opacity: 1 }]
-      : [
-          {
-            transformOrigin: direction > 0 ? 'left center' : 'right center',
-            transform: `perspective(1200px) rotateY(${direction > 0 ? 90 : -90}deg)`,
-          },
-          {
-            transformOrigin: direction > 0 ? 'left center' : 'right center',
-            transform: 'perspective(1200px) rotateY(0deg)',
-          },
-        ];
+    const face = card.cloneNode(true) as HTMLElement;
+    face.classList.add('face-out');
+    face.classList.remove('dragging');
+    face.inert = true;
+    face.setAttribute('aria-hidden', 'true');
+    face.querySelector('.story-status')?.remove();
+    // Freeze the outgoing progress bar where it was.
+    const liveFills = card.querySelectorAll<HTMLElement>('.fill');
+    face.querySelectorAll<HTMLElement>('.fill').forEach((fill, i) => {
+      fill.style.transform = getComputedStyle(liveFills[i]).transform;
+    });
+    card.after(face);
+    swap();
+
+    const timing = { duration: fade ? FADE_MS : CUBE_MS, easing: fade ? 'linear' : EASE };
+    let animations: Animation[];
+    if (fade) {
+      animations = [face.animate([{ opacity: 1 }, { opacity: 0 }], timing)];
+    } else {
+      const width = cardWrap.getBoundingClientRect().width;
+      cardWrap.classList.add('turning');
+      cardWrap.style.perspective = `${Math.round(Math.max(800, width * 2.2))}px`;
+      const origin = `50% 50% ${-width / 2}px`;
+      const angle = direction * 90;
+      animations = [
+        face.animate(
+          [
+            { transformOrigin: origin, transform: 'rotateY(0deg)' },
+            { transformOrigin: origin, transform: `rotateY(${-angle}deg)` },
+          ],
+          timing,
+        ),
+        card.animate(
+          [
+            { transformOrigin: origin, transform: `rotateY(${angle}deg)` },
+            { transformOrigin: origin, transform: 'rotateY(0deg)' },
+          ],
+          timing,
+        ),
+        shade(face).animate([{ opacity: 0 }, { opacity: 0.6 }], timing),
+        shade(card).animate([{ opacity: 0.6 }, { opacity: 0 }], timing),
+      ];
+    }
     try {
-      await card.animate(out, { ...half, easing: 'ease-in' }).finished;
-      swap();
-      const entering = card.animate(into, { ...half, easing: EASE });
-      await entering.finished;
-      entering.cancel();
+      await Promise.all(animations.map((a) => a.finished));
     } catch {
-      swap();
+      // Cancelled by a close mid-turn.
     } finally {
-      card.getAnimations().forEach((a) => a !== progress && a.cancel());
+      animations.forEach((a) => a.cancel());
+      face.remove();
+      card.querySelector(':scope > .shade')?.remove();
+      cardWrap.classList.remove('turning');
+      cardWrap.style.perspective = '';
       busy = false;
     }
   };
@@ -191,7 +350,9 @@ export function initStoryViewer(): void {
     }
   }
 
-  const open = (group: number, push: boolean) => {
+  const open = (group: number, push: boolean, from?: Element) => {
+    // Growing out of the tapped ring needs that ring on screen, and motion.
+    const ring = push && !dialog.open && !reducedMotion() ? ringFor(group, from) : null;
     state = createStory(shape, group);
     renderedGroup = -1;
     if (push) {
@@ -201,8 +362,10 @@ export function initStoryViewer(): void {
     }
     const title = templates[group].dataset.title;
     if (title) document.title = title;
+    if (ring) dialog.classList.add('zooming');
     if (!dialog.open) dialog.showModal();
     render(false);
+    if (ring) void zoomIn(ring);
   };
 
   // Opening: highlight links fall back to /stories/<id>/ pages without JavaScript.
@@ -213,10 +376,29 @@ export function initStoryViewer(): void {
     if (group < 0) return;
     event.preventDefault();
     opener = link;
-    open(group, true);
+    open(group, true, link);
   });
 
-  q('.story-close')?.addEventListener('click', () => dialog.close());
+  q('.story-close')?.addEventListener('click', () => void dismiss());
+  // Esc shrinks the story back into its ring too, when the browser lets the close wait.
+  dialog.addEventListener('cancel', (event) => {
+    if (!event.cancelable || !state || reducedMotion() || !ringFor(state.group)) return;
+    event.preventDefault();
+    void dismiss();
+  });
+
+  // A focused sticker holds the story still (it would otherwise slide away mid-Tab).
+  framesEl.addEventListener('focusin', (event) => {
+    if (!state || state.paused || !(event.target as Element).closest('.sticker')) return;
+    pausedBySticker = true;
+    dispatch({ type: 'pause' });
+  });
+  framesEl.addEventListener('focusout', (event) => {
+    const next = event.relatedTarget as Element | null;
+    if (!pausedBySticker || next?.closest('.sticker')) return;
+    pausedBySticker = false;
+    dispatch({ type: 'resume' });
+  });
   pauseButton.addEventListener('click', () => dispatch({ type: 'togglePause' }));
   q('.frame-prev')?.addEventListener('click', () => dispatch({ type: 'prev' }, true));
   q('.frame-next')?.addEventListener('click', () => dispatch({ type: 'next' }, true));
@@ -246,7 +428,8 @@ export function initStoryViewer(): void {
   };
 
   card.addEventListener('pointerdown', (event) => {
-    if ((event.target as Element).closest('button') || busy) return;
+    // Buttons and sticker links are pressed, not tapped through.
+    if ((event.target as Element).closest('button, a') || busy) return;
     down = {
       x: event.clientX,
       y: event.clientY,
@@ -288,6 +471,15 @@ export function initStoryViewer(): void {
     );
     const wasHolding = holding;
     holding = false;
+    if (gesture === 'swipe-down') {
+      // Leave the card where the finger let go; the shrink picks it up from there.
+      const dragged = card.style.transform || 'none';
+      clearTimeout(holdTimer);
+      down = null;
+      dialog.classList.remove('chrome-hidden');
+      void dismiss(dragged);
+      return;
+    }
     endPress();
     if (wasHolding) dispatch({ type: 'resume' });
     switch (gesture) {
@@ -296,9 +488,6 @@ export function initStoryViewer(): void {
         break;
       case 'tap-next':
         if (!wasHolding) dispatch({ type: 'next' }, true);
-        break;
-      case 'swipe-down':
-        dialog.close();
         break;
       case 'swipe-next-group':
         dispatch({ type: 'nextGroup' }, true);
@@ -330,7 +519,17 @@ export function initStoryViewer(): void {
     progress = null;
     state = null;
     renderedGroup = -1;
+    pausedBySticker = false;
+    motion.forEach((a) => a.cancel());
+    motion = [];
+    dialog.classList.remove('zooming', 'shrinking');
+    card.classList.remove('dragging');
+    card.style.transform = '';
     framesEl.replaceChildren();
+    preloadEl.replaceChildren();
+    // The rings of what was watched turn grey (ProfileHeader keeps the intro's).
+    document.dispatchEvent(new CustomEvent('story:seen', { detail: { ids: [...viewed] } }));
+    viewed.clear();
     document.title = returnTitle;
     if (storySlugFromPath(location.pathname)) {
       if (history.state?.story) history.back();

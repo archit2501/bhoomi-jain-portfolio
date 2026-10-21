@@ -9,7 +9,15 @@
     {
       "type": "text",
       "heading": "Let's build something",
-      "body": "Message me from my profile, or find me on LinkedIn at linkedin.com/in/bhoomi21."
+      "body": "Message me from my profile, or find me on LinkedIn at linkedin.com/in/bhoomi21.",
+      "stickers": [
+        {
+          "type": "link",
+          "href": "https://www.linkedin.com/in/bhoomi21",
+          "y": 74,
+          "rotate": -3
+        }
+      ]
     }
   ]
 }

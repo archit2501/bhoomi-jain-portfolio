@@ -81,8 +81,11 @@ const moreLinks = [profile.links.email, profile.links.github, profile.links.resu
 </header>
 
 <script>
-  // Like Instagram, the ring turns grey once the intro has been seen (remembered per browser).
+  // Like Instagram, the ring turns grey once the intro has been watched: the story viewer reports
+  // what was shown when it closes, just as the story shrinks back into this ring. Remembered per
+  // browser.
   const KEY = 'bhoomi:seen:intro';
+  const intro = document.querySelector<HTMLElement>('a.avatar-link')?.dataset.story;
   const markSeen = () =>
     document.querySelectorAll('.avatar-link .avatar').forEach((a) => a.classList.add('seen'));
   try {
@@ -90,7 +93,9 @@ const moreLinks = [profile.links.email, profile.links.github, profile.links.resu
   } catch {
     // Storage can be blocked; the ring just stays in its unseen colour.
   }
-  document.querySelector('a.avatar-link')?.addEventListener('click', () => {
+  document.addEventListener('story:seen', (event) => {
+    const { ids } = (event as CustomEvent<{ ids: string[] }>).detail;
+    if (!intro || !ids.includes(intro)) return;
     try {
       localStorage.setItem(KEY, '1');
     } catch {

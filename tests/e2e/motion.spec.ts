@@ -43,7 +43,22 @@ test.describe('nothing pops in instantly', () => {
     expect((await settled(page, '#contact-sheet')).opacity).toBe(1);
   });
 
-  test('stories fade in', async ({ page }) => {
+  test('a story grows out of its ring, solid from the first frame', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 860 });
+    await page.goto('/');
+    const trigger = `a.highlight[data-story="${row[0].id}"]`;
+    const viewer = await firstFrame(page, trigger, '#story-viewer');
+    const card = await page.locator('#story-viewer .card').evaluate((el) => ({
+      transform: getComputedStyle(el).transform,
+    }));
+    expect(viewer.opacity).toBe(1);
+    expect(card.transform).not.toBe('none');
+    await expect(page.locator('#story-viewer')).not.toHaveClass(/zooming/);
+    expect(await page.locator('#story-viewer .card').evaluate((el) => el.style.transform)).toBe('');
+  });
+
+  test('with reduced motion, stories fade in instead', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.setViewportSize({ width: 1280, height: 860 });
     await page.goto('/');
     const start = await firstFrame(page, `a.highlight[data-story="${row[0].id}"]`, '#story-viewer');

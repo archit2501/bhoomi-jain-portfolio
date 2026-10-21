@@ -10,17 +10,44 @@
     {
       "type": "text",
       "heading": "SmartBlog AI",
-      "body": "A full-stack AI blogging platform: React, Node.js/Express, MongoDB and JWT auth. React Query caching cut redundant network calls by ~45%."
+      "body": "A full-stack AI blogging platform: React, Node.js/Express, MongoDB and JWT auth. React Query caching cut redundant network calls by ~45%.",
+      "stickers": [
+        {
+          "type": "mention",
+          "name": "SmartBlog AI",
+          "href": "/p/smartblog-ai/",
+          "y": 80,
+          "rotate": 3
+        }
+      ]
     },
     {
       "type": "text",
       "heading": "Conversational AI Web App",
-      "body": "Real-time chat in React on a FastAPI backend, deployed to AWS EC2 with 40% lower end-to-end latency."
+      "body": "Real-time chat in React on a FastAPI backend, deployed to AWS EC2 with 40% lower end-to-end latency.",
+      "stickers": [
+        {
+          "type": "mention",
+          "name": "Conversational AI",
+          "href": "/p/conversational-ai-web-app/",
+          "y": 80,
+          "rotate": 3
+        }
+      ]
     },
     {
       "type": "text",
       "heading": "AI Resume Shortlisting Tool",
-      "body": "A recruiter-facing web UI with drag-and-drop upload and skill-gap insights at <1.5s perceived response time."
+      "body": "A recruiter-facing web UI with drag-and-drop upload and skill-gap insights at <1.5s perceived response time.",
+      "stickers": [
+        {
+          "type": "mention",
+          "name": "Resume Shortlisting",
+          "href": "/p/ai-resume-shortlisting-tool/",
+          "y": 80,
+          "rotate": 3
+        }
+      ]
     }
   ]
 }

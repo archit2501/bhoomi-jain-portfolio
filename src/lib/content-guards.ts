@@ -11,6 +11,7 @@ import {
 } from './content-schema';
 import { checkResume, findPhoneNumbers } from './resume';
 import { hasPhoto, slideText } from './slides';
+import { stickerText } from './story/stickers';
 
 export interface SiteContent {
   profile: Profile;
@@ -87,11 +88,26 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
     errors.push(`${pinned} posts are pinned, limit is ${LIMITS.pinned}`);
   }
 
+  const postIds = new Set(content.posts.map((p) => p.id));
   for (const { id, data } of content.highlights) {
     const shown = data.frames
-      .map((f) => (f.type === 'text' ? `${f.heading ?? ''} ${f.body}` : (f.caption ?? '')))
+      .map((f) =>
+        [
+          f.type === 'text' ? `${f.heading ?? ''} ${f.body}` : (f.caption ?? ''),
+          ...f.stickers.map(stickerText),
+        ].join(' '),
+      )
       .join(' ');
     data.figures.forEach((fid) => requireMention(`highlight ${id}`, fid, shown));
+    for (const sticker of data.frames.flatMap((f) => f.stickers)) {
+      if (sticker.type !== 'mention') continue;
+      const slug = /^\/p\/([^/]+)\/$/.exec(sticker.href)?.[1];
+      if (!slug || !postIds.has(slug)) {
+        errors.push(
+          `highlight ${id}: the @${sticker.name} sticker opens ${sticker.href}, not a post`,
+        );
+      }
+    }
   }
 
   for (const { id, data } of content.reels) {

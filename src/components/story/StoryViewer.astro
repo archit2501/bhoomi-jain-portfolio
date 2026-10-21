@@ -5,6 +5,7 @@ import type { Highlight, Profile } from '../../lib/content-schema';
 import { pageTitle } from '../../lib/site';
 import { frameDuration } from '../../lib/story/controller';
 import Avatar from '../Avatar.astro';
+import Sticker from './Sticker.astro';
 
 interface Props {
   highlights: { id: string; data: Highlight }[];
@@ -24,6 +25,7 @@ const initials = profile.displayName
 <dialog data-motion="fade" id="story-viewer" class="story-viewer" aria-label="Stories">
   <div class="stage">
     <button class="peek peek-prev" type="button" hidden>
+      <Icon name="back" size={16} class="peek-arrow" />
       <span class="peek-cover" aria-hidden="true"></span>
       <span class="peek-label"></span>
     </button>
@@ -53,6 +55,8 @@ const initials = profile.displayName
         </div>
         <p class="story-status visually-hidden" aria-live="polite"></p>
       </div>
+      <!-- The next highlight's first photo loads here, out of sight (story-viewer.ts). -->
+      <div class="preload" hidden></div>
 
       <button class="frame-nav frame-next" type="button" aria-label="Next story">
         <Icon name="forward" size={20} />
@@ -62,6 +66,7 @@ const initials = profile.displayName
     <button class="peek peek-next" type="button" hidden>
       <span class="peek-cover" aria-hidden="true"></span>
       <span class="peek-label"></span>
+      <Icon name="forward" size={16} class="peek-arrow" />
     </button>
   </div>
 </dialog>
@@ -101,6 +106,9 @@ const initials = profile.displayName
             <p class="frame-body">{frame.body}</p>
           </div>
         )}
+        {frame.stickers.map((sticker) => (
+          <Sticker sticker={sticker} />
+        ))}
       </div>
     ))}
   </template>
@@ -131,6 +139,7 @@ const initials = profile.displayName
   }
 
   .stage {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     place-items: center;
@@ -141,6 +150,41 @@ const initials = profile.displayName
     position: relative;
     width: 100%;
     height: 100%;
+  }
+
+  /*
+   * Moving between highlights turns a cube (story-viewer.ts): the outgoing highlight is a frozen
+   * copy of the card (.face-out) and both faces rotate about an axis half a card behind the
+   * screen, each darkening as it turns away.
+   */
+  .card.face-out {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .card-wrap.turning .card {
+    backface-visibility: hidden;
+  }
+
+  .card :global(.shade) {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: #000000;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Growing out of a ring, the card is solid from the first frame: no dialog fade. The black
+     behind it fades in on its own (story-viewer.ts). Shrinking back closes without a fade too. */
+  .story-viewer.zooming,
+  .story-viewer.shrinking {
+    transition: none;
+  }
+
+  .story-viewer.shrinking::backdrop {
+    opacity: 0;
   }
 
   .card {
@@ -320,9 +364,74 @@ const initials = profile.displayName
     opacity: 0;
   }
 
-  .frame-nav,
-  .peek {
-    display: none;
+  /*
+   * Phones: taps and swipes drive the viewer, but every gesture also has a real button (WCAG 2.2,
+   * 2.5.7 dragging movements). They stay out of sight until focused, then show over the card:
+   * stories at the sides, highlights along the bottom.
+   */
+  @media (max-width: 767px) {
+    .frame-nav,
+    .peek:not([hidden]) {
+      position: absolute;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      color: #ffffff;
+      white-space: nowrap;
+      background: rgb(0 0 0 / 70%);
+      border: 0;
+      border-radius: var(--radius-pill);
+      clip-path: inset(50%);
+    }
+
+    .frame-nav:focus-visible,
+    .peek:focus-visible {
+      width: auto;
+      height: 44px;
+      padding: 0 var(--space-4);
+      clip-path: none;
+    }
+
+    .frame-nav:focus-visible {
+      top: 50%;
+      width: 44px;
+      padding: 0;
+      justify-content: center;
+      transform: translateY(-50%);
+    }
+
+    .frame-prev {
+      left: var(--space-2);
+    }
+
+    .frame-next {
+      right: var(--space-2);
+    }
+
+    .peek {
+      bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .peek-prev {
+      left: var(--space-3);
+    }
+
+    .peek-next {
+      right: var(--space-3);
+    }
+
+    .peek-cover {
+      display: none;
+    }
+
+    .peek-label {
+      font-weight: var(--weight-semibold);
+    }
   }
 
   @media (min-width: 768px) {
@@ -428,6 +537,10 @@ const initials = profile.displayName
 
     .peek-label {
       font-weight: var(--weight-semibold);
+    }
+
+    .peek :global(.peek-arrow) {
+      display: none;
     }
   }
 </style>

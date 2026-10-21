@@ -11,12 +11,28 @@
     {
       "type": "text",
       "heading": "Hi, I'm Bhoomi",
-      "body": "A full stack developer in Delhi, India."
+      "body": "A full stack developer in Delhi, India.",
+      "stickers": [
+        {
+          "type": "location",
+          "name": "Delhi, India",
+          "y": 74,
+          "rotate": -4
+        }
+      ]
     },
     {
       "type": "text",
       "heading": "React to FastAPI",
-      "body": "I build React front ends on Node.js/Express and FastAPI back ends, with MongoDB and MySQL."
+      "body": "I build React front ends on Node.js/Express and FastAPI back ends, with MongoDB and MySQL.",
+      "stickers": [
+        {
+          "type": "code",
+          "code": "stack = ['React', 'FastAPI']",
+          "y": 76,
+          "rotate": 3
+        }
+      ]
     },
     {
       "type": "text",
@@ -31,7 +47,15 @@
     {
       "type": "text",
       "heading": "Let's talk",
-      "body": "Message me from my profile, or find me on LinkedIn."
+      "body": "Message me from my profile, or find me on LinkedIn.",
+      "stickers": [
+        {
+          "type": "link",
+          "href": "https://www.linkedin.com/in/bhoomi21",
+          "y": 72,
+          "rotate": -3
+        }
+      ]
     }
   ]
 }

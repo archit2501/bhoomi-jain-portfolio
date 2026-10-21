@@ -10,7 +10,16 @@
     {
       "type": "text",
       "heading": "1st of 160 teams",
-      "body": "Winner of CyberCup 4.0, a national-level hackathon."
+      "body": "Winner of CyberCup 4.0, a national-level hackathon.",
+      "stickers": [
+        {
+          "type": "mention",
+          "name": "CyberCup 4.0",
+          "href": "/p/cybercup-4-winner/",
+          "y": 76,
+          "rotate": -3
+        }
+      ]
     },
     {
       "type": "text",
