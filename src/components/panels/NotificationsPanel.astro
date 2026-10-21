@@ -1,11 +1,14 @@
 ---
-import { loadSiteContent } from '../../lib/content';
-import EventList from './EventList.astro';
+import ActivityList from './ActivityList.astro';
 import SlidePanel from './SlidePanel.astro';
-
-const { events } = await loadSiteContent();
 ---
 
 <SlidePanel id="panel-notifications" title="Notifications">
-  <EventList events={events} />
+  <ActivityList idPrefix="drawer" />
 </SlidePanel>
+
+<script>
+  import { initNotifications } from '../../scripts/notifications';
+
+  initNotifications();
+</script>

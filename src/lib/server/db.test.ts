@@ -147,6 +147,30 @@ describe('polls and questions', () => {
   });
 });
 
+describe('recent comments', () => {
+  it('only approved ones, newest published first', async () => {
+    const a = await repo.comments.create({
+      post: 'recent-post',
+      visitor: 'r1',
+      name: 'Ana',
+      body: 'First',
+    });
+    const b = await repo.comments.create({
+      post: 'recent-post',
+      visitor: 'r2',
+      name: 'Ben',
+      body: 'Second',
+    });
+    await repo.comments.create({ post: 'recent-post', visitor: 'r3', name: 'Cy', body: 'Waiting' });
+    await repo.comments.decide(b, 'approved');
+    await repo.comments.decide(a, 'approved');
+    const recent = (await repo.comments.recent(50)).filter((c) => c.post === 'recent-post');
+    expect(recent.map((c) => c.name)).toEqual(['Ana', 'Ben']);
+    expect(recent[0].publishedAt).toBeGreaterThan(recent[0].createdAt);
+    expect(await repo.comments.recent(1)).toHaveLength(1);
+  });
+});
+
 describe('site totals', () => {
   it('counts likes, approved comments, conversations, the ones she answered, and votes', async () => {
     const before = await repo.totals.site();

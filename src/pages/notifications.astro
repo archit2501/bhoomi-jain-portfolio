@@ -1,15 +1,12 @@
 ---
-import EventList from '../components/panels/EventList.astro';
+import ActivityList from '../components/panels/ActivityList.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { loadSiteContent } from '../lib/content';
-
-const { events } = await loadSiteContent();
 ---
 
 <BaseLayout title="Notifications" current="notifications" image="/og/pages/notifications.png">
   <section class="notifications" aria-labelledby="notifications-title">
     <h1 id="notifications-title">Notifications</h1>
-    <EventList events={events} />
+    <ActivityList idPrefix="page" />
   </section>
 </BaseLayout>
 

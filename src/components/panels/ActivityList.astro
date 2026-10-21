@@ -1,0 +1,145 @@
+---
+/**
+ * Notifications (task 4.2.3): her activity grouped as Instagram groups it. Her career
+ * milestones are drawn here at build time, so they show without JavaScript;
+ * src/scripts/notifications.ts then merges in her GitHub events and approved comments and
+ * regroups, with "New" for what came since this browser last looked.
+ */
+import { careerActivity, groupActivity, relativeTime, type ActivityKind } from '../../lib/events';
+import { loadSiteContent } from '../../lib/content';
+import EmptyState from '../EmptyState.astro';
+import Icon from '../Icon.astro';
+import type { IconName } from '../icon-names';
+
+interface Props {
+  /** Prefixes heading ids: the page and the drawer can both be on one page. */
+  idPrefix: string;
+}
+
+const { idPrefix } = Astro.props;
+const { events, posts } = await loadSiteContent();
+const career = careerActivity(events, posts);
+const now = new Date();
+const groups = groupActivity(career, now, null);
+const titles = Object.fromEntries(posts.map((p) => [p.id, p.data.title]));
+const ICON: Record<ActivityKind, IconName> = {
+  job: 'resume',
+  education: 'grid',
+  project: 'reels',
+  achievement: 'heart',
+  certification: 'pin',
+  site: 'home',
+  github: 'github',
+  comment: 'comment',
+};
+---
+
+<div class="activity" data-activity data-id-prefix={idPrefix}>
+  <div data-activity-groups>
+    {groups.map((group) => (
+      <section class="group" aria-labelledby={`${idPrefix}-${group.label}`}>
+        <h3 id={`${idPrefix}-${group.label}`}>{group.label}</h3>
+        <ul role="list">
+          {group.items.map((item) => (
+            <li>
+              <a
+                class="row"
+                href={item.href}
+                target={item.external ? '_blank' : undefined}
+                rel={item.external ? 'noopener noreferrer' : undefined}
+              >
+                <span class="badge" aria-hidden="true">
+                  <Icon name={ICON[item.kind]} size={20} />
+                </span>
+                <span class="text">{item.text}</span>
+                <time class="when" datetime={item.at}>
+                  {relativeTime(item.at, now)}
+                </time>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+  <div data-activity-empty hidden={career.length > 0}>
+    <EmptyState icon="notifications" title="You're all caught up" level={3}>
+      Her milestones, GitHub activity and comments will show here.
+    </EmptyState>
+  </div>
+  {Object.entries(ICON).map(([kind, icon]) => (
+    <template data-icon={kind}>
+      <Icon name={icon} size={20} />
+    </template>
+  ))}
+  <script type="application/json" data-activity-career set:html={JSON.stringify(career)} />
+  <script type="application/json" data-activity-titles set:html={JSON.stringify(titles)} />
+</div>
+
+<style>
+  /* :global: the script redraws the groups, outside this component's scope. */
+  .activity :global(.row) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 60px;
+    padding: var(--space-2) var(--space-6);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media (hover: hover) {
+    .activity :global(.row:hover) {
+      background: var(--hover-overlay);
+    }
+  }
+
+  .activity :global(.badge) {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--accent-text);
+    background: var(--bg-secondary);
+    border-radius: 50%;
+  }
+
+  .activity :global(.text) {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    overflow-wrap: anywhere;
+  }
+
+  .activity :global(.when) {
+    flex-shrink: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    color: var(--text-secondary);
+  }
+
+  .activity :global(.group h3) {
+    margin: 0;
+    padding: var(--space-2) var(--space-6);
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-bold);
+  }
+
+  .activity :global(.group ul) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .activity :global(.group) {
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--separator);
+  }
+
+  [hidden] {
+    display: none;
+  }
+</style>
