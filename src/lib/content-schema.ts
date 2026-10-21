@@ -216,6 +216,28 @@ export const stickerSchema = z.discriminatedUnion('type', [
     ...stickerPlacement,
   }),
   z.object({ type: z.literal('location'), name: text.max(40), ...stickerPlacement }),
+  // Interactive stickers (task 3.2.2): answers are saved; poll results update live. Each has an
+  // id the API knows it by, unique across all highlights.
+  z.object({
+    type: z.literal('poll'),
+    id: z.string().regex(/^[a-z0-9-]{3,40}$/, 'Use a short lowercase id'),
+    question: text.max(80),
+    options: z.array(text.max(24)).min(2).max(4),
+    ...stickerPlacement,
+  }),
+  z.object({
+    type: z.literal('question'),
+    id: z.string().regex(/^[a-z0-9-]{3,40}$/, 'Use a short lowercase id'),
+    prompt: text.max(60),
+    ...stickerPlacement,
+  }),
+  z.object({
+    type: z.literal('slider'),
+    id: z.string().regex(/^[a-z0-9-]{3,40}$/, 'Use a short lowercase id'),
+    prompt: text.max(60),
+    emoji: z.string().trim().min(1).max(8),
+    ...stickerPlacement,
+  }),
   z.object({
     type: z.literal('code'),
     /** One short line, set in Geist Mono. */

@@ -18,6 +18,19 @@
           "rotate": -3
         }
       ]
+    },
+    {
+      "type": "text",
+      "heading": "Ask me anything",
+      "body": "About my projects, my stack or what I'm learning. Only I see what you send.",
+      "stickers": [
+        {
+          "type": "question",
+          "id": "ask-me",
+          "prompt": "Ask me anything",
+          "y": 78
+        }
+      ]
     }
   ]
 }

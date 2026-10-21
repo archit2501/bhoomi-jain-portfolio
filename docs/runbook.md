@@ -13,6 +13,7 @@ One Cloudflare Worker (`bhoomi-jain-portfolio`, configured in `wrangler.jsonc`):
   - `COUNTERS` (KV): daily write counters, a site-wide ceiling per kind of write.
   - `DB` (D1): likes, comments, DMs, poll votes and question answers. The schema is in `migrations/`.
   - `WRITE_LIMIT_IP` and `WRITE_LIMIT_VISITOR` (Rate Limiting): 30 writes a minute per IP, 12 per visitor.
+  - `PRESENCE` (Durable Object, class `Presence` in `src/workers/presence.ts`): the live room. The Worker's entrypoint is `src/worker.ts`, Astro's handler plus that class.
   - Secret `TURNSTILE_SECRET`: without it, every write is refused.
   - Secret `APPROVAL_SECRET`: signs Bhoomi's approve and reject links for comments.
   - Secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and/or `NOTIFY_WEBHOOK_URL`: where her notices go.
@@ -63,6 +64,7 @@ Live features can be turned off without a redeploy. A switch is on unless the st
 | `comments` | Posting comments                   |
 | `dms`      | Sending DMs                        |
 | `polls`    | Story polls, questions and sliders |
+| `presence` | "Active now" and live poll results |
 | `ai_chat`  | "Ask Bhoomi's AI" thread           |
 
 A switched-off feature answers 503 before it touches anything.
@@ -113,6 +115,12 @@ A visitor picks a topic (`/direct/<topic>/`; the topics and her opening lines ar
 Bhoomi gets each new message, the first and every one after, through the same channels as comments, with a **Read and reply** link. It's signed with `APPROVAL_SECRET` and valid for 30 days. The link opens the conversation (with their email, if they gave one) and a reply box. Her reply appears on the visitor's private link within 20 seconds while they have it open.
 
 The `dms` switch stops new messages. Reading a conversation and replying keep working.
+
+## The live room
+
+Every page opens one WebSocket to `/api/live`, which goes to a single `Presence` Durable Object. It uses WebSocket hibernation, so it sleeps between messages and costs nothing while idle. Its socket count lights "Active now · N here" on her avatar. After each poll vote, the vote endpoint posts the new results to it, and it relays them to every open page.
+
+With `presence` off, or if WebSockets fail, pages stay static: no "Active now", and a poll shows results only after your own vote. With `polls` off, the stickers say answers are off. Question-box answers go to her notices only and are never served.
 
 ## Roll back a bad deploy
 

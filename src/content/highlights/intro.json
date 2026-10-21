@@ -46,6 +46,20 @@
     },
     {
       "type": "text",
+      "heading": "Quick one",
+      "body": "How do you like this portfolio so far?",
+      "stickers": [
+        {
+          "type": "slider",
+          "id": "site-mood",
+          "prompt": "Slide to say",
+          "emoji": "😍",
+          "y": 74
+        }
+      ]
+    },
+    {
+      "type": "text",
       "heading": "Let's talk",
       "body": "Message me from my profile, or find me on LinkedIn.",
       "stickers": [

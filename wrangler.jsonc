@@ -1,7 +1,8 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "bhoomi-jain-portfolio",
-  // The Astro adapter fills in `main` (its server entrypoint) and the ASSETS binding.
+  // Astro's handler plus the Presence Durable Object (src/worker.ts). The adapter adds ASSETS.
+  "main": "./src/worker.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
@@ -26,6 +27,9 @@
       "simple": { "limit": 12, "period": 60 },
     },
   ],
+  // The live room: "Active now" and live poll results (src/workers/presence.ts).
+  "durable_objects": { "bindings": [{ "name": "PRESENCE", "class_name": "Presence" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Presence"] }],
   // Secrets (never in this file): TURNSTILE_SECRET, set with `wrangler secret put` (docs/runbook.md).
   "env": {
     // Pull-request previews run as their own Worker (bhoomi-jain-portfolio-preview) with their own
@@ -33,6 +37,7 @@
     // Build with CLOUDFLARE_ENV=preview to target it (.github/workflows/deploy.yml).
     "preview": {
       "kv_namespaces": [{ "binding": "FLAGS" }, { "binding": "COUNTERS" }],
+      "durable_objects": { "bindings": [{ "name": "PRESENCE", "class_name": "Presence" }] },
       "d1_databases": [
         {
           "binding": "DB",

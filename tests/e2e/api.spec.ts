@@ -16,7 +16,7 @@ test('GET /api/health answers from the Worker: every switch on by default, datab
   expect(await res.json()).toEqual({
     ok: true,
     db: true,
-    flags: { likes: true, comments: true, dms: true, polls: true, ai_chat: true },
+    flags: { likes: true, comments: true, dms: true, polls: true, presence: true, ai_chat: true },
   });
 });
 
@@ -26,4 +26,9 @@ test('pages stay prerendered static files next to the Worker', async ({ request 
   expect(res.headers()['content-type']).toContain('text/html');
   const astro = await request.get('/og/default.png');
   expect(astro.headers()['content-type']).toBe('image/png');
+});
+
+test('/api/live only takes WebSockets', async ({ request }) => {
+  const res = await request.get('/api/live');
+  expect(res.status()).toBe(426);
 });

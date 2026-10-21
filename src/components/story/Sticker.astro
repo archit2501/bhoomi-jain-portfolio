@@ -41,6 +41,66 @@ const style = stickerStyle(sticker);
     <span>{label}</span>
   </span>
 )}
+{sticker.type === 'poll' && (
+  <div
+    class="sticker sticker-live sticker-poll"
+    style={style}
+    data-sticker="poll"
+    data-poll={sticker.id}
+  >
+    <p class="live-prompt">{sticker.question}</p>
+    <div class="poll-options" role="group" aria-label={sticker.question}>
+      {sticker.options.map((option, i) => (
+        <button type="button" class="poll-option" data-choice={i}>
+          <span class="poll-fill" aria-hidden="true" />
+          <span class="poll-label">{option}</span>
+          <span class="poll-pct" />
+        </button>
+      ))}
+    </div>
+    <p class="live-status" role="status" />
+  </div>
+)}
+{sticker.type === 'question' && (
+  <form
+    class="sticker sticker-live sticker-question"
+    style={style}
+    data-sticker="question"
+    data-question={sticker.id}
+  >
+    <p class="live-prompt">{sticker.prompt}</p>
+    <label class="visually-hidden" for={`q-${sticker.id}`}>
+      {sticker.prompt}
+    </label>
+    <textarea
+      id={`q-${sticker.id}`}
+      name="body"
+      rows="2"
+      maxlength="500"
+      placeholder="Type something…"
+      required
+    />
+    <button type="submit" class="live-send">
+      Send
+    </button>
+    <p class="live-status" role="status" />
+  </form>
+)}
+{sticker.type === 'slider' && (
+  <div
+    class="sticker sticker-live sticker-slider"
+    style={`${style}; --emoji: '${sticker.emoji}'`}
+    data-sticker="slider"
+    data-slider={sticker.id}
+  >
+    <p class="live-prompt">{sticker.prompt}</p>
+    <input type="range" min="0" max="100" step="1" value="50" aria-label={sticker.prompt} />
+    <p class="slider-emoji" aria-hidden="true">
+      {sticker.emoji}
+    </p>
+    <p class="live-status" role="status" />
+  </div>
+)}
 {sticker.type === 'code' && (
   <code class="sticker sticker-code" style={style} data-sticker="code">
     <Icon name="code" size={16} />
@@ -109,6 +169,115 @@ const style = stickerStyle(sticker);
     color: var(--sticker-code-ink);
     background: var(--sticker-code-bg);
     border: 1px solid rgb(255 255 255 / 24%);
+  }
+
+  /* ---- interactive stickers: a white card, wider, never tilted past readability ---- */
+  .sticker-live {
+    display: grid;
+    gap: var(--space-2);
+    width: min(78%, 300px);
+    max-width: none;
+    padding: var(--space-3);
+    white-space: normal;
+    text-align: center;
+    color: #0c1014;
+    text-transform: none;
+  }
+
+  .live-prompt {
+    margin: 0;
+    font-size: var(--fs-16);
+    line-height: 1.25;
+  }
+
+  .poll-options {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .poll-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    min-height: 40px;
+    padding: var(--space-2) var(--space-3);
+    overflow: hidden;
+    font: inherit;
+    font-weight: var(--weight-bold);
+    color: var(--sticker-ink);
+    background: #f3f5f7;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .poll-option:disabled {
+    cursor: default;
+  }
+
+  .poll-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--pct, 0%);
+    background: rgb(3 105 161 / 18%);
+    transition: width 0.4s var(--ease-ig);
+  }
+
+  .poll-option.mine .poll-fill {
+    background: rgb(3 105 161 / 32%);
+  }
+
+  .poll-label,
+  .poll-pct {
+    position: relative;
+  }
+
+  .sticker-question textarea {
+    width: 100%;
+    padding: var(--space-2);
+    font: inherit;
+    font-weight: var(--weight-regular);
+    color: #0c1014;
+    background: #f3f5f7;
+    border: 0;
+    border-radius: var(--radius-button);
+    resize: none;
+  }
+
+  .live-send {
+    justify-self: center;
+    padding: var(--space-2) var(--space-4);
+    font: inherit;
+    font-weight: var(--weight-bold);
+    color: var(--on-accent);
+    background: var(--sticker-ink);
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+
+  .sticker-slider input[type='range'] {
+    width: 100%;
+    accent-color: var(--sticker-ink);
+  }
+
+  .slider-emoji {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .live-status {
+    margin: 0;
+    font-size: var(--fs-12);
+    font-weight: var(--weight-regular);
+    color: #4b5259;
+  }
+
+  .live-status:empty {
+    display: none;
   }
 
   a.sticker:focus-visible {

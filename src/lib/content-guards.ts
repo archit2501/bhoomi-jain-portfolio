@@ -11,7 +11,7 @@ import {
 } from './content-schema';
 import { checkResume, findPhoneNumbers } from './resume';
 import { hasPhoto, slideText } from './slides';
-import { stickerText } from './story/stickers';
+import { isLive, stickerText } from './story/stickers';
 
 export interface SiteContent {
   profile: Profile;
@@ -89,6 +89,7 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
   }
 
   const postIds = new Set(content.posts.map((p) => p.id));
+  const liveIds = new Set<string>();
   for (const { id, data } of content.highlights) {
     const shown = data.frames
       .map((f) =>
@@ -100,6 +101,12 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
       .join(' ');
     data.figures.forEach((fid) => requireMention(`highlight ${id}`, fid, shown));
     for (const sticker of data.frames.flatMap((f) => f.stickers)) {
+      if (isLive(sticker)) {
+        if (liveIds.has(sticker.id)) {
+          errors.push(`highlight ${id}: sticker id "${sticker.id}" is used twice`);
+        }
+        liveIds.add(sticker.id);
+      }
       if (sticker.type !== 'mention') continue;
       const slug = /^\/p\/([^/]+)\/$/.exec(sticker.href)?.[1];
       if (!slug || !postIds.has(slug)) {

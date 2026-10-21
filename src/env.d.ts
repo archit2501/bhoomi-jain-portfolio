@@ -15,6 +15,8 @@ declare namespace Cloudflare {
   interface Env {
     /** Off switches for the live features (src/lib/server/flags.ts). */
     FLAGS: KVNamespace;
+    /** The live room: "Active now" and live poll results (src/workers/presence.ts). */
+    PRESENCE: DurableObjectNamespace;
     /** Daily write counters (src/lib/server/guard.ts). */
     COUNTERS: KVNamespace;
     /** Likes, comments, DMs, votes and answers (migrations/, src/lib/server/db.ts). */
@@ -32,4 +34,36 @@ declare namespace Cloudflare {
 
 declare module 'cloudflare:workers' {
   export const env: Cloudflare.Env;
+
+  /** The part of the Durable Object API src/workers/presence.ts uses (WebSocket hibernation). */
+  export interface DurableObjectState {
+    acceptWebSocket(ws: WebSocket, tags?: string[]): void;
+    getWebSockets(tag?: string): WebSocket[];
+  }
+
+  export abstract class DurableObject<E = Cloudflare.Env> {
+    protected ctx: DurableObjectState;
+    protected env: E;
+    constructor(ctx: DurableObjectState, env: E);
+  }
+}
+
+/** The Workers runtime's paired sockets: one end for the client, one kept by the server. */
+declare class WebSocketPair {
+  0: WebSocket;
+  1: WebSocket;
+}
+
+interface ResponseInit {
+  /** Workers: the client end of a WebSocketPair, on a 101 response. */
+  webSocket?: WebSocket | null;
+}
+
+interface DurableObjectStub {
+  fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+}
+
+interface DurableObjectNamespace {
+  idFromName(name: string): unknown;
+  get(id: unknown): DurableObjectStub;
 }
