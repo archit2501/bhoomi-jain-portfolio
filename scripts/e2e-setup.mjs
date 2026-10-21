@@ -5,9 +5,22 @@
  * Local data only (.wrangler/state); production is never touched.
  */
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, rmSync } from 'node:fs';
+import { appendFileSync, copyFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
 
-if (!existsSync('.dev.vars')) copyFileSync('.dev.vars.example', '.dev.vars');
+if (!existsSync('.dev.vars')) {
+  copyFileSync('.dev.vars.example', '.dev.vars');
+} else {
+  // Add any secret the example has gained since this .dev.vars was made; keep the rest as is.
+  const have = new Set(
+    readFileSync('.dev.vars', 'utf8')
+      .split('\n')
+      .map((line) => line.split('=')[0].trim()),
+  );
+  const missing = readFileSync('.dev.vars.example', 'utf8')
+    .split('\n')
+    .filter((line) => /^[A-Z_]+=/.test(line) && !have.has(line.split('=')[0]));
+  if (missing.length) appendFileSync('.dev.vars', `\n${missing.join('\n')}\n`);
+}
 
 rmSync('.wrangler/state/v3/d1', { recursive: true, force: true });
 execFileSync(

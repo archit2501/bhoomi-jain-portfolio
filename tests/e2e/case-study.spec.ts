@@ -28,7 +28,8 @@ test.describe('a project post as a case study', () => {
   test('pins her TL;DR under the caption', async ({ page }) => {
     test.skip(!withTldr, 'no post has a TL;DR');
     await page.goto(`/p/${withTldr!.id}/`);
-    const pinned = page.locator('.comment.pinned');
+    // In the comments column; the phone's comments sheet holds a second copy.
+    const pinned = page.locator('.comments .comment.pinned');
     await expect(pinned).toContainText(withTldr!.data.tldr!);
     await expect(pinned.locator('.meta')).toHaveText('Pinned');
   });

@@ -10,6 +10,7 @@ import CodeSlide from './CodeSlide.astro';
 import DiagramSlide from './DiagramSlide.astro';
 import TypeTile from './TypeTile.astro';
 import ActionRow from './ActionRow.astro';
+import CommentForm from './CommentForm.astro';
 
 interface Props {
   post: { id: string; data: Post; body: string };
@@ -171,9 +172,49 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
         </div>
       </div>
     ))}
+    <!-- Visitors' comments, approved by Bhoomi (src/scripts/comments.ts fills it). -->
+    <ul class="comment-list" role="list" data-comment-list hidden></ul>
   </div>
 
   <ActionRow class="actions" id={id} when={when} />
+
+  <div class="compose">
+    <button class="open-comments" type="button" aria-haspopup="dialog" data-needs-js>
+      Add a comment…
+    </button>
+    <CommentForm post={id} place="column" />
+  </div>
+
+  {variant === 'page' && (
+    <dialog class="comments-sheet" data-motion="sheet" aria-labelledby={`comments-title-${id}`}>
+      <header class="sheet-head">
+        <h2 id={`comments-title-${id}`}>Comments</h2>
+        <button class="sheet-close icon-button" type="button" aria-label="Close">
+          <Icon name="close" size={22} />
+        </button>
+      </header>
+      <div class="sheet-body">
+        {tldr && (
+          <div class="comment pinned">
+            <Avatar size={32} src={profile.avatar.src} alt="" initials={initials} />
+            <div>
+              <p class="text">
+                <strong>{profile.username}</strong>
+                <span class="caption">{tldr}</span>
+              </p>
+              <p class="meta">
+                <Icon name="pin" filled size={12} />
+                Pinned
+              </p>
+            </div>
+          </div>
+        )}
+        <ul class="comment-list" role="list" data-comment-list />
+        <p class="comments-empty">No comments yet. Start the conversation.</p>
+      </div>
+      <CommentForm post={id} place="sheet" />
+    </dialog>
+  )}
 </article>
 
 <style>
@@ -184,7 +225,8 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
       'head'
       'media'
       'actions'
-      'comments';
+      'comments'
+      'compose';
     color: var(--text);
     background: var(--bg);
   }
@@ -389,6 +431,153 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     gap: var(--space-3);
   }
 
+  /* ---- visitors' comments ---- */
+  .comment-list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* On a phone the list lives in the sheet; the column shows her caption and pinned comment. */
+  .comments .comment-list {
+    display: none;
+  }
+
+  .comment-list :global(.visitor-comment) {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .comment-list :global(.visitor-initials) {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: var(--fs-12);
+    font-weight: var(--weight-semibold);
+    color: var(--text);
+    background: var(--bg-secondary);
+    border-radius: 50%;
+  }
+
+  .comment-list :global(.visitor-text) {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  .comment-list :global(.visitor-meta) {
+    margin: var(--space-1) 0 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+  }
+
+  .compose {
+    grid-area: compose;
+  }
+
+  .open-comments {
+    display: block;
+    width: 100%;
+    padding: var(--space-1) var(--space-4) var(--space-4);
+    font: inherit;
+    text-align: left;
+    color: var(--text-secondary);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  @media (max-width: 767px) {
+    .compose :global(.comment-form) {
+      display: none;
+    }
+  }
+
+  /* ---- the comments sheet (phones) ---- */
+  .comments-sheet {
+    width: 100%;
+    max-width: 100%;
+    max-height: 85dvh;
+    margin: auto 0 0;
+    padding: 0 0 env(safe-area-inset-bottom, 0px);
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 0;
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  }
+
+  .comments-sheet[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ::backdrop doesn't reliably inherit custom properties, so the scrim colour is literal here. */
+  .comments-sheet::backdrop {
+    background: rgb(0 0 0 / 65%);
+  }
+
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 48px;
+    border-bottom: 1px solid var(--separator);
+  }
+
+  .sheet-head h2 {
+    margin: 0;
+    font-size: var(--fs-16);
+    font-weight: var(--weight-bold);
+  }
+
+  .sheet-close {
+    position: absolute;
+    right: var(--space-2);
+    display: flex;
+    padding: var(--space-2);
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .sheet-body {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    min-height: 120px;
+    padding: var(--space-4);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .comments-empty {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .sheet-body .comment-list:not(:empty) + .comments-empty {
+    display: none;
+  }
+
+  .comments-sheet :global(.comment-form) {
+    border-top: 1px solid var(--separator);
+  }
+
+  @media (hover: hover) {
+    .sheet-close:hover {
+      background: var(--hover-overlay);
+    }
+  }
+
   .caption {
     margin-left: var(--space-1);
     white-space: pre-line;
@@ -441,11 +630,24 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
   @media (min-width: 768px) {
     .post-view {
       grid-template-columns: auto minmax(335px, 500px);
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr) auto auto;
       grid-template-areas:
         'media head'
         'media comments'
-        'media actions';
+        'media actions'
+        'media compose';
+    }
+
+    .compose {
+      border-left: 1px solid var(--separator);
+    }
+
+    .open-comments {
+      display: none;
+    }
+
+    .comments .comment-list:not([hidden]) {
+      display: grid;
     }
 
     .head,

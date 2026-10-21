@@ -38,8 +38,11 @@ let ipSeed = 0;
  */
 export async function ownIp(page: Page, testInfo: TestInfo): Promise<string> {
   const ip = `10.${projectIndex(testInfo)}.${testInfo.workerIndex % 250}.${++ipSeed % 250}`;
-  await page.route('**/api/**', (route) =>
-    route.continue({ headers: { ...route.request().headers(), 'cf-connecting-ip': ip } }),
+  // allHeaders(), not headers(): the latter leaves out Origin and cookies, which the API checks.
+  await page.route('**/api/**', async (route) =>
+    route.continue({
+      headers: { ...(await route.request().allHeaders()), 'cf-connecting-ip': ip },
+    }),
   );
   return ip;
 }
