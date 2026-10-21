@@ -6,7 +6,7 @@ test.skip(
   'device-independent',
 );
 
-test('GET /api/health answers from the Worker with every switch on by default', async ({
+test('GET /api/health answers from the Worker: every switch on by default, database up', async ({
   request,
 }) => {
   const res = await request.get('/api/health');
@@ -15,7 +15,8 @@ test('GET /api/health answers from the Worker with every switch on by default', 
   expect(res.headers()['cache-control']).toBe('no-store');
   expect(await res.json()).toEqual({
     ok: true,
-    flags: { ai_chat: true, comments: true, polls: true, dms: true },
+    db: true,
+    flags: { likes: true, comments: true, dms: true, polls: true, ai_chat: true },
   });
 });
 

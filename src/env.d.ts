@@ -15,6 +15,14 @@ declare namespace Cloudflare {
   interface Env {
     /** Off switches for the live features (src/lib/server/flags.ts). */
     FLAGS: KVNamespace;
+    /** Daily write counters (src/lib/server/guard.ts). */
+    COUNTERS: KVNamespace;
+    /** Likes, comments, DMs, votes and answers (migrations/, src/lib/server/db.ts). */
+    DB: import('./lib/server/db').D1Like;
+    WRITE_LIMIT_IP: import('./lib/server/guard').RateLimiter;
+    WRITE_LIMIT_VISITOR: import('./lib/server/guard').RateLimiter;
+    /** Secret, set with `wrangler secret put TURNSTILE_SECRET`. */
+    TURNSTILE_SECRET?: string;
   }
 }
 

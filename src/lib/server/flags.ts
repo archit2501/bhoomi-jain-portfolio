@@ -7,12 +7,18 @@
  * A feature is on unless the stored value turns it off. Anything unreadable falls back to the
  * defaults, so a bad write or a KV outage never takes the whole site down.
  */
-export const FLAG_NAMES = ['ai_chat', 'comments', 'polls', 'dms'] as const;
+export const FLAG_NAMES = ['likes', 'comments', 'dms', 'polls', 'ai_chat'] as const;
 export type FlagName = (typeof FLAG_NAMES)[number];
 export type Flags = Readonly<Record<FlagName, boolean>>;
 
 export const FLAGS_KEY = 'flags';
-export const DEFAULT_FLAGS: Flags = { ai_chat: true, comments: true, polls: true, dms: true };
+export const DEFAULT_FLAGS: Flags = {
+  likes: true,
+  comments: true,
+  dms: true,
+  polls: true,
+  ai_chat: true,
+};
 
 /** The part of a KV namespace this module needs, so tests can pass a plain object. */
 export interface FlagStore {

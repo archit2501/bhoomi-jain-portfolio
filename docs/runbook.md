@@ -7,8 +7,15 @@ How the site runs in production and what to do when something goes wrong. Comman
 One Cloudflare Worker (`bhoomi-jain-portfolio`, configured in `wrangler.jsonc`):
 
 - Every page is prerendered and served as a static asset (free and unlimited on Workers).
-- Only `/api/*` routes run code at request time. `src/pages/api/health.ts` reports liveness and the off switches.
-- Bindings: `FLAGS` (KV, off switches). Later tasks add D1, Durable Objects and secrets; each gets a section here.
+- Only `/api/*` routes run code at request time. `src/pages/api/health.ts` reports liveness, the off switches and whether the database answers (503 if it doesn't).
+- Bindings:
+  - `FLAGS` (KV): the off switches.
+  - `COUNTERS` (KV): daily write counters, a site-wide ceiling per kind of write.
+  - `DB` (D1): likes, comments, DMs, poll votes and question answers. The schema is in `migrations/`.
+  - `WRITE_LIMIT_IP` and `WRITE_LIMIT_VISITOR` (Rate Limiting): 30 writes a minute per IP, 12 per visitor.
+  - Secret `TURNSTILE_SECRET`: without it, every write is refused.
+
+Every write goes through one pipeline (`src/lib/server/guard.ts`), in this order: the feature's off switch, same-origin JSON under 8 KB, Turnstile, both rate limits, then today's cap. Visitors are anonymous: a random id in an HttpOnly cookie. IP addresses are used only as rate-limit keys and never stored.
 
 ## Connect Cloudflare (once, by the account owner)
 
@@ -17,15 +24,22 @@ One Cloudflare Worker (`bhoomi-jain-portfolio`, configured in `wrangler.jsonc`):
 3. In GitHub, go to the repository, then Settings, Secrets and variables, Actions:
    - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
    - Variables: `SITE_URL` (the workers.dev URL until her domain is connected, then `https://<her domain>`), and `DEPLOY_ENABLED` = `true`.
-4. Re-run the latest **Deploy** workflow on `main`, or merge anything. The first deploy creates the `FLAGS` KV namespace automatically.
+4. Create a Turnstile widget (dashboard, Turnstile, Add widget) for her domain and the workers.dev host. Then set its secret on both Workers. Previews can use Cloudflare's always-pass test secret, `1x0000000000000000000000000000000AA`:
 
-Until step 3 is done, the Deploy workflow's jobs are skipped and nothing is published.
+   ```bash
+   npx wrangler secret put TURNSTILE_SECRET -c wrangler.jsonc                  # the real secret key
+   npx wrangler secret put TURNSTILE_SECRET -c wrangler.jsonc --env preview    # test secret is fine
+   ```
+
+5. Re-run the latest **Deploy** workflow on `main`, or merge anything. The first deploy creates the KV namespaces, the database and the rate limiters, then applies the migrations.
+
+Until step 3 is done, the Deploy workflow's jobs are skipped and nothing is published. Until step 4 is done, the site works but refuses every like, comment and message.
 
 ## Previews
 
-Each pull request uploads a new Worker **version** under the alias `pr-<number>` without deploying it. The workflow comments the preview URL on the pull request and smoke-tests it. Production keeps serving the current deployment.
+Each pull request uploads a version of a separate Worker, `bhoomi-jain-portfolio-preview` (the `preview` environment in `wrangler.jsonc`), under the alias `pr-<number>`. The workflow migrates the preview database, comments the preview URL on the pull request and smoke-tests it. Production keeps serving the current deployment.
 
-Previews share production's bindings. That's harmless while `FLAGS` is the only binding, because previews only read it. **Before the database lands (task 3.1.1), add separate preview bindings under `previews` in `wrangler.jsonc`**, so a preview never writes to production data.
+The preview Worker has its own database, KV namespaces and rate limiters, so a preview can never read or write production data. (Wrangler's `previews` block would do the same, but it only applies to `wrangler preview`, which is still in open beta.)
 
 ## Off switches
 
@@ -33,10 +47,13 @@ Live features can be turned off without a redeploy. A switch is on unless the st
 
 | Switch     | Feature                            |
 | ---------- | ---------------------------------- |
-| `ai_chat`  | "Ask Bhoomi's AI" thread           |
+| `likes`    | Liking posts and reels             |
 | `comments` | Posting comments                   |
-| `polls`    | Story polls, questions and sliders |
 | `dms`      | Sending DMs                        |
+| `polls`    | Story polls, questions and sliders |
+| `ai_chat`  | "Ask Bhoomi's AI" thread           |
+
+A switched-off feature answers 503 before it touches anything.
 
 ```bash
 # See the current switches (also shown at /api/health)
@@ -50,6 +67,19 @@ npx wrangler kv key delete --binding FLAGS --remote flags
 ```
 
 KV changes reach every location within about 60 seconds. Check with `curl <SITE_URL>/api/health`.
+
+## Database
+
+```bash
+npx wrangler d1 migrations list DB --remote -c wrangler.jsonc     # what has been applied
+npx wrangler d1 migrations apply DB --remote -c wrangler.jsonc    # apply new ones (the deploy does this)
+npx wrangler d1 execute DB --remote -c wrangler.jsonc --command "SELECT COUNT(*) FROM likes"
+npx wrangler d1 time-travel restore DB -c wrangler.jsonc --timestamp=<unix-time>   # undo a bad write
+```
+
+Add a migration as the next numbered file in `migrations/`. Keep it additive (new tables and columns), because the deploy migrates before the new code goes live. Always pass `-c wrangler.jsonc`: after a build, wrangler otherwise follows the Astro adapter's redirect to `dist/server`.
+
+Daily caps per kind of write are in `DAILY_CAPS` (`src/lib/server/guard.ts`); rate limits are in `wrangler.jsonc`.
 
 ## Roll back a bad deploy
 
@@ -66,6 +96,8 @@ Rollback switches production to an earlier version immediately. It doesn't chang
 npm run dev        # Astro dev server, running in workerd
 npm run build && npm run preview -- --port 4447 --ignore-lock   # the production build in workerd
 npx wrangler kv key put --binding FLAGS --local flags '{"dms":false}'   # local switches
+npx wrangler d1 migrations apply DB --local -c wrangler.jsonc         # local database
+cp .dev.vars.example .dev.vars                                        # local Turnstile test secret
 ```
 
-Local KV lives in `.wrangler/state` (git-ignored).
+Local KV and D1 live in `.wrangler/state` (git-ignored). The Worker integration tests (`src/lib/server/*.test.ts`) start their own in-memory copies of every binding from `wrangler.jsonc`.
