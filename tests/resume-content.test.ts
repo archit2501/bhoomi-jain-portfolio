@@ -6,7 +6,7 @@ import { parse } from 'yaml';
 import { postSchema, resumeSchema } from '../src/lib/content-schema';
 import type { SiteContent } from '../src/lib/content-guards';
 import { checkResume, findPhoneNumbers, resumeCounts } from '../src/lib/resume';
-import { buildSearchIndex, search } from '../src/lib/search';
+import { buildSearchIndex, prepare, search } from '../src/lib/search';
 
 /**
  * The real content, checked the same way the build checks it, so a wrong title or a phone number
@@ -77,17 +77,31 @@ describe('the search index built from her content', () => {
     resume,
   } as unknown as SiteContent);
 
-  it('has every post, every highlight in the row, and every skill on the résumé', () => {
+  const prepared = prepare(index);
+  const titles = (query: string) => search(prepared, query).map((i) => i.title);
+
+  it('has every post, highlight in the row, skill and certification on the résumé, and tags', () => {
     const skills = Object.values(resume.skills).flat().length;
     const row = highlights.filter((h) => h.data.inRow).length;
-    expect(index).toHaveLength(posts.length + row + skills);
+    const stacks = new Set(
+      Object.values(resume.projects).flatMap((p) => p.stack.map((s) => s.toLowerCase())),
+    );
+    expect(index.filter((i) => i.tab === 'tags').length).toBeGreaterThanOrEqual(stacks.size - 2);
+    expect(index.filter((i) => i.tab !== 'tags')).toHaveLength(
+      posts.length + row + skills + resume.certifications.length,
+    );
+    // A few KB inlined in every page.
+    expect(JSON.stringify(index).length).toBeLessThan(16_000);
   });
 
   it('finds a project by a technology in its stack', () => {
-    expect(search(index, 'mongodb').map((i) => i.title)).toEqual(['MongoDB', 'SmartBlog AI']);
-    expect(search(index, 'fastapi').map((i) => i.title)).toEqual([
-      'FastAPI',
-      'Conversational AI Web App',
-    ]);
+    expect(titles('mongodb')).toEqual(['MongoDB', '#mongodb', 'SmartBlog AI']);
+    expect(titles('fastapi')).toEqual(['FastAPI', '#fastapi', 'Conversational AI Web App']);
+  });
+
+  it("forgives typos in her real content: 'reakt' finds React", () => {
+    expect(titles('reakt')[0]).toBe('ReactJS');
+    expect(titles('mongdb')[0]).toBe('MongoDB');
+    expect(titles('amity unversity')).toContain('Master of Computer Applications (MCA)');
   });
 });
