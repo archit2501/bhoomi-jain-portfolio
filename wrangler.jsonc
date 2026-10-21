@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "bhoomi-jain-portfolio",
+  // The Astro adapter fills in `main` (its server entrypoint) and the ASSETS binding.
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "kv_namespaces": [
+    // Off switches for the live features (src/lib/server/flags.ts). No id: wrangler creates
+    // the namespace on the first deploy and records it; locally it is simulated.
+    { "binding": "FLAGS" },
+  ],
+}

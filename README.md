@@ -16,4 +16,6 @@ npm run build
 
 The browser tests read their expectations from `src/content/`, so changing content needs no test edits.
 
+It runs as a Cloudflare Worker: static pages plus a few `/api/*` routes. Deploys, previews, off switches and rollback are in [docs/runbook.md](docs/runbook.md).
+
 Not affiliated with Instagram or Meta.

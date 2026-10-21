@@ -26,12 +26,12 @@ Automated tests run Safari's engine (WebKit) on iPhone and iPad sizes and Chrome
 
 ## 3. Domain and deploy
 
+- [ ] Connect Cloudflare and turn the Deploy workflow on (`docs/runbook.md`, "Connect Cloudflare").
 - [ ] Choose her domain (no "insta" or "gram" in it; the brand-guard test enforces this).
-- [ ] Add `public/CNAME` containing just the domain.
-- [ ] At the DNS host, point the domain at GitHub Pages: an `ALIAS`/`ANAME` or four `A` records for the apex, or a `CNAME` to `archit2501.github.io` for a subdomain.
-- [ ] In the repository settings, under Pages, set Source to "GitHub Actions" and enter the custom domain, then tick "Enforce HTTPS" once the certificate is issued.
-- [ ] Set the repository variable `DEPLOY_ENABLED` to `true` (Settings, Secrets and variables, Actions, Variables). Until then the deploy job is skipped and the site stays unpublished.
-- [ ] Merge to `main`. The deploy workflow builds with `REQUIRE_VERIFIED=1`, publishes, and smoke-tests the live site.
+- [ ] In Cloudflare, add the domain to the account, then attach it to the `bhoomi-jain-portfolio` Worker (Workers & Pages, the Worker, Settings, Domains & Routes, Add custom domain).
+- [ ] Set the repository variable `SITE_URL` to `https://<her domain>`, so canonical links, the sitemap and share cards use it.
+- [ ] Merge to `main`. The Deploy workflow builds with `REQUIRE_VERIFIED=1`, deploys, and smoke-tests the live site.
+- [ ] Drill: turn one off switch off and on again, and roll back to the previous version and forward again (`docs/runbook.md`).
 
 ## What CI already checks
 

@@ -1,10 +1,13 @@
 name: Deploy
 
-# Publishes to GitHub Pages after CI passes on main. It stays off until launch: set the repository
-# variable DEPLOY_ENABLED to "true" (docs/launch-checklist.md §3). The build refuses any figure
-# Bhoomi hasn't confirmed, so nothing unverified can go live. Roll back by reverting on main.
-# Task 1.1.2 replaces this with Cloudflare Workers (preview per PR, production on main).
+# Cloudflare Workers. Every pull request gets its own preview URL; production deploys after CI
+# passes on main. Both stay off until the Cloudflare account is connected: set the repository
+# variable DEPLOY_ENABLED to "true", the variable SITE_URL, and the secrets CLOUDFLARE_API_TOKEN
+# and CLOUDFLARE_ACCOUNT_ID (docs/runbook.md, "Connect Cloudflare"). Production builds refuse any
+# figure Bhoomi hasn't confirmed. Roll back with `wrangler rollback` (docs/runbook.md).
 on:
+  pull_request:
+    branches: [main]
   workflow_run:
     workflows: [CI]
     types: [completed]
@@ -13,22 +16,75 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: deploy-${{ github.event.pull_request.number || 'production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  deploy:
+  preview:
+    # Forks get no secrets, so only branches of this repository get a preview.
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    environment:
+      name: preview
+      url: ${{ steps.upload.outputs.url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with: { node-version: '24', cache: 'npm' }
+      - run: npm ci
+      - run: npm run build
+
+      - name: Upload a preview version (production is not touched)
+        id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npx wrangler versions upload --preview-alias "pr-$PR" --message "PR #$PR at $SHA" | tee "$RUNNER_TEMP/upload.log"
+          url=$(jq -r 'select(.type == "version-upload") | .preview_alias_url // .preview_url // empty' "$WRANGLER_OUTPUT_FILE_PATH" | tail -1)
+          [ -n "$url" ] || url=$(grep -oE 'https://pr-[0-9]+-[a-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/upload.log" | tail -1)
+          [ -n "$url" ] || { echo "::error::No preview URL in the wrangler output"; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke-test the preview
+        env:
+          BASE: ${{ steps.upload.outputs.url }}
+        run: |
+          for path in / /api/health /p/smartblog-ai/ /stories/projects/ /og/default.png; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 5 --retry-all-errors "$BASE$path") || true
+            echo "$path -> $code"
+            [ "$code" = 200 ] || { echo "::error::$BASE$path returned $code"; exit 1; }
+          done
+
+      - name: Link the preview on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          URL: ${{ steps.upload.outputs.url }}
+        run: |
+          gh pr comment "$PR" --edit-last --create-if-none \
+            --body "Preview of \`${SHA:0:7}\`: $URL (production is unchanged)."
+
+  production:
     if: >-
       vars.DEPLOY_ENABLED == 'true' &&
       (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: production
+      url: ${{ vars.SITE_URL }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -37,41 +93,30 @@ jobs:
         with: { node-version: '24', cache: 'npm' }
       - run: npm ci
 
-      - name: Read her domain from public/CNAME
-        id: domain
-        run: |
-          if [ ! -s public/CNAME ]; then
-            echo "::error::public/CNAME is missing. Add her domain first (docs/launch-checklist.md §3)."
-            exit 1
-          fi
-          echo "domain=$(tr -d '[:space:]' < public/CNAME)" >> "$GITHUB_OUTPUT"
-
       - name: Build, refusing unconfirmed figures
         run: npm run build
         env:
           REQUIRE_VERIFIED: '1'
-          SITE_URL: https://${{ steps.domain.outputs.domain }}
+          SITE_URL: ${{ vars.SITE_URL }}
 
-      - name: Brand guard on the built site
+      - name: Brand guard on the built site and the domain
         run: npx vitest run tests/brand-guard.test.ts
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
 
-      - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
-        with: { path: dist }
-      - id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: npx wrangler deploy --message "main at $SHA"
 
       - name: Smoke-test the live site
         env:
-          BASE: https://${{ steps.domain.outputs.domain }}
+          BASE: ${{ vars.SITE_URL }}
         run: |
-          for path in / /reels/ /p/smartblog-ai/ /stories/projects/ /sitemap.xml /og/default.png; do
-            code=000
-            for attempt in 1 2 3 4 5 6; do
-              code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE$path") || true
-              [ "$code" = 200 ] && break
-              sleep 10
-            done
+          for path in / /api/health /reels/ /p/smartblog-ai/ /stories/projects/ /sitemap.xml /og/default.png; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --retry 6 --retry-delay 10 --retry-all-errors "$BASE$path") || true
             echo "$path -> $code"
-            [ "$code" = 200 ] || { echo "::error::$BASE$path returned $code"; exit 1; }
+            [ "$code" = 200 ] || { echo "::error::$BASE$path returned $code. Roll back with: npx wrangler rollback"; exit 1; }
           done
