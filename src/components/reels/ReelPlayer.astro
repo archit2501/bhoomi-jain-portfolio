@@ -1,9 +1,5 @@
 ---
-import ChevronLeft from '@lucide/astro/icons/chevron-left';
-import ChevronRight from '@lucide/astro/icons/chevron-right';
-import Pause from '@lucide/astro/icons/pause';
-import Play from '@lucide/astro/icons/play';
-import X from '@lucide/astro/icons/x';
+import Icon from '../Icon.astro';
 import type { Reel } from '../../lib/content-schema';
 
 interface Props {
@@ -15,10 +11,10 @@ const playable = Astro.props.reels.filter((r) => r.data.video);
 
 <dialog id="reel-player" class="reel-player" aria-label="Reels">
   <button class="reel-close" type="button" aria-label="Close">
-    <X size={28} aria-hidden="true" />
+    <Icon name="close" size={28} />
   </button>
   <button class="reel-prev" type="button" aria-label="Previous reel">
-    <ChevronLeft size={20} aria-hidden="true" />
+    <Icon name="back" size={20} />
   </button>
   <figure class="reel-stage">
     <video
@@ -30,8 +26,8 @@ const playable = Astro.props.reels.filter((r) => r.data.video);
       aria-describedby="reel-description"
     ></video>
     <button class="reel-toggle" type="button" aria-label="Pause" autofocus>
-      <Pause class="icon-pause" size={22} aria-hidden="true" />
-      <Play class="icon-play" size={22} aria-hidden="true" />
+      <Icon name="pause" filled class="icon-pause" size={22} />
+      <Icon name="play" filled class="icon-play" size={22} />
     </button>
     <figcaption>
       <p class="reel-title"></p>
@@ -39,7 +35,7 @@ const playable = Astro.props.reels.filter((r) => r.data.video);
     </figcaption>
   </figure>
   <button class="reel-next" type="button" aria-label="Next reel">
-    <ChevronRight size={20} aria-hidden="true" />
+    <Icon name="forward" size={20} />
   </button>
 </dialog>
 

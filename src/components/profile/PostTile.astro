@@ -1,6 +1,5 @@
 ---
-import Copy from '@lucide/astro/icons/copy';
-import Pin from '@lucide/astro/icons/pin';
+import Icon from '../Icon.astro';
 import { Picture } from 'astro:assets';
 import type { Post } from '../../lib/content-schema';
 import { mediaImage } from '../../lib/media';
@@ -45,8 +44,8 @@ const tone = tileTone(order);
       <TypeTile headline={first.headline} detail={first.detail} tone={tone} />
     )}
     <span class="badges" aria-hidden="true">
-      {pinned && <Pin size={20} />}
-      {media.length > 1 && <Copy size={20} />}
+      {pinned && <Icon name="pin" filled size={20} />}
+      {media.length > 1 && <Icon name="carousel" filled size={20} />}
     </span>
   </a>
 </li>

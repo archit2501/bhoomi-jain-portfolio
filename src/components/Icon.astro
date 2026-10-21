@@ -1,0 +1,116 @@
+---
+/**
+ * Every icon on the site, from Phosphor (MIT): the Regular weight for idle controls and the Fill
+ * weight for active and pressed states, the way Instagram swaps an outline for a filled glyph.
+ * Names describe the job, not the drawing, so a glyph can change in one place.
+ * The SVGs are inlined at build time; nothing loads at runtime.
+ */
+import type { IconName } from './icon-names';
+import HouseRegular from '@phosphor-icons/core/regular/house.svg';
+import HouseFill from '@phosphor-icons/core/fill/house-fill.svg';
+import FilmSlateRegular from '@phosphor-icons/core/regular/film-slate.svg';
+import FilmSlateFill from '@phosphor-icons/core/fill/film-slate-fill.svg';
+import PaperPlaneTiltRegular from '@phosphor-icons/core/regular/paper-plane-tilt.svg';
+import PaperPlaneTiltFill from '@phosphor-icons/core/fill/paper-plane-tilt-fill.svg';
+import MagnifyingGlassRegular from '@phosphor-icons/core/regular/magnifying-glass.svg';
+import MagnifyingGlassFill from '@phosphor-icons/core/fill/magnifying-glass-fill.svg';
+import CompassRegular from '@phosphor-icons/core/regular/compass.svg';
+import CompassFill from '@phosphor-icons/core/fill/compass-fill.svg';
+import HeartRegular from '@phosphor-icons/core/regular/heart.svg';
+import HeartFill from '@phosphor-icons/core/fill/heart-fill.svg';
+import PlusSquareRegular from '@phosphor-icons/core/regular/plus-square.svg';
+import PlusSquareFill from '@phosphor-icons/core/fill/plus-square-fill.svg';
+import UserCircleRegular from '@phosphor-icons/core/regular/user-circle.svg';
+import UserCircleFill from '@phosphor-icons/core/fill/user-circle-fill.svg';
+import ListRegular from '@phosphor-icons/core/regular/list.svg';
+import ListFill from '@phosphor-icons/core/fill/list-fill.svg';
+import ChartLineUpRegular from '@phosphor-icons/core/regular/chart-line-up.svg';
+import ChartLineUpFill from '@phosphor-icons/core/fill/chart-line-up-fill.svg';
+import GridNineRegular from '@phosphor-icons/core/regular/grid-nine.svg';
+import GridNineFill from '@phosphor-icons/core/fill/grid-nine-fill.svg';
+import UserSquareRegular from '@phosphor-icons/core/regular/user-square.svg';
+import UserSquareFill from '@phosphor-icons/core/fill/user-square-fill.svg';
+import ChatCircleRegular from '@phosphor-icons/core/regular/chat-circle.svg';
+import ChatCircleFill from '@phosphor-icons/core/fill/chat-circle-fill.svg';
+import BookmarkSimpleRegular from '@phosphor-icons/core/regular/bookmark-simple.svg';
+import BookmarkSimpleFill from '@phosphor-icons/core/fill/bookmark-simple-fill.svg';
+import CopyRegular from '@phosphor-icons/core/regular/copy.svg';
+import CopyFill from '@phosphor-icons/core/fill/copy-fill.svg';
+import PushPinRegular from '@phosphor-icons/core/regular/push-pin.svg';
+import PushPinFill from '@phosphor-icons/core/fill/push-pin-fill.svg';
+import LinkSimpleRegular from '@phosphor-icons/core/regular/link-simple.svg';
+import LinkSimpleFill from '@phosphor-icons/core/fill/link-simple-fill.svg';
+import EnvelopeSimpleRegular from '@phosphor-icons/core/regular/envelope-simple.svg';
+import EnvelopeSimpleFill from '@phosphor-icons/core/fill/envelope-simple-fill.svg';
+import FileTextRegular from '@phosphor-icons/core/regular/file-text.svg';
+import FileTextFill from '@phosphor-icons/core/fill/file-text-fill.svg';
+import CopySimpleRegular from '@phosphor-icons/core/regular/copy-simple.svg';
+import CopySimpleFill from '@phosphor-icons/core/fill/copy-simple-fill.svg';
+import CaretLeftRegular from '@phosphor-icons/core/regular/caret-left.svg';
+import CaretLeftFill from '@phosphor-icons/core/fill/caret-left-fill.svg';
+import CaretRightRegular from '@phosphor-icons/core/regular/caret-right.svg';
+import CaretRightFill from '@phosphor-icons/core/fill/caret-right-fill.svg';
+import XRegular from '@phosphor-icons/core/regular/x.svg';
+import XFill from '@phosphor-icons/core/fill/x-fill.svg';
+import PlayRegular from '@phosphor-icons/core/regular/play.svg';
+import PlayFill from '@phosphor-icons/core/fill/play-fill.svg';
+import PauseRegular from '@phosphor-icons/core/regular/pause.svg';
+import PauseFill from '@phosphor-icons/core/fill/pause-fill.svg';
+import GithubLogoRegular from '@phosphor-icons/core/regular/github-logo.svg';
+import GithubLogoFill from '@phosphor-icons/core/fill/github-logo-fill.svg';
+import LinkedinLogoRegular from '@phosphor-icons/core/regular/linkedin-logo.svg';
+import LinkedinLogoFill from '@phosphor-icons/core/fill/linkedin-logo-fill.svg';
+
+const ICONS = {
+  home: [HouseRegular, HouseFill],
+  reels: [FilmSlateRegular, FilmSlateFill],
+  messages: [PaperPlaneTiltRegular, PaperPlaneTiltFill],
+  search: [MagnifyingGlassRegular, MagnifyingGlassFill],
+  explore: [CompassRegular, CompassFill],
+  notifications: [HeartRegular, HeartFill],
+  create: [PlusSquareRegular, PlusSquareFill],
+  profile: [UserCircleRegular, UserCircleFill],
+  more: [ListRegular, ListFill],
+  insights: [ChartLineUpRegular, ChartLineUpFill],
+  grid: [GridNineRegular, GridNineFill],
+  tagged: [UserSquareRegular, UserSquareFill],
+  heart: [HeartRegular, HeartFill],
+  comment: [ChatCircleRegular, ChatCircleFill],
+  share: [PaperPlaneTiltRegular, PaperPlaneTiltFill],
+  save: [BookmarkSimpleRegular, BookmarkSimpleFill],
+  carousel: [CopyRegular, CopyFill],
+  pin: [PushPinRegular, PushPinFill],
+  link: [LinkSimpleRegular, LinkSimpleFill],
+  mail: [EnvelopeSimpleRegular, EnvelopeSimpleFill],
+  resume: [FileTextRegular, FileTextFill],
+  copy: [CopySimpleRegular, CopySimpleFill],
+  back: [CaretLeftRegular, CaretLeftFill],
+  forward: [CaretRightRegular, CaretRightFill],
+  close: [XRegular, XFill],
+  play: [PlayRegular, PlayFill],
+  pause: [PauseRegular, PauseFill],
+  github: [GithubLogoRegular, GithubLogoFill],
+  linkedin: [LinkedinLogoRegular, LinkedinLogoFill],
+} as const satisfies Record<IconName, readonly [unknown, unknown]>;
+
+interface Props {
+  name: IconName;
+  size?: number;
+  /** The filled glyph: an active tab, a liked heart, a badge on a photo. */
+  filled?: boolean;
+  /** Give a label only when the icon is the whole content (otherwise it's decorative). */
+  label?: string;
+  class?: string;
+}
+
+const { name, size = 24, filled = false, label, class: className } = Astro.props;
+const Svg = ICONS[name][filled ? 1 : 0];
+---
+
+<Svg
+  width={size}
+  height={size}
+  class:list={['icon', className]}
+  focusable="false"
+  {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' })}
+/>

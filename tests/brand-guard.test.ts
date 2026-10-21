@@ -83,6 +83,22 @@ describe('brand guard', () => {
     for (const domain of domains) expect(domain.toLowerCase()).not.toMatch(/insta|gram/);
   });
 
+  // Instagram's own glyphs can't be kept here to compare against, so instead every icon must come
+  // through Icon.astro (Phosphor), and brand-logo glyphs from any icon set are off limits.
+  it('draws every icon through Icon.astro, and never a brand logo', () => {
+    const LOGOS = /(instagram|threads|meta|facebook|messenger|whatsapp)-logo/;
+    const found: string[] = [];
+    for (const path of files(join(ROOT, 'src'))) {
+      const text = readFileSync(path, 'utf8');
+      const where = relative(ROOT, path);
+      if (LOGOS.test(text)) found.push(`${where}: brand-logo icon`);
+      if (/@phosphor-icons\/core|@lucide\/|lucide-/.test(text) && !where.endsWith('Icon.astro')) {
+        found.push(`${where}: icon imported outside Icon.astro`);
+      }
+    }
+    expect(found).toEqual([]);
+  });
+
   it('catches each kind of violation', () => {
     const sample = join(ROOT, 'tests', 'fixtures', 'brand-violations.html');
     expect(brandViolations([sample])).toEqual([

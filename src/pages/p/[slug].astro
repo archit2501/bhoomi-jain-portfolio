@@ -1,5 +1,5 @@
 ---
-import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import Icon from '../../components/Icon.astro';
 import PostView from '../../components/post/PostView.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
@@ -24,7 +24,7 @@ const description = caption.length > 155 ? `${caption.slice(0, 154).trimEnd()}â€
 >
   <div class="post-page">
     <a class="back" href="/">
-      <ChevronLeft size={20} aria-hidden="true" />
+      <Icon name="back" size={20} />
       <span>Back to profile</span>
     </a>
     <PostView post={post} profile={profile} variant="page" />

@@ -1,5 +1,5 @@
 ---
-import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import Icon from '../../components/Icon.astro';
 import { Picture } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
@@ -17,7 +17,7 @@ const { label, frames } = highlight.data;
 <BaseLayout title={`${label} highlights`} current="home">
   <article class="story-page">
     <a class="back" href="/">
-      <ChevronLeft size={20} aria-hidden="true" />
+      <Icon name="back" size={20} />
       <span>Back to profile</span>
     </a>
     <h1>{label}</h1>
