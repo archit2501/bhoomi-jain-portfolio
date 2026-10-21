@@ -1,0 +1,13 @@
+{
+  "eyebrow": "Web UI project · 2024",
+  "title": "AI Resume Shortlisting Tool",
+  "subtitle": "A recruiter-facing web interface",
+  "nodes": "Recruiter web UI::Bootstrap · drag-and-drop upload|Flask backend",
+  "edges": "Résumé upload",
+  "stack": "JavaScript, HTML5, CSS3, Bootstrap, Flask",
+  "resultValue": "<1.5s",
+  "resultLabel": "perceived response time for skill-gap insights",
+  "endLine": "The full case study is on her profile",
+  "screen": "",
+  "clip": ""
+}

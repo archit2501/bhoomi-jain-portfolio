@@ -1,0 +1,10 @@
+{
+  "contextLabel": "SmartBlog AI",
+  "statPrefix": "~",
+  "statValue": 45,
+  "statSuffix": "%",
+  "statLabel": "fewer network calls",
+  "detailLine": "React Query client-side caching",
+  "timeLine": "2024 – 2025",
+  "signoffLine": "Bhoomi Jain · Full Stack Developer"
+}

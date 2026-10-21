@@ -281,7 +281,10 @@ export const reelSchema = z.object({
   description: text.optional(),
   video: text.optional(),
   poster: text.optional(),
+  /** WebVTT, for a reel with sound. Silent reels have none: the description is their text. */
   captions: text.optional(),
+  /** The post a project reel introduces; the reel links to it. */
+  post: text.optional(),
 });
 
 /** A dated line in her activity feed (task 4.2.3). `ref` points at a résumé entry or a post. */

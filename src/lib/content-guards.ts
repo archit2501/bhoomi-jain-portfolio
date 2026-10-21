@@ -111,7 +111,10 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
   }
 
   for (const { id, data } of content.reels) {
-    requireMention(`reel ${id}`, data.figure, data.title);
+    requireMention(`reel ${id}`, data.figure, `${data.title} ${data.description ?? ''}`);
+    if (data.post && !postIds.has(data.post)) {
+      errors.push(`reel ${id}: introduces post "${data.post}", which doesn't exist`);
+    }
   }
 
   errors.push(...checkResume(content.resume, content.posts));

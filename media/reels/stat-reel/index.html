@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en" data-composition-variables='[
-{"id":"contextLabel","type":"string","label":"Context label","default":"F1Jobs.io \u00b7 Sales & Operations","maxLength":40},
-{"id":"statPrefix","type":"string","label":"Stat prefix","default":"$","maxLength":2},
-{"id":"statValue","type":"number","label":"Stat value (counts up from 0)","default":100,"min":0,"max":9999,"step":1},
-{"id":"statSuffix","type":"string","label":"Stat suffix","default":"K+","maxLength":3},
-{"id":"statLabel","type":"string","label":"Stat label","default":"in revenue","maxLength":32},
-{"id":"detailLine","type":"string","label":"Detail line","default":"from 7+ sales","maxLength":44},
-{"id":"timeLine","type":"string","label":"Time line","default":"since May 2026","maxLength":24},
+{"id":"contextLabel","type":"string","label":"Context label","default":"CyberCup 4.0 \u00b7 National hackathon","maxLength":40},
+{"id":"statPrefix","type":"string","label":"Stat prefix","default":"","maxLength":2},
+{"id":"statValue","type":"number","label":"Stat value (counts up from 0)","default":160,"min":0,"max":9999,"step":1},
+{"id":"statSuffix","type":"string","label":"Stat suffix","default":"","maxLength":3},
+{"id":"statLabel","type":"string","label":"Stat label","default":"teams competed","maxLength":32},
+{"id":"detailLine","type":"string","label":"Detail line","default":"Her team placed 1st","maxLength":44},
+{"id":"timeLine","type":"string","label":"Time line","default":"36-hour build","maxLength":24},
 {"id":"signoffLine","type":"string","label":"Sign-off line","default":"Bhoomi Jain \u00b7 Full Stack Developer","maxLength":44}
 ]'>
   <head>
@@ -21,25 +21,25 @@
                               affix optical lift, en-US grouping, deterministic
                               per-frame integer rows written with tl.set
         - svg-stroke-trace -> measured getTotalLength() dash draw, extended to the
-                              wordmark's 9 stroke elements (7 letter groups) plus
-                              2 dot pops; hold drift, closed-path fill and glow off
+                              "bhoomi" wordmark's 7 stroke elements (6 letter groups) plus
+                              1 dot pop; hold drift, closed-path fill and glow off
       Hand-authored: the pinned brand ring (always closes to 100%, not a gauge) and
       the text-line entrances / exits.
 
-      Text comes from composition variables (reel-1 values are the defaults).
+      Text comes from composition variables (the CyberCup values are the defaults).
       Override per render:
-        npx hyperframes render . --strict-variables --variables-file variables/reel-2.json -o renders/reel-2.mp4
+        npx hyperframes render . --strict-variables --variables-file variables/latency.json -o renders/latency.mp4
     -->
     <meta name="viewport" content="width=1080, height=1920" />
-    <title>Revenue stat reel</title>
+    <title>Stat reel</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       :root {
-        --teal-deep: #0b5e7a;
+        --ocean-deep: #075985;
         --ink: #0c1014;
-        --accent: #0b7a75;
-        --ring-a: #0e9f94;
-        --ring-b: #0b5e7a;
+        --accent: #0369a1;
+        --ring-a: #34d399;
+        --ring-b: #38bdf8;
         --text-1: #ffffff;
         --text-2: rgb(255 255 255 / 0.88);
         --text-3: rgb(255 255 255 / 0.78);
@@ -83,7 +83,7 @@
       #bg {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to bottom right, var(--teal-deep), var(--ink));
+        background: linear-gradient(to bottom right, var(--ocean-deep), var(--ink));
       }
 
       /* z1: one static soft glow centred on the ring (540, 796) */
@@ -304,7 +304,7 @@
         <div data-hf-id="hf-27c6" id="glow"></div>
 
         <div data-hf-id="hf-lb60" id="content">
-          <div data-hf-id="hf-i3qg" id="eyebrow" data-var-text="contextLabel">F1Jobs.io &middot; Sales &amp; Operations</div>
+          <div data-hf-id="hf-i3qg" id="eyebrow" data-var-text="contextLabel">CyberCup 4.0 &middot; National hackathon</div>
 
           <div data-hf-id="hf-dakn" id="ring-box">
             <svg data-hf-id="hf-ipz5" id="ring-svg" viewBox="0 0 840 840" aria-hidden="true">
@@ -326,7 +326,7 @@
                 <span data-hf-id="hf-o1tf" id="cover-value" class="value"></span>
                 <span data-hf-id="hf-twvv" id="cover-suffix" class="affix suffix"></span>
               </div>
-              <div data-hf-id="hf-geae" id="cover-label" class="label" data-var-text="statLabel">in revenue</div>
+              <div data-hf-id="hf-geae" id="cover-label" class="label" data-var-text="statLabel">teams competed</div>
             </div>
 
             <!-- Counting copy (ported count-up) -->
@@ -336,12 +336,12 @@
                 <span data-hf-id="hf-08q3" id="count-value" class="value"></span>
                 <span data-hf-id="hf-pokz" id="count-suffix" class="affix suffix"></span>
               </div>
-              <div data-hf-id="hf-v50y" id="count-label" class="label" data-var-text="statLabel">in revenue</div>
+              <div data-hf-id="hf-v50y" id="count-label" class="label" data-var-text="statLabel">teams competed</div>
             </div>
 
             <!-- Sign-off wordmark (ported svg-stroke-trace, stroke-only) -->
             <div data-hf-id="hf-64rm" id="wordmark">
-              <svg data-hf-id="hf-xvyz" id="wordmark-svg" viewBox="0 0 90 28" aria-hidden="true">
+              <svg data-hf-id="hf-xvyz" id="wordmark-svg" viewBox="0 0 98 28" aria-hidden="true">
                 <g data-hf-id="hf-5y1i"
                   fill="none"
                   stroke="currentColor"
@@ -363,26 +363,21 @@
                   <g data-hf-id="hf-338t" id="wm-h" class="wm-group">
                     <path data-hf-id="hf-h5ad" id="wm-h-path" class="wm-stroke" d="M18 3v21M18 18a6 6 0 0 1 12 0v6" />
                   </g>
-                  <g data-hf-id="hf-tr6k" id="wm-a" class="wm-group">
-                    <circle data-hf-id="hf-my6w" id="wm-a-bowl" class="wm-stroke" cx="40" cy="18" r="6" />
-                    <path data-hf-id="hf-i92z" id="wm-a-stem" class="wm-stroke" d="M46 12v12" />
+                  <g data-hf-id="hf-tr6k" id="wm-o1" class="wm-group">
+                    <circle data-hf-id="hf-my6w" id="wm-o1-bowl" class="wm-stroke" cx="40" cy="18" r="6" transform="rotate(-90 40 18)" />
                   </g>
-                  <g data-hf-id="hf-ydgz" id="wm-v" class="wm-group">
-                    <path data-hf-id="hf-vvs3" id="wm-v-path" class="wm-stroke" d="M50 12l5.5 12L61 12" />
+                  <g data-hf-id="hf-ydgz" id="wm-o2" class="wm-group">
+                    <circle data-hf-id="hf-vvs3" id="wm-o2-bowl" class="wm-stroke" cx="56" cy="18" r="6" transform="rotate(-90 56 18)" />
                   </g>
-                  <g data-hf-id="hf-o1x9" id="wm-i1" class="wm-group">
-                    <path data-hf-id="hf-hagp" id="wm-i1-path" class="wm-stroke" d="M65 12v12" />
+                  <g data-hf-id="hf-pt2j" id="wm-m" class="wm-group">
+                    <path data-hf-id="hf-occ7" id="wm-m-path" class="wm-stroke" d="M66 12v12M66 18a6 6 0 0 1 12 0v6M78 18a6 6 0 0 1 12 0v6" />
                   </g>
-                  <g data-hf-id="hf-pt2j" id="wm-n" class="wm-group">
-                    <path data-hf-id="hf-occ7" id="wm-n-path" class="wm-stroke" d="M70 12v12M70 18a6 6 0 0 1 12 0v6" />
-                  </g>
-                  <g data-hf-id="hf-s01a" id="wm-i2" class="wm-group">
-                    <path data-hf-id="hf-loih" id="wm-i2-path" class="wm-stroke" d="M86 12v12" />
+                  <g data-hf-id="hf-s01a" id="wm-i" class="wm-group">
+                    <path data-hf-id="hf-loih" id="wm-i-path" class="wm-stroke" d="M94 12v12" />
                   </g>
                 </g>
                 <g data-hf-id="hf-g1zz" fill="currentColor">
-                  <circle data-hf-id="hf-q3x6" id="wm-dot-1" cx="65" cy="6.5" r="1.7" />
-                  <circle data-hf-id="hf-xmcm" id="wm-dot-2" cx="86" cy="6.5" r="1.7" />
+                  <circle data-hf-id="hf-q3x6" id="wm-dot-1" cx="94" cy="6.5" r="1.7" />
                 </g>
               </svg>
             </div>
@@ -390,9 +385,9 @@
 
           <div data-hf-id="hf-h00d" id="below-slot">
             <div data-hf-id="hf-pmag" id="detail-group">
-              <div data-hf-id="hf-j7ce" id="detail" data-var-text="detailLine">from 7+ sales</div>
+              <div data-hf-id="hf-j7ce" id="detail" data-var-text="detailLine">Her team placed 1st</div>
               <div data-hf-id="hf-uvax" id="time-chip">
-                <span data-hf-id="hf-agjc" id="time-text" data-var-text="timeLine">since May 2026</span>
+                <span data-hf-id="hf-agjc" id="time-text" data-var-text="timeLine">36-hour build</span>
               </div>
             </div>
             <div data-hf-id="hf-tuvv" id="signoff-line" data-var-text="signoffLine">
@@ -410,13 +405,13 @@
         var FONT =
           '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
         var DEFAULTS = {
-          contextLabel: "F1Jobs.io \u00b7 Sales & Operations",
-          statPrefix: "$",
-          statValue: 100,
-          statSuffix: "K+",
-          statLabel: "in revenue",
-          detailLine: "from 7+ sales",
-          timeLine: "since May 2026",
+          contextLabel: "CyberCup 4.0 \u00b7 National hackathon",
+          statPrefix: "",
+          statValue: 160,
+          statSuffix: "",
+          statLabel: "teams competed",
+          detailLine: "Her team placed 1st",
+          timeLine: "36-hour build",
           signoffLine: "Bhoomi Jain \u00b7 Full Stack Developer",
         };
 
@@ -509,7 +504,7 @@
         ring.style.strokeDasharray = RING_LEN + " " + (RING_LEN + 2);
         ring.style.strokeDashoffset = "0";
 
-        var GROUP_IDS = ["wm-b", "wm-h", "wm-a", "wm-v", "wm-i1", "wm-n", "wm-i2"];
+        var GROUP_IDS = ["wm-b", "wm-h", "wm-o1", "wm-o2", "wm-m", "wm-i"];
         var groups = GROUP_IDS.map(function (id) {
           var g = $(id);
           var strokes = Array.prototype.slice.call(g.querySelectorAll(".wm-stroke"));
@@ -686,18 +681,12 @@
           });
         });
 
-        // 11.70-12.20 i-dots pop last, sign-off line fades up.
+        // 11.70-12.20 the i-dot pops last, sign-off line fades up.
         tl.fromTo(
           "#wm-dot-1",
           { autoAlpha: 0, scale: 0, transformOrigin: "50% 50%" },
           { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" },
           11.7,
-        );
-        tl.fromTo(
-          "#wm-dot-2",
-          { autoAlpha: 0, scale: 0, transformOrigin: "50% 50%" },
-          { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(2.2)" },
-          11.8,
         );
         tl.fromTo(
           "#signoff-line",

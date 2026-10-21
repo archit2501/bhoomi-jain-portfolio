@@ -1,20 +1,53 @@
 {
+  "smartblog-ai": {
+    "title": "SmartBlog AI",
+    "order": 1,
+    "figure": "network-calls",
+    "post": "smartblog-ai",
+    "description": "SmartBlog AI, a full-stack AI blogging platform (2024 – 2025). How it fits together: a React SPA (React Router, Tailwind, React Query) calls a Node.js/Express REST API (JWT auth, bcrypt) over REST with JWT, and the API stores data in MongoDB through Mongoose. Built with ReactJS, Tailwind, React Router, React Query, Node.js, MongoDB and JWT. ~45% fewer redundant network calls with React Query caching.",
+    "video": "/reels/smartblog-ai.mp4",
+    "poster": "/reels/smartblog-ai.webp"
+  },
+  "conversational-ai-web-app": {
+    "title": "Conversational AI Web App",
+    "order": 2,
+    "figure": "latency",
+    "post": "conversational-ai-web-app",
+    "description": "Conversational AI Web App, a full-stack project (2024): real-time chat in React on a FastAPI backend. How it fits together: a React chat UI (optimistic UI, streaming hooks) calls a FastAPI REST backend on AWS EC2, with batched requests. Built with ReactJS, JavaScript, CSS3, FastAPI, REST and AWS EC2. 40% lower end-to-end latency on AWS EC2.",
+    "video": "/reels/conversational-ai-web-app.mp4",
+    "poster": "/reels/conversational-ai-web-app.webp"
+  },
+  "ai-resume-shortlisting-tool": {
+    "title": "AI Resume Shortlisting Tool",
+    "order": 3,
+    "figure": "response-time",
+    "post": "ai-resume-shortlisting-tool",
+    "description": "AI Resume Shortlisting Tool, a web UI project (2024): a recruiter-facing web interface. How it fits together: a recruiter web UI (Bootstrap, drag-and-drop upload) sends résumé uploads to a Flask backend. Built with JavaScript, HTML5, CSS3, Bootstrap and Flask. <1.5s perceived response time for skill-gap insights.",
+    "video": "/reels/ai-resume-shortlisting-tool.mp4",
+    "poster": "/reels/ai-resume-shortlisting-tool.webp"
+  },
   "cybercup": {
     "title": "1st of 160 teams",
-    "order": 1,
+    "order": 4,
     "figure": "cybercup",
-    "description": "CyberCup 4.0 National-Level Hackathon: Bhoomi led a team to 1st place out of 160 competing teams with a working prototype built in 36 hours."
+    "description": "CyberCup 4.0, a national-level hackathon: 160 teams competed, and Bhoomi led her team to 1st place with a working prototype built in 36 hours.",
+    "video": "/reels/cybercup.mp4",
+    "poster": "/reels/cybercup.webp"
   },
   "latency": {
     "title": "40% lower latency",
-    "order": 2,
+    "order": 5,
     "figure": "latency",
-    "description": "Conversational AI Web App: a React client on a FastAPI backend, deployed to AWS EC2, with end-to-end latency cut by 40% through request batching, lazy loading and asset compression."
+    "description": "Conversational AI Web App: a React client on a FastAPI backend, deployed to AWS EC2, with end-to-end latency cut by 40% through request batching, lazy loading and asset compression.",
+    "video": "/reels/latency.mp4",
+    "poster": "/reels/latency.webp"
   },
   "network-calls": {
     "title": "~45% fewer network calls",
-    "order": 3,
+    "order": 6,
     "figure": "network-calls",
-    "description": "SmartBlog AI: client-side caching with React Query cut redundant network calls by about 45%."
+    "description": "SmartBlog AI: client-side caching with React Query cut redundant network calls by about 45%.",
+    "video": "/reels/network-calls.mp4",
+    "poster": "/reels/network-calls.webp"
   }
 }

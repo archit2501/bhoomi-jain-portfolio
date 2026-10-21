@@ -212,6 +212,23 @@ describe('checkContent', () => {
     ]);
   });
 
+  it('a reel shows its figure in its title or description, and links only to real posts', () => {
+    const base = site();
+    const reel = (data: Record<string, unknown>) => ({
+      id: 'intro',
+      data: { title: 'Revenue', order: 2, figure: 'revenue', ...data },
+    });
+    const fine = site({
+      reels: [reel({ description: 'It made $100K+ in revenue.', post: base.posts[0].id })],
+    });
+    expect(checkContent(fine, { requireVerified: false }).errors).toEqual([]);
+    const broken = site({ reels: [reel({ description: 'No number here.', post: 'ghost' })] });
+    expect(checkContent(broken, { requireVerified: false }).errors).toEqual([
+      'reel intro: figure "revenue" ($100K+) is listed but never shown',
+      'reel intro: introduces post "ghost", which doesn\'t exist',
+    ]);
+  });
+
   it('enforces caption length, empty captions, unique order and the pinned limit', () => {
     const content = site({
       posts: [
