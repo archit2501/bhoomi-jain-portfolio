@@ -406,6 +406,8 @@ export function initStoryViewer(): void {
   peeks.next?.addEventListener('click', () => dispatch({ type: 'nextGroup' }, true));
 
   dialog.addEventListener('keydown', (event) => {
+    // Typing in a question box, or sliding an emoji slider, isn't story navigation.
+    if ((event.target as Element).closest('input, textarea')) return;
     if (event.key === 'ArrowRight') dispatch({ type: 'next' }, true);
     else if (event.key === 'ArrowLeft') dispatch({ type: 'prev' }, true);
     else if (event.key === ' ' && !(event.target as Element).closest('button')) {
@@ -428,8 +430,9 @@ export function initStoryViewer(): void {
   };
 
   card.addEventListener('pointerdown', (event) => {
-    // Buttons and sticker links are pressed, not tapped through.
-    if ((event.target as Element).closest('button, a') || busy) return;
+    // Buttons, sticker links and sticker fields are pressed, not tapped through.
+    if ((event.target as Element).closest('button, a, input, textarea, label, form') || busy)
+      return;
     down = {
       x: event.clientX,
       y: event.clientY,

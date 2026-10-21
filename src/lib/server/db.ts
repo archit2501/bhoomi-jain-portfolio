@@ -227,6 +227,16 @@ export function createRepo(db: D1Like, now: () => number = Date.now) {
           .bind(poll, visitor, option, now())
           .run();
       },
+      /** Emoji sliders store each visitor's 0-100 as their "option": the average, and how many. */
+      async average(poll: string): Promise<{ average: number; count: number }> {
+        const row = await db
+          .prepare(
+            'SELECT AVG(CAST(option AS REAL)) AS average, COUNT(*) AS count FROM poll_votes WHERE poll = ?',
+          )
+          .bind(poll)
+          .first<{ average: number | null; count: number }>();
+        return { average: Math.round(row?.average ?? 0), count: row?.count ?? 0 };
+      },
       async results(poll: string): Promise<Record<string, number>> {
         const { results } = await db
           .prepare('SELECT option, COUNT(*) AS n FROM poll_votes WHERE poll = ? GROUP BY option')

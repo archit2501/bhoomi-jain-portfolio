@@ -92,6 +92,9 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
     <script>
       import '../scripts/media';
       import '../scripts/shell';
+      import { initLive } from '../scripts/live';
+
+      initLive();
     </script>
   </body>
 </html>

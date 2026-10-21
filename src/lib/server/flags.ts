@@ -7,7 +7,7 @@
  * A feature is on unless the stored value turns it off. Anything unreadable falls back to the
  * defaults, so a bad write or a KV outage never takes the whole site down.
  */
-export const FLAG_NAMES = ['likes', 'comments', 'dms', 'polls', 'ai_chat'] as const;
+export const FLAG_NAMES = ['likes', 'comments', 'dms', 'polls', 'presence', 'ai_chat'] as const;
 export type FlagName = (typeof FLAG_NAMES)[number];
 export type Flags = Readonly<Record<FlagName, boolean>>;
 
@@ -17,6 +17,7 @@ export const DEFAULT_FLAGS: Flags = {
   comments: true,
   dms: true,
   polls: true,
+  presence: true,
   ai_chat: true,
 };
 

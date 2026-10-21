@@ -16,8 +16,19 @@ export function stickerText(sticker: Sticker): string {
       return sticker.name;
     case 'code':
       return sticker.code;
+    case 'poll':
+      return [sticker.question, ...sticker.options].join(' ');
+    case 'question':
+    case 'slider':
+      return sticker.prompt;
   }
 }
+
+/** The interactive stickers (poll, question box, emoji slider), which the live API answers. */
+export type LiveSticker = Extract<Sticker, { type: 'poll' | 'question' | 'slider' }>;
+
+export const isLive = (sticker: Sticker): sticker is LiveSticker =>
+  sticker.type === 'poll' || sticker.type === 'question' || sticker.type === 'slider';
 
 /** Placement as inline CSS custom properties; the sticker's own styles do the rest. */
 export function stickerStyle(sticker: Pick<Sticker, 'x' | 'y' | 'rotate'>): string {

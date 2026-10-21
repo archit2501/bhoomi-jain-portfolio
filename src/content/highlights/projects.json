@@ -48,6 +48,20 @@
           "rotate": 3
         }
       ]
+    },
+    {
+      "type": "text",
+      "heading": "Your pick",
+      "body": "Which project should I write up in more depth next?",
+      "stickers": [
+        {
+          "type": "poll",
+          "id": "next-writeup",
+          "question": "Write up next",
+          "options": ["SmartBlog AI", "Conversational AI", "Resume Shortlisting"],
+          "y": 78
+        }
+      ]
     }
   ]
 }
