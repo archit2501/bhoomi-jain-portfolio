@@ -1,5 +1,7 @@
 ---
-title: 'Bachelor of Computer Applications'
+title: 'Bachelor of Computer Applications (BCA)'
+kind: 'education'
+resumeRef: 'education/amity-bca'
 order: 9
 date: '2022-09'
 dateLabel: 'Sep 2022 – Apr 2025'

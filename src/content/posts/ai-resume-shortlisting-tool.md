@@ -1,5 +1,7 @@
 ---
 title: 'AI Resume Shortlisting Tool'
+kind: 'project'
+resumeRef: 'projects/ai-resume-shortlisting-tool'
 order: 3
 pinned: true
 date: '2024'

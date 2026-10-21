@@ -1,5 +1,7 @@
 ---
-title: 'Marketing & Digital Operations intern'
+title: 'Marketing & Digital Operations (Intern)'
+kind: 'experience'
+resumeRef: 'experience/gatsby-club'
 order: 7
 date: '2022-05'
 dateLabel: 'May 2022 – Apr 2023'

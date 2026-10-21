@@ -6,8 +6,16 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
-import type { Figure, Highlight, Post, Profile, Reel } from '../../src/lib/content-schema';
+import type {
+  FigureInput,
+  Highlight,
+  Post,
+  Profile,
+  Reel,
+  Resume,
+} from '../../src/lib/content-schema';
 import { postDate } from '../../src/lib/post-date';
+import { resolveFigures } from '../../src/lib/resume';
 import { pageTitle, PROFILE_ID, site } from '../../src/lib/site';
 import { frameDuration } from '../../src/lib/story/controller';
 
@@ -21,7 +29,12 @@ const files = (dir: string, ext: string) =>
   readdirSync(join(CONTENT, dir)).filter((name) => name.endsWith(ext));
 
 export const profile = readJson<Record<string, Profile>>('profile.json')[PROFILE_ID];
-export const figures = readJson<Record<string, Figure>>('figures.json');
+export const resume = readJson<Record<string, Resume>>('resume.json')[PROFILE_ID];
+/** As the site shows them: counted figures take their value from the résumé. */
+export const figures = resolveFigures(
+  readJson<Record<string, FigureInput>>('figures.json'),
+  resume,
+);
 export const NAME = profile.displayName;
 export const FIRST_NAME = NAME.split(/\s+/)[0];
 export const HOME_TITLE = pageTitle();

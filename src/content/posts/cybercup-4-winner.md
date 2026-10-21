@@ -1,5 +1,7 @@
 ---
-title: 'Winner, CyberCup 4.0'
+title: 'Winner — CyberCup 4.0 National-Level Hackathon'
+kind: 'achievement'
+resumeRef: 'achievements/cybercup-4-winner'
 order: 4
 org: 'CyberCup 4.0 National-Level Hackathon'
 media:
