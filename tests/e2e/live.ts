@@ -4,7 +4,8 @@
  * (scripts/e2e-setup.mjs), and every device project shares it, so each project writes to its
  * own targets.
  */
-import type { Page, TestInfo } from '@playwright/test';
+import { expect, type APIRequestContext, type Page, type TestInfo } from '@playwright/test';
+import { INBOX_PORT } from './fixtures';
 
 const PROJECTS = ['iphone', 'pixel', 'ipad', 'laptop', 'desktop'];
 
@@ -45,4 +46,31 @@ export async function ownIp(page: Page, testInfo: TestInfo): Promise<string> {
     }),
   );
   return ip;
+}
+
+export interface Notice {
+  title: string;
+  lines: string[];
+  links?: { label: string; url: string }[];
+}
+
+/**
+ * The link in Bhoomi's notice about `text` (a comment or a message), as a path on the preview
+ * server. The preview Worker posts notices to the local inbox (scripts/e2e-inbox.mjs).
+ */
+export async function inboxLink(
+  request: APIRequestContext,
+  text: string,
+  label: string,
+): Promise<string> {
+  let notice: Notice | undefined;
+  await expect
+    .poll(async () => {
+      const res = await request.get(`http://localhost:${INBOX_PORT}/notices`);
+      notice = ((await res.json()) as Notice[]).findLast((n) => n.lines.includes(text));
+      return Boolean(notice);
+    })
+    .toBe(true);
+  const url = new URL(notice!.links!.find((l) => l.label === label)!.url);
+  return url.pathname + url.search;
 }

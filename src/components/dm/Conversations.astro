@@ -1,0 +1,159 @@
+---
+/**
+ * The conversation list: the visitor's own conversations (kept in this browser, filled by
+ * src/scripts/dm.ts), then the topics she invites messages about. On desktop it sits beside the
+ * open conversation; on a phone it is the whole Messages page.
+ */
+import Avatar from '../Avatar.astro';
+import type { DmThread, Profile } from '../../lib/content-schema';
+
+interface Props {
+  threads: { id: string; data: DmThread }[];
+  profile: Profile;
+  /** The topic open beside the list, if any. */
+  active?: string;
+  /** Only the Messages page itself has the h1. */
+  headingLevel?: 1 | 2;
+}
+
+const { threads, profile, active, headingLevel = 2 } = Astro.props;
+const Heading = headingLevel === 1 ? 'h1' : 'h2';
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
+const firstName = profile.displayName.split(/\s+/)[0];
+---
+
+<nav class="dm-list" aria-labelledby="dm-list-title">
+  <header class="list-head">
+    <Heading id="dm-list-title">Messages</Heading>
+    <p class="list-note">Message {firstName}. Every message goes straight to her.</p>
+  </header>
+
+  <section class="mine" aria-labelledby="mine-title" data-my-threads hidden>
+    <h2 id="mine-title" class="group-title">
+      Your conversations
+    </h2>
+    <ul role="list" class="rows" data-my-thread-rows></ul>
+  </section>
+
+  <section aria-labelledby="topics-title">
+    <h2 id="topics-title" class="group-title">
+      Start a conversation
+    </h2>
+    <ul role="list" class="rows">
+      {threads.map(({ id, data }) => (
+        <li>
+          <a class="row" href={`/direct/${id}/`} aria-current={active === id ? 'page' : undefined}>
+            <Avatar size={44} src={profile.avatar.src} alt="" initials={initials} />
+            <span class="row-text">
+              <span class="row-title">{data.label}</span>
+              <span class="row-preview">{data.opener}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</nav>
+
+<style>
+  .dm-list {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    padding: var(--space-4) 0;
+  }
+
+  .list-head {
+    padding: 0 var(--space-4) var(--space-2);
+  }
+
+  .list-head :is(h1, h2) {
+    margin: 0;
+    font-size: var(--fs-20);
+    line-height: var(--lh-20);
+    font-weight: var(--weight-bold);
+  }
+
+  .list-note {
+    margin: var(--space-1) 0 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    color: var(--text-secondary);
+  }
+
+  .group-title {
+    margin: var(--space-2) 0 0;
+    padding: 0 var(--space-4);
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-bold);
+  }
+
+  .rows {
+    margin: 0;
+    padding: var(--space-1) 0;
+    list-style: none;
+  }
+
+  .row,
+  .rows :global(.row) {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 72px;
+    padding: var(--space-2) var(--space-4);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .row[aria-current='page'],
+  .rows :global(.row[aria-current='page']) {
+    background: var(--bg-secondary);
+  }
+
+  .row-text,
+  .rows :global(.row-text) {
+    display: grid;
+    min-width: 0;
+  }
+
+  .row-title,
+  .rows :global(.row-title) {
+    font-weight: var(--weight-semibold);
+  }
+
+  .row-preview,
+  .rows :global(.row-preview) {
+    overflow: hidden;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    color: var(--text-secondary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rows :global(.row-initials) {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  @media (hover: hover) {
+    .row:hover,
+    .rows :global(.row:hover) {
+      background: var(--hover-overlay);
+    }
+  }
+</style>

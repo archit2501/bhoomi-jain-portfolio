@@ -1,0 +1,28 @@
+---
+import Conversations from '../../components/dm/Conversations.astro';
+import DmShell from '../../components/dm/DmShell.astro';
+import ThreadView from '../../components/dm/ThreadView.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../../lib/content';
+
+// One page per topic she invites messages about: Hire me, Collaborate, Just say hi, Ask my AI.
+export async function getStaticPaths() {
+  const { dmThreads } = await loadSiteContent();
+  return dmThreads.map((thread) => ({ params: { topic: thread.id }, props: { thread } }));
+}
+
+const { thread } = Astro.props;
+const { dmThreads, profile } = await loadSiteContent();
+---
+
+<BaseLayout
+  title={`${thread.data.label} · Messages`}
+  description={thread.data.opener}
+  current="messages"
+  image="/og/pages/direct.png"
+>
+  <DmShell phone="pane">
+    <Conversations slot="list" threads={dmThreads} profile={profile} active={thread.id} />
+    <ThreadView profile={profile} mode="starter" topic={thread} />
+  </DmShell>
+</BaseLayout>

@@ -98,7 +98,7 @@ test.describe('phone', () => {
     await page.locator('.app-bar').getByRole('link', { name: 'Create' }).click();
     const sheet = page.getByRole('dialog', { name: 'Start a conversation' });
     await expect(sheet).toBeVisible();
-    await expect(sheet.getByRole('link').first()).toHaveAttribute('href', /^\/direct\/#/);
+    await expect(sheet.getByRole('link').first()).toHaveAttribute('href', /^\/direct\/[a-z-]+\/$/);
     expect(await serious(page, '#create-sheet')).toEqual([]);
     await page.keyboard.press('Escape');
     await expect(sheet).toBeHidden();

@@ -82,3 +82,35 @@ export async function checkDecision(
   if (now > expires) return { result: 'expired' };
   return { result: 'ok', id, action };
 }
+
+/** Bhoomi's reply links for DMs: conversations are slower than comments, so 30 days. */
+export const REPLY_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+/** A link that opens a DM thread for Bhoomi to read and answer. */
+export async function replyLink(
+  base: string,
+  threadId: string,
+  secret: string,
+  now: number,
+): Promise<string> {
+  const expires = now + REPLY_TTL_MS;
+  const sig = await sign(`dm:${threadId}:reply:${expires}`, secret);
+  const url = new URL('/api/dm/reply', base);
+  url.search = new URLSearchParams({ id: threadId, exp: String(expires), sig }).toString();
+  return url.href;
+}
+
+export async function checkReply(
+  params: URLSearchParams,
+  secret: string | undefined,
+  now: number,
+): Promise<{ result: LinkCheck; id?: string }> {
+  const id = params.get('id') ?? '';
+  const expires = Number(params.get('exp'));
+  const sig = params.get('sig') ?? '';
+  if (!secret || !id || !Number.isFinite(expires)) return { result: 'invalid' };
+  const expected = await sign(`dm:${id}:reply:${expires}`, secret);
+  if (!safeEqual(sig, expected)) return { result: 'invalid' };
+  if (now > expires) return { result: 'expired' };
+  return { result: 'ok', id };
+}

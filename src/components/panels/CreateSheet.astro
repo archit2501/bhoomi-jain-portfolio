@@ -20,7 +20,7 @@ const { dmThreads } = await loadSiteContent();
     <ul role="list">
       {dmThreads.map(({ id, data }) => (
         <li>
-          <a class="row" href={`/direct/#${id}`}>
+          <a class="row" href={`/direct/${id}/`}>
             <Icon name={data.ai ? 'insights' : 'messages'} size={24} />
             <span class="row-text">
               <span class="row-title">{data.label}</span>
