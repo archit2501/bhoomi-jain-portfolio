@@ -5,9 +5,53 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  // No ids anywhere: wrangler creates each resource on the first deploy and records it.
+  // Locally (`astro preview`, the Worker integration tests) they are simulated.
   "kv_namespaces": [
-    // Off switches for the live features (src/lib/server/flags.ts). No id: wrangler creates
-    // the namespace on the first deploy and records it; locally it is simulated.
+    // Off switches for the live features (src/lib/server/flags.ts).
     { "binding": "FLAGS" },
+    // Daily write counters, a site-wide ceiling per kind of write (src/lib/server/guard.ts).
+    { "binding": "COUNTERS" },
   ],
+  "d1_databases": [
+    // Likes, comments, DMs, poll votes and question answers (migrations/).
+    { "binding": "DB", "database_name": "bhoomi-jain-portfolio", "migrations_dir": "migrations" },
+  ],
+  // Cloudflare's Rate Limiting binding, per minute: every write passes both.
+  "ratelimits": [
+    { "name": "WRITE_LIMIT_IP", "namespace_id": "4101", "simple": { "limit": 30, "period": 60 } },
+    {
+      "name": "WRITE_LIMIT_VISITOR",
+      "namespace_id": "4102",
+      "simple": { "limit": 12, "period": 60 },
+    },
+  ],
+  // Secrets (never in this file): TURNSTILE_SECRET, set with `wrangler secret put` (docs/runbook.md).
+  "env": {
+    // Pull-request previews run as their own Worker (bhoomi-jain-portfolio-preview) with their own
+    // database, KV and rate limits, so a preview can never read or write production data.
+    // Build with CLOUDFLARE_ENV=preview to target it (.github/workflows/deploy.yml).
+    "preview": {
+      "kv_namespaces": [{ "binding": "FLAGS" }, { "binding": "COUNTERS" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "bhoomi-jain-portfolio-preview",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "ratelimits": [
+        {
+          "name": "WRITE_LIMIT_IP",
+          "namespace_id": "4201",
+          "simple": { "limit": 30, "period": 60 },
+        },
+        {
+          "name": "WRITE_LIMIT_VISITOR",
+          "namespace_id": "4202",
+          "simple": { "limit": 12, "period": 60 },
+        },
+      ],
+    },
+  },
 }

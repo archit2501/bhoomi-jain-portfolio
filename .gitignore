@@ -10,6 +10,7 @@ test-results/
 .env.*
 .dev.vars
 .dev.vars.*
+!.dev.vars.example
 
 # Wrangler's local state (simulated KV/D1) and deploy redirect
 .wrangler/

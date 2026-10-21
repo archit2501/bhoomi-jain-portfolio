@@ -1,0 +1,3 @@
+# Local secrets for `astro preview` and `astro dev` (copy to .dev.vars, which git ignores).
+# Cloudflare's published Turnstile test secret: every token passes. Never use it in production.
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA
