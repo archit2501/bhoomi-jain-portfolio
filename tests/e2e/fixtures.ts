@@ -22,6 +22,8 @@ import { frameDuration } from '../../src/lib/story/controller';
 // Not Astro's default 4321, nor a port another local portfolio already uses (4417, 4427).
 export const PORT = 4447;
 export const BASE = `http://localhost:${PORT}`;
+/** The stand-in for Bhoomi's notifications (scripts/e2e-inbox.mjs, NOTIFY_WEBHOOK_URL). */
+export const INBOX_PORT = 4457;
 
 const CONTENT = fileURLToPath(new URL('../../src/content/', import.meta.url));
 const readJson = <T>(path: string): T => JSON.parse(readFileSync(join(CONTENT, path), 'utf8'));

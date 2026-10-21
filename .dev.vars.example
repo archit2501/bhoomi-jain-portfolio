@@ -1,3 +1,9 @@
 # Local secrets for `astro preview` and `astro dev` (copy to .dev.vars, which git ignores).
 # Cloudflare's published Turnstile test secret: every token passes. Never use it in production.
 TURNSTILE_SECRET=1x0000000000000000000000000000000AA
+
+# Signs the approve and reject links for comments (any long random string works locally).
+APPROVAL_SECRET=local-approval-secret-not-for-production
+
+# Where notices go locally: the end-to-end tests run a small inbox here (scripts/e2e-inbox.mjs).
+NOTIFY_WEBHOOK_URL=http://localhost:4457/notify

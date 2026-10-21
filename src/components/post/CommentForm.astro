@@ -1,0 +1,122 @@
+---
+/**
+ * The "Add a comment…" form. Needs JavaScript (src/scripts/comments.ts sends it with a Turnstile
+ * token), so it only shows when scripts run. Every comment waits for Bhoomi's approval.
+ */
+interface Props {
+  post: string;
+  /** Where it sits, so the field ids stay unique on the page. */
+  place: 'column' | 'sheet';
+}
+
+const { post, place } = Astro.props;
+const prefix = `comment-${place}-${post}`;
+---
+
+<form class="comment-form" data-comment-form={post} novalidate>
+  <div class="fields">
+    <label class="visually-hidden" for={`${prefix}-name`}>
+      Your name
+    </label>
+    <input
+      id={`${prefix}-name`}
+      name="name"
+      class="comment-name"
+      placeholder="Your name"
+      maxlength="40"
+      autocomplete="name"
+      required
+    />
+    <label class="visually-hidden" for={`${prefix}-body`}>
+      Add a comment
+    </label>
+    <textarea
+      id={`${prefix}-body`}
+      name="body"
+      class="comment-body"
+      placeholder="Add a comment…"
+      maxlength="500"
+      rows="1"
+      required
+    ></textarea>
+    <button type="submit" class="comment-post">
+      Post
+    </button>
+  </div>
+  <p class="comment-note">Shown once Bhoomi approves it. Please don't share anything private.</p>
+  <p class="comment-status" role="status"></p>
+</form>
+
+<style>
+  .comment-form {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-4) var(--space-3);
+  }
+
+  :global(html:not(.js)) .comment-form {
+    display: none;
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .comment-name,
+  .comment-body {
+    grid-column: 1;
+    width: 100%;
+    padding: var(--space-2) 0;
+    font: inherit;
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--separator);
+    resize: none;
+  }
+
+  .comment-body {
+    min-height: 36px;
+    max-height: 120px;
+    field-sizing: content;
+  }
+
+  .comment-name:focus-visible,
+  .comment-body:focus-visible {
+    outline: none;
+    border-bottom-color: var(--text);
+  }
+
+  .comment-post {
+    grid-column: 2;
+    grid-row: 2;
+    padding: var(--space-2);
+    font: inherit;
+    font-weight: var(--weight-semibold);
+    color: var(--accent-text);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .comment-post:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .comment-note,
+  .comment-status {
+    margin: 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+  }
+
+  .comment-status:empty {
+    display: none;
+  }
+</style>

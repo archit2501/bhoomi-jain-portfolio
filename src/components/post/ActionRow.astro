@@ -24,6 +24,9 @@ const { id, when, class: className, ...attributes } = Astro.props;
       <Icon name="heart" class="heart-off" size={24} />
       <Icon name="heart" filled class="heart-on" size={24} />
     </button>
+    <button class="comment" type="button" aria-label="Comment" data-needs-js>
+      <Icon name="comment" size={24} />
+    </button>
     <button class="share" type="button" aria-label="Copy link to this post" data-href={`/p/${id}/`}>
       <Icon name="link" size={24} />
     </button>
@@ -43,6 +46,7 @@ const { id, when, class: className, ...attributes } = Astro.props;
   }
 
   .like,
+  .comment,
   .share {
     display: flex;
     padding: var(--space-2);
@@ -51,6 +55,10 @@ const { id, when, class: className, ...attributes } = Astro.props;
     border: 0;
     border-radius: var(--radius-button);
     cursor: pointer;
+  }
+
+  :global(html:not(.js)) [data-needs-js] {
+    display: none;
   }
 
   .like[aria-pressed='true'] {

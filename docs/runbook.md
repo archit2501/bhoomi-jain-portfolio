@@ -14,6 +14,8 @@ One Cloudflare Worker (`bhoomi-jain-portfolio`, configured in `wrangler.jsonc`):
   - `DB` (D1): likes, comments, DMs, poll votes and question answers. The schema is in `migrations/`.
   - `WRITE_LIMIT_IP` and `WRITE_LIMIT_VISITOR` (Rate Limiting): 30 writes a minute per IP, 12 per visitor.
   - Secret `TURNSTILE_SECRET`: without it, every write is refused.
+  - Secret `APPROVAL_SECRET`: signs Bhoomi's approve and reject links for comments.
+  - Secrets `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`, and/or `NOTIFY_WEBHOOK_URL`: where her notices go.
 
 Every write goes through one pipeline (`src/lib/server/guard.ts`), in this order: the feature's off switch, same-origin JSON under 8 KB, Turnstile, both rate limits, then today's cap. Visitors are anonymous: a random id in an HttpOnly cookie. IP addresses are used only as rate-limit keys and never stored.
 
@@ -31,9 +33,19 @@ Every write goes through one pipeline (`src/lib/server/guard.ts`), in this order
    npx wrangler secret put TURNSTILE_SECRET -c wrangler.jsonc --env preview    # test secret is fine
    ```
 
-5. Re-run the latest **Deploy** workflow on `main`, or merge anything. The first deploy creates the KV namespaces, the database and the rate limiters, then applies the migrations.
+5. Set up Bhoomi's notices (new comments now, DMs later). Approval links need a long random secret:
 
-Until step 3 is done, the Deploy workflow's jobs are skipped and nothing is published. Until step 4 is done, the site works but refuses every like, comment and message.
+   ```bash
+   openssl rand -base64 32 | npx wrangler secret put APPROVAL_SECRET -c wrangler.jsonc
+   ```
+
+   Then pick a channel, or both:
+   - **Telegram:** she creates a bot with @BotFather, sends it any message, and reads her chat id from `https://api.telegram.org/bot<token>/getUpdates`. Then `wrangler secret put TELEGRAM_BOT_TOKEN` and `wrangler secret put TELEGRAM_CHAT_ID`.
+   - **Webhook:** `wrangler secret put NOTIFY_WEBHOOK_URL` with any URL that takes a JSON POST (`{ title, lines, links }`), for example an automation that emails her.
+
+6. Re-run the latest **Deploy** workflow on `main`, or merge anything. The first deploy creates the KV namespaces, the database and the rate limiters, then applies the migrations.
+
+Until step 3 is done, the Deploy workflow's jobs are skipped and nothing is published. Until step 4 is done, the site works but refuses every like, comment and message. Until step 5 is done, comments are saved but nobody is told, so none get approved.
 
 ## Previews
 
@@ -80,6 +92,19 @@ npx wrangler d1 time-travel restore DB -c wrangler.jsonc --timestamp=<unix-time>
 Add a migration as the next numbered file in `migrations/`. Keep it additive (new tables and columns), because the deploy migrates before the new code goes live. Always pass `-c wrangler.jsonc`: after a build, wrangler otherwise follows the Astro adapter's redirect to `dist/server`.
 
 Daily caps per kind of write are in `DAILY_CAPS` (`src/lib/server/guard.ts`); rate limits are in `wrangler.jsonc`.
+
+## Comments
+
+Every comment is saved as pending and never shown until Bhoomi approves it. Her notice has **Approve** and **Reject** links, signed with `APPROVAL_SECRET` and valid for 7 days. A link opens a page with the comment and one button; only pressing it decides, so a link checker or preview bot following the link changes nothing. A decision is final.
+
+To approve one by hand, for example after its link expired:
+
+```bash
+npx wrangler d1 execute DB --remote -c wrangler.jsonc --command "SELECT id, post, name, body FROM comments WHERE status = 'pending'"
+npx wrangler d1 execute DB --remote -c wrangler.jsonc --command "UPDATE comments SET status = 'approved', decided_at = unixepoch() * 1000 WHERE id = '<id>'"
+```
+
+Rotating `APPROVAL_SECRET` invalidates every link that has been sent.
 
 ## Roll back a bad deploy
 

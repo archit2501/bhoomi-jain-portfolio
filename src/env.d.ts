@@ -21,8 +21,12 @@ declare namespace Cloudflare {
     DB: import('./lib/server/db').D1Like;
     WRITE_LIMIT_IP: import('./lib/server/guard').RateLimiter;
     WRITE_LIMIT_VISITOR: import('./lib/server/guard').RateLimiter;
-    /** Secret, set with `wrangler secret put TURNSTILE_SECRET`. */
+    /** Secrets, set with `wrangler secret put <NAME>` (docs/runbook.md). */
     TURNSTILE_SECRET?: string;
+    APPROVAL_SECRET?: string;
+    TELEGRAM_BOT_TOKEN?: string;
+    TELEGRAM_CHAT_ID?: string;
+    NOTIFY_WEBHOOK_URL?: string;
   }
 }
 

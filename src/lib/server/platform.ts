@@ -14,6 +14,12 @@ export interface WorkerBindings {
   WRITE_LIMIT_VISITOR?: RateLimiter;
   /** Turnstile's secret key; without it every write is refused (fail closed). */
   TURNSTILE_SECRET?: string;
+  /** Signs Bhoomi's approve and reject links (src/lib/server/sign.ts). */
+  APPROVAL_SECRET?: string;
+  /** Where notices go (src/lib/server/notify.ts). */
+  TELEGRAM_BOT_TOKEN?: string;
+  TELEGRAM_CHAT_ID?: string;
+  NOTIFY_WEBHOOK_URL?: string;
 }
 
 export function platformFrom(env: WorkerBindings, fetchImpl?: typeof fetch): Platform {

@@ -1,4 +1,5 @@
 import { slideIndex } from '../lib/post-nav';
+import { initComments } from './comments';
 import { initLike } from './like';
 import { initShare } from './share';
 
@@ -59,4 +60,5 @@ export function enhancePostView(root: HTMLElement): void {
 
   initLike(root);
   initShare(root);
+  initComments(root);
 }
