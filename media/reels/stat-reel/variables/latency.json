@@ -1,0 +1,10 @@
+{
+  "contextLabel": "Conversational AI Web App",
+  "statPrefix": "",
+  "statValue": 40,
+  "statSuffix": "%",
+  "statLabel": "lower latency",
+  "detailLine": "React client on a FastAPI backend",
+  "timeLine": "AWS EC2 · 2024",
+  "signoffLine": "Bhoomi Jain · Full Stack Developer"
+}

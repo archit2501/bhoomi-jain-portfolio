@@ -114,6 +114,11 @@ const initials = profile.displayName
               more
             </button>
           </div>
+          {data.post && (
+            <a class="reel-post" href={`/p/${data.post}/`}>
+              View case study
+            </a>
+          )}
           <p class="reel-audio">
             <Icon name="audio" size={14} />
             <span>{profile.username} · Original audio</span>
@@ -313,6 +318,17 @@ const initials = profile.displayName
     cursor: pointer;
   }
 
+  .reel-post {
+    justify-self: start;
+    padding: 6px 14px;
+    color: #ffffff;
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    background: rgb(255 255 255 / 18%);
+    border-radius: var(--radius-pill);
+  }
+
   .reel-audio {
     display: flex;
     align-items: center;
@@ -361,6 +377,7 @@ const initials = profile.displayName
   .reel-toggle:focus-visible,
   .rail-button:focus-visible,
   .reel-more:focus-visible,
+  .reel-post:focus-visible,
   .username:focus-visible,
   .reels-step:focus-visible {
     outline: 2px solid #ffffff;

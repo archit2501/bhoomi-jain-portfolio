@@ -1,0 +1,13 @@
+{
+  "eyebrow": "Full-stack project · 2024",
+  "title": "Conversational AI Web App",
+  "subtitle": "Real-time chat in React on a FastAPI backend",
+  "nodes": "React chat UI::Optimistic UI · streaming hooks|FastAPI on AWS EC2::REST backend",
+  "edges": "REST, batched",
+  "stack": "ReactJS, JavaScript, CSS3, FastAPI, REST, AWS EC2",
+  "resultValue": "40%",
+  "resultLabel": "lower end-to-end latency on AWS EC2",
+  "endLine": "The full case study is on her profile",
+  "screen": "",
+  "clip": ""
+}

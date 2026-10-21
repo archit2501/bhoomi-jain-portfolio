@@ -4,11 +4,13 @@ import { feedOrder } from '../../src/lib/reels';
 import { pageTitle, reels, videoReels } from './fixtures';
 
 // Reels v2 (task 2.3.1): the profile's Reels tab, and the full-screen feed at /reels/<id>/.
-// Content-driven. Her demo videos arrive in task 2.3.2; until then the video tests serve the feed
-// with stand-in <video> and poster markup injected (see `withStandInVideos`), so autoplay,
-// captions, pausing and poster loading are exercised now, and against the real videos later.
+// Content-driven: the reels, and which of them have a video and poster, come from src/content.
 const [first, second] = reels;
 const order = feedOrder(reels, first.id);
+// The video tests start the feed on a video reel; `vorder` is the feed as it then reads.
+const [firstVideo] = videoReels;
+const vorder = firstVideo ? feedOrder(reels, firstVideo.id) : [];
+const NO_VIDEO = 'needs reels with video';
 
 const feed = (page: Page) => page.locator('.reels-feed');
 const item = (page: Page, id: string) => page.locator(`.reel-item[data-reel="${id}"]`);
@@ -36,31 +38,6 @@ async function fakeMedia(page: Page) {
       setPaused(this, true);
       this.dispatchEvent(new Event('pause'));
     };
-  });
-}
-
-/**
- * Serves the feed as if every reel had a video, a poster and captions, the way ReelsFeed
- * renders one: the first poster with src, the rest parked in data-src. Requests to the stand-in
- * files are tagged with the reel id so tests can see what loaded.
- */
-async function withStandInVideos(page: Page) {
-  await page.route(/\/reels\/[a-z0-9-]+\/$/, async (route) => {
-    const response = await route.fetch();
-    let i = 0;
-    const body = (await response.text()).replace(
-      /(<article[^>]*data-reel="([a-z0-9-]+)"[\s\S]*?<div class="reel-media"[^>]*>)/g,
-      (match, _open, id: string) => {
-        const poster = `/og/default.png?poster=${id}`;
-        const posterAttr = i++ === 0 ? `src="${poster}"` : `data-src="${poster}"`;
-        return `${match}<img class="reel-poster" ${posterAttr} alt="">
-          <video class="reel-video" data-src="/og/default.png?video=${id}" playsinline muted loop
-            preload="none"><track kind="captions" src="/robots.txt" srclang="en" label="English"
-            default></video>
-          <button class="reel-toggle" type="button" aria-label="Play">Play</button>`;
-      },
-    );
-    await route.fulfill({ response, body });
   });
 }
 
@@ -204,91 +181,121 @@ test.describe('phone', () => {
 
 test.describe('video reels', () => {
   test.beforeEach(async ({ page }) => {
+    test.skip(videoReels.length < 2 || vorder.length < 2, NO_VIDEO);
     await fakeMedia(page);
-    await withStandInVideos(page);
   });
 
-  test('a reel plays muted once 60% is on screen, with captions on', async ({ page }) => {
-    await page.goto(`/reels/${first.id}/`);
-    const video = item(page, first.id).locator('video');
-    await expect(video).toHaveAttribute('src', `/og/default.png?video=${first.id}`);
+  const video = (page: Page, id: string) => item(page, id).locator('video');
+  const paused = (page: Page, id: string) =>
+    video(page, id).evaluate((v: HTMLVideoElement) => v.paused);
+
+  test('a reel plays muted once 60% is on screen; the next one waits', async ({ page }) => {
+    await page.goto(`/reels/${firstVideo.id}/`);
+    await expect(video(page, firstVideo.id)).toHaveAttribute('src', firstVideo.data.video!);
     await expect.poll(() => plays(page)).toBeGreaterThanOrEqual(1);
-    for (const attr of ['muted', 'playsinline', 'loop']) await expect(video).toHaveAttribute(attr);
-    expect(await video.evaluate((v: HTMLVideoElement) => v.textTracks[0]?.mode)).toBe('showing');
-    // The next reel's video waits until it is on screen.
-    await expect(item(page, order[1].id).locator('video')).not.toHaveAttribute('src', /.+/);
+    for (const attr of ['muted', 'playsinline', 'loop']) {
+      await expect(video(page, firstVideo.id)).toHaveAttribute(attr);
+    }
+    // Captions, when a reel has sound and so a captions file, are on from the start.
+    const modes = await video(page, firstVideo.id).evaluate((v: HTMLVideoElement) =>
+      [...v.textTracks].map((t) => t.mode),
+    );
+    expect(modes.every((m) => m === 'showing')).toBe(true);
+    if (vorder[1].data.video) {
+      await expect(video(page, vorder[1].id)).not.toHaveAttribute('src', /.+/);
+    }
   });
 
   test('scrolling away pauses it; the next reel plays', async ({ page }) => {
-    await page.goto(`/reels/${first.id}/`);
-    const firstVideo = item(page, first.id).locator('video');
-    await expect.poll(() => firstVideo.evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+    test.skip(!vorder[1].data.video, 'the next reel has no video');
+    await page.goto(`/reels/${firstVideo.id}/`);
+    await expect.poll(() => paused(page, firstVideo.id)).toBe(false);
     await scrollToReel(page, 1);
-    await expect.poll(() => firstVideo.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
-    const nextVideo = item(page, order[1].id).locator('video');
-    await expect.poll(() => nextVideo.evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+    await expect.poll(() => paused(page, firstVideo.id)).toBe(true);
+    await expect.poll(() => paused(page, vorder[1].id)).toBe(false);
   });
 
   test('a hidden tab pauses the reel and showing it again resumes', async ({ page }) => {
-    await page.goto(`/reels/${first.id}/`);
-    const video = item(page, first.id).locator('video');
-    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+    await page.goto(`/reels/${firstVideo.id}/`);
+    await expect.poll(() => paused(page, firstVideo.id)).toBe(false);
     const setHidden = (hidden: boolean) =>
       page.evaluate((h) => {
         Object.defineProperty(document, 'hidden', { configurable: true, get: () => h });
         document.dispatchEvent(new Event('visibilitychange'));
       }, hidden);
     await setHidden(true);
-    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(true);
+    await expect.poll(() => paused(page, firstVideo.id)).toBe(true);
     await setHidden(false);
-    await expect.poll(() => video.evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+    await expect.poll(() => paused(page, firstVideo.id)).toBe(false);
   });
 
   test('the button pauses, and a reel paused by hand stays paused on the way back', async ({
     page,
   }) => {
-    await page.goto(`/reels/${first.id}/`);
-    const reel = item(page, first.id);
-    await expect(reel.getByRole('button', { name: 'Pause' })).toBeVisible();
+    await page.goto(`/reels/${firstVideo.id}/`);
+    const reel = item(page, firstVideo.id);
     await reel.getByRole('button', { name: 'Pause' }).click();
     await expect(reel.getByRole('button', { name: 'Play' })).toBeVisible();
     await scrollToReel(page, 1);
-    await expect(page).toHaveURL(new RegExp(`/reels/${order[1].id}/$`));
+    await expect(page).toHaveURL(new RegExp(`/reels/${vorder[1].id}/$`));
     await scrollToReel(page, 0);
-    await expect(page).toHaveURL(new RegExp(`/reels/${first.id}/$`));
+    await expect(page).toHaveURL(new RegExp(`/reels/${firstVideo.id}/$`));
     await expect(reel.getByRole('button', { name: 'Play' })).toBeVisible();
+  });
+
+  test('a tap on the video pauses it; a double-tap likes it instead', async ({ page }) => {
+    await page.goto(`/reels/${firstVideo.id}/`);
+    await page.evaluate(() => localStorage.clear());
+    const reel = item(page, firstVideo.id);
+    await expect.poll(() => paused(page, firstVideo.id)).toBe(false);
+    const media = reel.locator('.reel-media');
+    await media.dblclick({ position: { x: 120, y: 300 } });
+    await expect(reel.getByRole('button', { name: 'Like' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.waitForTimeout(500);
+    expect(await paused(page, firstVideo.id)).toBe(false);
+    await media.click({ position: { x: 120, y: 300 } });
+    await expect.poll(() => paused(page, firstVideo.id)).toBe(true);
   });
 
   test('with reduced motion nothing plays on its own', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto(`/reels/${first.id}/`);
-    await expect(item(page, first.id).locator('video')).toHaveAttribute('src', /.+/);
+    await page.goto(`/reels/${firstVideo.id}/`);
+    await expect(video(page, firstVideo.id)).toHaveAttribute('src', /.+/);
     await page.waitForTimeout(300);
     expect(await plays(page)).toBe(0);
   });
 
   test('only the reel on screen and the next one load their poster', async ({ page }) => {
-    test.skip(reels.length < 3, 'needs three reels');
+    const withPosters = vorder.slice(0, 3);
+    test.skip(!withPosters.every((r) => r.data.poster), 'needs three reels in a row with posters');
+    const byPoster = new Map(withPosters.map((r) => [r.data.poster!, r.id]));
     const loaded = new Set<string>();
     page.on('request', (request) => {
-      const id = /[?&]poster=([a-z0-9-]+)/.exec(request.url())?.[1];
+      const id = byPoster.get(new URL(request.url()).pathname);
       if (id) loaded.add(id);
     });
-    await page.goto(`/reels/${first.id}/`);
-    await expect.poll(() => [...loaded].sort()).toEqual([order[0].id, order[1].id].sort());
+    await page.goto(`/reels/${firstVideo.id}/`);
+    await expect.poll(() => [...loaded].sort()).toEqual([vorder[0].id, vorder[1].id].sort());
     await page.waitForTimeout(300);
-    expect(loaded.has(order[2].id)).toBe(false);
+    expect(loaded.has(vorder[2].id)).toBe(false);
     await scrollToReel(page, 1);
-    await expect.poll(() => loaded.has(order[2].id)).toBe(true);
+    await expect.poll(() => loaded.has(vorder[2].id)).toBe(true);
   });
 });
 
-test('her real reel videos are MP4s under 4 MB', async ({ request }) => {
-  test.skip(videoReels.length === 0, 'her demo reels arrive in task 2.3.2');
+test('her reel videos are fast-start MP4s under 4 MB, and posters exist', async ({ request }) => {
+  test.skip(videoReels.length === 0, NO_VIDEO);
   for (const reel of videoReels) {
     const res = await request.get(reel.data.video!);
     expect(res.status()).toBe(200);
     expect(res.headers()['content-type']).toBe('video/mp4');
-    expect((await res.body()).length).toBeLessThan(4 * 1024 * 1024);
+    const body = await res.body();
+    expect(body.length).toBeLessThan(4 * 1024 * 1024);
+    // Fast start: the index (moov) comes before the media (mdat), so playback starts at once.
+    expect(body.indexOf('moov')).toBeLessThan(body.indexOf('mdat'));
+    if (reel.data.poster) expect((await request.get(reel.data.poster)).status()).toBe(200);
   }
 });
