@@ -326,6 +326,8 @@ export const dmThreadSchema = z.object({
   opener: z.string().trim().min(1).max(280, 'Keep a scripted reply to 280 characters'),
   /** The "Ask my AI" thread answers with the AI assistant (task 3.2.3) instead of reaching her. */
   ai: z.boolean().default(false),
+  /** "Ask my AI" only: questions a visitor can tap to start. */
+  suggestions: z.array(text.max(80)).max(4).default([]),
 });
 
 /** A figure as the site shows it: counted figures get their value from the résumé. */

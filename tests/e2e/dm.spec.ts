@@ -130,10 +130,10 @@ test.describe('desktop', () => {
     await expect(page).toHaveURL(new RegExp(`/direct/${human[0].id}/$`));
   });
 
-  test('the AI conversation has no message form yet', async ({ page }) => {
+  test('the AI conversation asks the AI, not her (tests/e2e/ai.spec.ts)', async ({ page }) => {
     test.skip(!ai, 'no AI topic');
     await page.goto(`/direct/${ai!.id}/`);
-    await expect(pane(page).locator('.soon')).toBeVisible();
+    await expect(pane(page).locator('[data-ai-form]')).toBeVisible();
     await expect(pane(page).locator('[data-dm-form]')).toHaveCount(0);
   });
 

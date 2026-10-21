@@ -72,6 +72,10 @@ import CaretDownRegular from '@phosphor-icons/core/regular/caret-down.svg';
 import CaretDownFill from '@phosphor-icons/core/fill/caret-down-fill.svg';
 import CheckRegular from '@phosphor-icons/core/regular/check.svg';
 import CheckFill from '@phosphor-icons/core/fill/check-fill.svg';
+import SparkleRegular from '@phosphor-icons/core/regular/sparkle.svg';
+import SparkleFill from '@phosphor-icons/core/fill/sparkle-fill.svg';
+import ArrowCounterClockwiseRegular from '@phosphor-icons/core/regular/arrow-counter-clockwise.svg';
+import ArrowCounterClockwiseFill from '@phosphor-icons/core/fill/arrow-counter-clockwise-fill.svg';
 
 const ICONS = {
   home: [HouseRegular, HouseFill],
@@ -109,6 +113,8 @@ const ICONS = {
   up: [CaretUpRegular, CaretUpFill],
   down: [CaretDownRegular, CaretDownFill],
   check: [CheckRegular, CheckFill],
+  ai: [SparkleRegular, SparkleFill],
+  restart: [ArrowCounterClockwiseRegular, ArrowCounterClockwiseFill],
 } as const satisfies Record<IconName, readonly [unknown, unknown]>;
 
 interface Props {

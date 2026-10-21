@@ -40,6 +40,8 @@ export const DAILY_CAPS = {
   dm: 100,
   vote: 2000,
   answer: 300,
+  // Questions to her AI: each one costs a model call, so the cap is the tightest.
+  ai: 300,
 } as const;
 export type WriteKind = keyof typeof DAILY_CAPS;
 

@@ -44,9 +44,17 @@ Every write goes through one pipeline (`src/lib/server/guard.ts`), in this order
    - **Telegram:** she creates a bot with @BotFather, sends it any message, and reads her chat id from `https://api.telegram.org/bot<token>/getUpdates`. Then `wrangler secret put TELEGRAM_BOT_TOKEN` and `wrangler secret put TELEGRAM_CHAT_ID`.
    - **Webhook:** `wrangler secret put NOTIFY_WEBHOOK_URL` with any URL that takes a JSON POST (`{ title, lines, links }`), for example an automation that emails her.
 
-6. Re-run the latest **Deploy** workflow on `main`, or merge anything. The first deploy creates the KV namespaces, the database and the rate limiters, then applies the migrations.
+6. Turn on "Ask my AI" with a Claude API key from the Claude Console (console.anthropic.com, API keys). It's billed to that account, so a spend limit there is a good idea. Set it on production only; previews keep the assistant off:
 
-Until step 3 is done, the Deploy workflow's jobs are skipped and nothing is published. Until step 4 is done, the site works but refuses every like, comment and message. Until step 5 is done, comments are saved but nobody is told, so none get approved.
+   ```bash
+   npx wrangler secret put ANTHROPIC_API_KEY -c wrangler.jsonc
+   ```
+
+   Never set `ANTHROPIC_BASE_URL` on a deployed Worker. It exists only so local tests can use a stand-in.
+
+7. Re-run the latest **Deploy** workflow on `main`, or merge anything. The first deploy creates the KV namespaces, the database and the rate limiters, then applies the migrations.
+
+Until step 3 is done, the Deploy workflow's jobs are skipped and nothing is published. Until step 4 is done, the site works but refuses every like, comment and message. Until step 5 is done, comments are saved but nobody is told, so none get approved. Until step 6 is done, "Ask my AI" says it's off and points to her other conversations.
 
 ## Previews
 
@@ -115,6 +123,24 @@ A visitor picks a topic (`/direct/<topic>/`; the topics and her opening lines ar
 Bhoomi gets each new message, the first and every one after, through the same channels as comments, with a **Read and reply** link. It's signed with `APPROVAL_SECRET` and valid for 30 days. The link opens the conversation (with their email, if they gave one) and a reply box. Her reply appears on the visitor's private link within 20 seconds while they have it open.
 
 The `dms` switch stops new messages. Reading a conversation and replying keep working.
+
+## Ask my AI
+
+`/direct/ask-ai/` is a conversation with an AI assistant, not with her, and the page says so. Questions go to `POST /api/ai` with the conversation so far, through the same protections as every write (switch, origin, Turnstile, rate limits, a daily cap of 300 questions). The Worker asks Claude Haiku 5.5 (`claude-haiku-5-5`) at low effort and streams the answer back as it's written.
+
+- **What it knows:** her résumé and every post, sent as citable documents (`src/lib/server/ai-context.ts`). Change the content and it knows the change on the next deploy. Each answer links the sources it used.
+- **Its rules:** answer only from those documents, say "I don't know" otherwise and suggest messaging her, talk about her in the third person, keep it short. They're in `systemPrompt()` in the same file.
+- **Cost:** the rules and documents are the same on every question, so they're cached and mostly billed at a tenth of the input price. Prices when this was built: $0.10 per million input tokens and $0.50 per million output tokens (prompts up to 100K tokens). A typical question costs a small fraction of a cent. The daily cap bounds the worst day.
+- **Privacy:** conversations aren't stored on the site; they stay in the visitor's tab. A visitor who leaves mid-answer stops the call.
+- **Off:** without `ANTHROPIC_API_KEY`, or with the `ai_chat` switch off, the page says it's off and the composer is disabled.
+
+Before changing the rules, the model or the documents, run the eval. It asks the 30 questions in `evals/ai-questions.json` and grades the answers in code. It calls the paid API, about half a US cent a run, and only runs when asked:
+
+```bash
+AI_EVAL=1 ANTHROPIC_API_KEY=<key> npm run eval:ai
+```
+
+Locally and in the end-to-end tests, `.dev.vars` points the Worker at a stand-in for the Claude API (`scripts/e2e-inbox.mjs`), so nothing is spent.
 
 ## The live room
 
