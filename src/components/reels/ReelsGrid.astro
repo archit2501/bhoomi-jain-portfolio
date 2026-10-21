@@ -13,27 +13,22 @@ const { reels } = Astro.props;
 <ul class="reels-grid" role="list">
   {reels.map(({ id, data }, i) => (
     <li class="reel">
-      {data.video ? (
-        <a class="reel-link" href={data.video} data-reel={id} aria-label={`Reel: ${data.title}`}>
-          {data.poster ? (
-            <img
-              src={data.poster}
-              alt=""
-              width="540"
-              height="960"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
-          )}
-          <span class="badge" aria-hidden="true">
-            <Icon name="reels" filled size={20} />
-          </span>
-        </a>
-      ) : (
-        <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
-      )}
+      <a
+        class="reel-link"
+        href={`/reels/${id}/`}
+        data-reel={id}
+        aria-label={`Reel: ${data.title}`}
+        style={`--vt-name: reel-${id}`}
+      >
+        {data.poster ? (
+          <img src={data.poster} alt="" width="540" height="960" loading="lazy" decoding="async" />
+        ) : (
+          <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
+        )}
+        <span class="badge" aria-hidden="true">
+          <Icon name="reels" filled size={20} />
+        </span>
+      </a>
     </li>
   ))}
 </ul>

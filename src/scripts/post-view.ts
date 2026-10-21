@@ -1,5 +1,6 @@
 import { slideIndex } from '../lib/post-nav';
 import { initLike } from './like';
+import { initShare } from './share';
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -57,16 +58,5 @@ export function enhancePostView(root: HTMLElement): void {
   });
 
   initLike(root);
-
-  const share = root.querySelector<HTMLButtonElement>('.share');
-  const shareStatus = root.querySelector('.action-row .status');
-  share?.addEventListener('click', async () => {
-    const url = new URL(share.dataset.href ?? location.pathname, location.origin).href;
-    try {
-      await navigator.clipboard.writeText(url);
-      if (shareStatus) shareStatus.textContent = 'Link copied';
-    } catch {
-      if (shareStatus) shareStatus.textContent = `Copy failed. The link is ${url}`;
-    }
-  });
+  initShare(root);
 }

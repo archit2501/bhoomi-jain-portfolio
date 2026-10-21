@@ -1,0 +1,24 @@
+---
+import ReelsFeed from '../../components/reels/ReelsFeed.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../../lib/content';
+
+// Every reel has its own page: the full-screen feed, opening on that reel.
+export async function getStaticPaths() {
+  const { reels } = await loadSiteContent();
+  return reels.map((reel) => ({ params: { id: reel.id }, props: { start: reel.id } }));
+}
+
+const { start } = Astro.props;
+const { reels, profile } = await loadSiteContent();
+const reel = reels.find((r) => r.id === start)!;
+---
+
+<BaseLayout
+  title={`${reel.data.title} · Reels`}
+  description={reel.data.description ?? reel.data.title}
+  current="reels"
+  immersive
+>
+  <ReelsFeed reels={reels} profile={profile} start={start} />
+</BaseLayout>

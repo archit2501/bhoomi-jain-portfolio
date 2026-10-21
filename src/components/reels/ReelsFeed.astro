@@ -1,0 +1,465 @@
+---
+/**
+ * The full-screen reels feed at /reels/<id>/: one reel per screen, snapping as you scroll, as in
+ * Instagram's Reels tab. Each reel has the action rail on the right, her caption with "more" and
+ * the "Original audio" row. The reel in the URL comes first and the rest follow in order, so the
+ * page works without JavaScript. src/scripts/reel-player.ts plays a reel when 60% of it is on
+ * screen, keeps the URL on the reel in view and loads only the next reel's poster.
+ */
+import Icon from '../Icon.astro';
+import Avatar from '../Avatar.astro';
+import type { Profile, Reel } from '../../lib/content-schema';
+import { feedOrder } from '../../lib/reels';
+import { pageTitle } from '../../lib/site';
+import TypeTile from '../post/TypeTile.astro';
+
+interface Props {
+  reels: { id: string; data: Reel }[];
+  profile: Profile;
+  /** The reel this page is for; it comes first. */
+  start: string;
+}
+
+const { reels, profile, start } = Astro.props;
+const ordered = feedOrder(reels, start);
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
+---
+
+<!-- Before the feed, so keyboard users reach the step buttons first. -->
+<nav class="reels-nav" aria-label="Reel navigation">
+  <button class="reels-step reels-prev" type="button" aria-label="Previous reel" disabled>
+    <Icon name="up" size={20} />
+  </button>
+  <button class="reels-step reels-next" type="button" aria-label="Next reel">
+    <Icon name="down" size={20} />
+  </button>
+</nav>
+
+<div class="reels-feed" role="feed" aria-label="Reels" aria-busy="false">
+  {ordered.map(({ id, data }, i) => (
+    <article
+      class="reel-item"
+      id={`reel-${id}`}
+      data-reel={id}
+      data-page-title={pageTitle(`${data.title} · Reels`)}
+      aria-labelledby={`reel-title-${id}`}
+      aria-posinset={i + 1}
+      aria-setsize={ordered.length}
+    >
+      <h2 id={`reel-title-${id}`} class="visually-hidden">
+        {data.title}
+      </h2>
+      {/* The grid tile grows into the first reel (a cross-document view transition). */}
+      <div class="reel-frame" style={i === 0 ? `--vt-name: reel-${id}` : undefined}>
+        <div class="reel-media" data-like-media>
+          {data.video ? (
+            <>
+              {data.poster && (
+                // The first reel's poster loads with the page; after that, only the reel on
+                // screen and the next one get theirs (reel-player.ts).
+                <img
+                  class="reel-poster"
+                  {...(i === 0 ? { src: data.poster } : { 'data-src': data.poster })}
+                  alt=""
+                  width="540"
+                  height="960"
+                  decoding="async"
+                />
+              )}
+              <video
+                class="reel-video"
+                data-src={data.video}
+                playsinline
+                muted
+                loop
+                preload="none"
+                aria-describedby={`reel-description-${id}`}
+              >
+                {data.captions && (
+                  <track kind="captions" src={data.captions} srclang="en" label="English" default />
+                )}
+              </video>
+              <noscript>
+                <a class="reel-fallback" href={data.video}>
+                  Watch the video
+                </a>
+              </noscript>
+              <button class="reel-toggle" type="button" aria-label="Play">
+                <Icon name="pause" filled class="icon-pause" size={20} />
+                <Icon name="play" filled class="icon-play" size={20} />
+              </button>
+            </>
+          ) : (
+            <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
+          )}
+          <span class="burst" aria-hidden="true">
+            <Icon name="heart" filled size={96} />
+          </span>
+        </div>
+
+        <div class="reel-caption">
+          <p class="reel-author">
+            <Avatar size={32} src={profile.avatar.src} alt="" initials={initials} />
+            <a class="username" href="/">
+              {profile.username}
+            </a>
+          </p>
+          <div class="reel-text" id={`reel-description-${id}`}>
+            <p class="reel-description">{data.description ?? data.title}</p>
+            <button class="reel-more" type="button" aria-expanded="false" hidden>
+              more
+            </button>
+          </div>
+          <p class="reel-audio">
+            <Icon name="audio" size={14} />
+            <span>{profile.username} · Original audio</span>
+          </p>
+        </div>
+      </div>
+
+      <footer class="reel-rail action-row" data-post={`reel-${id}`}>
+        <div class="buttons">
+          <button class="like rail-button" type="button" aria-pressed="false" aria-label="Like">
+            <Icon name="heart" class="heart-off" size={28} />
+            <Icon name="heart" filled class="heart-on" size={28} />
+          </button>
+          <button
+            class="share rail-button"
+            type="button"
+            aria-label="Copy link to this reel"
+            data-href={`/reels/${id}/`}
+          >
+            <Icon name="link" size={28} />
+          </button>
+        </div>
+        <p class="likes visually-hidden" hidden />
+        <p class="status visually-hidden" role="status" />
+      </footer>
+    </article>
+  ))}
+</div>
+
+<script>
+  import { initReelsFeed } from '../../scripts/reel-player';
+
+  initReelsFeed();
+</script>
+
+<style>
+  /*
+   * The page itself scrolls, snapping one reel per screen, so keys, Back and Forward behave as
+   * on any page, and the footer (with the not-affiliated line) still ends it.
+   * Phones: each reel fills the screen above the tab bar.
+   * Desktop: the reel is a 9:16 card in the middle with its rail beside it, as on instagram.com.
+   */
+  :global(:root:has(.reels-feed)) {
+    scroll-snap-type: y mandatory;
+    scroll-padding: 0;
+  }
+
+  :global(:root:has(.reels-feed) .site-footer) {
+    scroll-snap-align: end;
+  }
+
+  .reels-feed {
+    color: #ffffff;
+    background: var(--media-stage);
+  }
+
+  .reel-item {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: var(--space-4);
+    height: calc(100dvh - var(--bottom-bar-h) - env(safe-area-inset-bottom, 0px));
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .reel-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .reel-media {
+    position: absolute;
+    inset: 0;
+    background: var(--story-end);
+  }
+
+  .reel-poster,
+  .reel-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .reel-video::cue {
+    font-family: var(--font-display);
+    font-size: var(--fs-16);
+    background: rgb(0 0 0 / 70%);
+  }
+
+  .reel-fallback {
+    position: absolute;
+    inset: 50% auto auto 50%;
+    color: #ffffff;
+    translate: -50% -50%;
+  }
+
+  .reel-toggle {
+    position: absolute;
+    top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+    right: var(--space-4);
+    z-index: 2;
+    display: flex;
+    padding: var(--space-2);
+    color: #ffffff;
+    background: rgb(0 0 0 / 40%);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .reel-toggle :global(.icon-play),
+  .reel-toggle[aria-label='Play'] :global(.icon-pause) {
+    display: none;
+  }
+
+  .reel-toggle[aria-label='Play'] :global(.icon-play) {
+    display: block;
+  }
+
+  /* The double-tap heart, copied to the tap point by src/scripts/like.ts. */
+  .burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    color: #ffffff;
+    filter: drop-shadow(0 0 12px rgb(0 0 0 / 35%));
+    opacity: 0;
+    translate: -50% -50%;
+    pointer-events: none;
+  }
+
+  .reel-caption {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-11) 72px var(--space-4) var(--space-4);
+    background: linear-gradient(transparent, rgb(0 0 0 / 60%));
+    pointer-events: none;
+  }
+
+  .reel-caption a,
+  .reel-caption button {
+    pointer-events: auto;
+  }
+
+  .reel-author {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .username {
+    color: #ffffff;
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .reel-text {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .reel-description {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reel-text.expanded {
+    display: block;
+  }
+
+  .reel-text.expanded .reel-description {
+    white-space: normal;
+  }
+
+  .reel-more {
+    flex: none;
+    padding: 0;
+    color: rgb(255 255 255 / 80%);
+    font: inherit;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .reel-audio {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+  }
+
+  .reel-rail {
+    position: absolute;
+    right: var(--space-2);
+    bottom: var(--space-4);
+    z-index: 2;
+  }
+
+  .reel-rail .buttons {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .rail-button {
+    display: flex;
+    padding: var(--space-2);
+    color: #ffffff;
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 40%));
+    cursor: pointer;
+  }
+
+  .like[aria-pressed='true'] {
+    color: var(--like);
+  }
+
+  .like :global(.heart-on),
+  .like[aria-pressed='true'] :global(.heart-off) {
+    display: none;
+  }
+
+  .like[aria-pressed='true'] :global(.heart-on) {
+    display: block;
+  }
+
+  .reel-toggle:focus-visible,
+  .rail-button:focus-visible,
+  .reel-more:focus-visible,
+  .username:focus-visible,
+  .reels-step:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+
+  /* Phones scroll; the step buttons stay out of sight until focused (WCAG 2.5.7). */
+  .reels-nav {
+    position: fixed;
+    right: var(--space-4);
+    top: 50%;
+    z-index: 3;
+    display: grid;
+    gap: var(--space-2);
+    translate: 0 -50%;
+  }
+
+  .reels-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: #ffffff;
+    background: rgb(255 255 255 / 15%);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .reels-step:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @media (max-width: 767px) {
+    .reels-step:not(:focus-visible) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+
+  @media (hover: hover) {
+    .reels-step:not(:disabled):hover {
+      background: rgb(255 255 255 / 25%);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .reels-feed {
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .reel-item {
+      align-items: center;
+      height: 100dvh;
+      padding: var(--space-4) 0;
+      box-sizing: border-box;
+    }
+
+    .reel-frame {
+      width: auto;
+      height: 100%;
+      aspect-ratio: 9 / 16;
+      color: #ffffff;
+      border-radius: var(--radius-button);
+    }
+
+    /* Beside the reel, not over it. */
+    .reel-rail {
+      position: static;
+      align-self: flex-end;
+      padding-bottom: var(--space-4);
+    }
+
+    .rail-button {
+      color: var(--text);
+      filter: none;
+    }
+
+    .rail-button:focus-visible,
+    .reels-step:focus-visible {
+      outline-color: var(--focus);
+    }
+
+    .reels-step {
+      color: var(--text);
+      background: var(--button-secondary);
+    }
+
+    @media (hover: hover) {
+      .reels-step:not(:disabled):hover {
+        background: var(--button-secondary-hover);
+      }
+    }
+  }
+</style>

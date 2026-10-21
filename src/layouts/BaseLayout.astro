@@ -25,6 +25,8 @@ interface Props {
   image?: string;
   type?: 'website' | 'article';
   current?: NavId;
+  /** Full-screen pages (the reels feed): no phone top bar, as in the app. The footer stays. */
+  immersive?: boolean;
 }
 
 const { profile } = await loadSiteContent();
@@ -34,6 +36,7 @@ const {
   image = '/og/default.png',
   type = 'website',
   current,
+  immersive = false,
 } = Astro.props;
 const fullTitle = pageTitle(title);
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
@@ -70,7 +73,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
       Skip to content
     </a>
     <SideNav current={current} />
-    <AppBar current={current} />
+    {!immersive && <AppBar current={current} />}
     <div class="page">
       <main id="main" tabindex="-1">
         <slot />

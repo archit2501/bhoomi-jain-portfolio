@@ -31,5 +31,8 @@ export const ICON_NAMES = [
   'linkedin',
   'location',
   'code',
+  'audio',
+  'up',
+  'down',
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

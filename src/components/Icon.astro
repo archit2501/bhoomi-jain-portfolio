@@ -64,6 +64,12 @@ import MapPinRegular from '@phosphor-icons/core/regular/map-pin.svg';
 import MapPinFill from '@phosphor-icons/core/fill/map-pin-fill.svg';
 import CodeRegular from '@phosphor-icons/core/regular/code.svg';
 import CodeFill from '@phosphor-icons/core/fill/code-fill.svg';
+import MusicNotesSimpleRegular from '@phosphor-icons/core/regular/music-notes-simple.svg';
+import MusicNotesSimpleFill from '@phosphor-icons/core/fill/music-notes-simple-fill.svg';
+import CaretUpRegular from '@phosphor-icons/core/regular/caret-up.svg';
+import CaretUpFill from '@phosphor-icons/core/fill/caret-up-fill.svg';
+import CaretDownRegular from '@phosphor-icons/core/regular/caret-down.svg';
+import CaretDownFill from '@phosphor-icons/core/fill/caret-down-fill.svg';
 
 const ICONS = {
   home: [HouseRegular, HouseFill],
@@ -97,6 +103,9 @@ const ICONS = {
   linkedin: [LinkedinLogoRegular, LinkedinLogoFill],
   location: [MapPinRegular, MapPinFill],
   code: [CodeRegular, CodeFill],
+  audio: [MusicNotesSimpleRegular, MusicNotesSimpleFill],
+  up: [CaretUpRegular, CaretUpFill],
+  down: [CaretDownRegular, CaretDownFill],
 } as const satisfies Record<IconName, readonly [unknown, unknown]>;
 
 interface Props {
