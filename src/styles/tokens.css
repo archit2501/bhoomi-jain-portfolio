@@ -27,7 +27,13 @@
   --ring-start: #0e9f94;
   --ring-end: #0b5e7a;
   --ring: linear-gradient(45deg, var(--ring-start), var(--ring-end));
-  --focus: var(--accent-text);
+  /* Focus is drawn in the text colour: the strongest contrast on every page surface. */
+  --focus: var(--text);
+  /* On photos and coloured tiles, which can be any colour: a white ring inside a near-black one,
+     so one of the two always stands out (one of them is at least 3:1 on any colour). */
+  --focus-ring-light: #ffffff;
+  --focus-ring-dark: #0c1014;
+  --focus-media: inset 0 0 0 2px var(--focus-ring-light), inset 0 0 0 4px var(--focus-ring-dark);
 
   /* Story canvas: always dark, like Instagram's, so it doesn't change with the theme. */
   --story-start: #0b5e7a;

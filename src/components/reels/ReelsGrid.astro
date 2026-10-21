@@ -78,7 +78,11 @@ const { reels } = Astro.props;
   }
 
   .reel-link:focus-visible {
-    outline-offset: -3px;
+    outline: none;
+  }
+
+  .reel-link:focus-visible::after {
+    box-shadow: var(--focus-media);
   }
 
   .badge {

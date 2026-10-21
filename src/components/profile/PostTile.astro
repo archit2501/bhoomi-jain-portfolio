@@ -80,8 +80,13 @@ const tone = tileTone(order);
     background: rgb(0 0 0 / 30%);
   }
 
+  /* The ring is drawn on the overlay, above the photo or tile, in two tones (tokens.css). */
   .tile a:focus-visible {
-    outline-offset: -3px;
+    outline: none;
+  }
+
+  .tile a:focus-visible::after {
+    box-shadow: var(--focus-media);
   }
 
   .badges {

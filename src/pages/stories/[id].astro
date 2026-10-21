@@ -1,7 +1,9 @@
 ---
 import ChevronLeft from '@lucide/astro/icons/chevron-left';
+import { Picture } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
+import { mediaImage } from '../../lib/media';
 
 export async function getStaticPaths() {
   const { highlights } = await loadSiteContent();
@@ -24,7 +26,15 @@ const { label, frames } = highlight.data;
         <li class={`frame tone-${(i % 3) + 1}`}>
           {frame.type === 'image' ? (
             <figure>
-              <img src={frame.src} alt={frame.alt} />
+              <Picture
+                src={mediaImage(frame.src)}
+                alt={frame.alt}
+                formats={['avif', 'webp']}
+                widths={[360, 540, 720, 940]}
+                sizes="(min-width: 470px) 470px, 100vw"
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
               {frame.caption && <figcaption>{frame.caption}</figcaption>}
             </figure>
           ) : (

@@ -44,6 +44,19 @@ describe('design tokens', () => {
     expect(contrastRatio(light['on-story'], light.accent)).toBeGreaterThanOrEqual(4.5);
   });
 
+  it('the two-tone media focus ring shows on every tile colour and on black or white', () => {
+    const tiles = [light.accent, light['tile-slate'], light['story-start'], light['story-end']];
+    for (const colour of [...tiles, '#000000', '#ffffff', '#808080']) {
+      const best = Math.max(
+        contrastRatio(light['focus-ring-light'], colour),
+        contrastRatio(light['focus-ring-dark'], colour),
+      );
+      expect(best, colour).toBeGreaterThanOrEqual(3);
+    }
+    // The two rings stand out from each other too, so the pair reads as one outline.
+    expect(contrastRatio(light['focus-ring-light'], light['focus-ring-dark'])).toBeGreaterThan(15);
+  });
+
   it('defines the same dark values for the system setting and the toggle', () => {
     expect(darkToggle).toEqual(darkMedia);
   });
@@ -67,6 +80,13 @@ describe('design tokens', () => {
         expect(
           contrastRatio(t['button-secondary-text'], t['button-secondary']),
         ).toBeGreaterThanOrEqual(4.5);
+      });
+
+      it('the focus ring stands out 3:1 from every page surface', () => {
+        expect(t.focus).toBe('var(--text)');
+        for (const surface of ['bg', 'bg-secondary', 'bg-elevated']) {
+          expect(contrastRatio(t.text, t[surface])).toBeGreaterThanOrEqual(3);
+        }
       });
 
       it('the story ring and primary button stand out 3:1 from the page', () => {

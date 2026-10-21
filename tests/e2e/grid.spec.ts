@@ -89,3 +89,13 @@ test('on a phone, a tile opens its post page with the caption', async ({ page })
   const date = dateText(post);
   if (date) await expect(page.locator('.post-view .date')).toHaveText(date);
 });
+
+test('keyboard focus on a tile draws the two-tone ring over the media', async ({ page }) => {
+  await page.goto('/');
+  const tile = page.locator('#panel-posts .tile a').first();
+  await tile.focus();
+  await expect(tile).toBeFocused();
+  const ring = await tile.evaluate((el) => getComputedStyle(el, '::after').boxShadow);
+  expect(ring).toContain('rgb(255, 255, 255)');
+  expect(ring).toContain('rgb(12, 16, 20)');
+});

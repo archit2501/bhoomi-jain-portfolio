@@ -39,6 +39,9 @@ const { stats } = Astro.props;
   .label {
     font-size: var(--fs-14);
     line-height: var(--lh-14);
+    /* A long label ("certifications") can't fit a third of a 320px phone: let it hyphenate. */
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
 
   @media (min-width: 768px) {
