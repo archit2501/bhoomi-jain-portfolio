@@ -11,3 +11,4 @@ plan/
 .claude-protocol/
 .claude/
 media/
+.wrangler/

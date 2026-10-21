@@ -8,6 +8,11 @@ test-results/
 .DS_Store
 .env
 .env.*
+.dev.vars
+.dev.vars.*
+
+# Wrangler's local state (simulated KV/D1) and deploy redirect
+.wrangler/
 
 # Planning material stays local: it holds unconfirmed figures and internal notes
 research/

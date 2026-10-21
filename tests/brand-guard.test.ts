@@ -73,10 +73,14 @@ describe('brand guard', () => {
     },
   );
 
+  // Production builds pass her domain as SITE_URL (the Deploy workflow runs this file with it).
   it('keeps "insta" and "gram" out of the domain', () => {
     const cname = join(ROOT, 'public', 'CNAME');
-    if (!existsSync(cname)) return;
-    expect(readFileSync(cname, 'utf8').toLowerCase()).not.toMatch(/insta|gram/);
+    const domains = [
+      process.env.SITE_URL ? new URL(process.env.SITE_URL).hostname : '',
+      existsSync(cname) ? readFileSync(cname, 'utf8').trim() : '',
+    ];
+    for (const domain of domains) expect(domain.toLowerCase()).not.toMatch(/insta|gram/);
   });
 
   it('catches each kind of violation', () => {
