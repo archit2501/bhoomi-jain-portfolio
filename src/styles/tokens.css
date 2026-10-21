@@ -56,6 +56,15 @@
      placeholder colour until they decode, and get a hairline edge in dark mode. */
   --media-stage: #000000;
   --media-placeholder: #e9ebee;
+  /* Insights: the contribution heatmap's four levels (her accent, light to deep), and the
+     Lighthouse ratings, each readable as text on the page. */
+  --heat-1: #bae6fd;
+  --heat-2: #7dd3fc;
+  --heat-3: #0ea5e9;
+  --heat-4: #0369a1;
+  --score-good: #0f7b3d;
+  --score-average: #b45309;
+  --score-poor: #c62828;
   --media-edge: none;
 
   /* Text tiles and story text frames (until real media replaces them): always dark. */
@@ -200,6 +209,13 @@
     --ring-3: #22d3ee;
     --ring-4: #38bdf8;
     --media-placeholder: #1a1e23;
+    --heat-1: #0c4a6e;
+    --heat-2: #075985;
+    --heat-3: #0284c7;
+    --heat-4: #38bdf8;
+    --score-good: #34d399;
+    --score-average: #fbbf24;
+    --score-poor: #f87171;
     --media-edge: inset 0 0 0 1px rgb(255 255 255 / 6%);
     --shadow-1: 0 0 0 1px rgb(255 255 255 / 6%);
     --shadow-strong: 0 4px 32px 0 rgb(0 0 0 / 50%), inset 0 1px 0 rgb(255 255 255 / 6%);
@@ -225,6 +241,13 @@
   --ring-3: #22d3ee;
   --ring-4: #38bdf8;
   --media-placeholder: #1a1e23;
+  --heat-1: #0c4a6e;
+  --heat-2: #075985;
+  --heat-3: #0284c7;
+  --heat-4: #38bdf8;
+  --score-good: #34d399;
+  --score-average: #fbbf24;
+  --score-poor: #f87171;
   --media-edge: inset 0 0 0 1px rgb(255 255 255 / 6%);
   --shadow-1: 0 0 0 1px rgb(255 255 255 / 6%);
   --shadow-strong: 0 4px 32px 0 rgb(0 0 0 / 50%), inset 0 1px 0 rgb(255 255 255 / 6%);

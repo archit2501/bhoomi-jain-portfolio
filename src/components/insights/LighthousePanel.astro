@@ -1,0 +1,110 @@
+---
+/**
+ * Insights: this site's Lighthouse scores, measured in CI on the build that's live
+ * (scripts/lighthouse-summary.mjs writes /lighthouse.json on each production deploy).
+ */
+const CATEGORIES = [
+  ['performance', 'Performance'],
+  ['accessibility', 'Accessibility'],
+  ['best-practices', 'Best practices'],
+  ['seo', 'SEO'],
+] as const;
+---
+
+<section class="panel" aria-labelledby="lighthouse-title" data-lighthouse>
+  <h2 id="lighthouse-title">This site's Lighthouse scores</h2>
+  <p class="state" data-lighthouse-state>
+    The scores need JavaScript to show.
+  </p>
+  <div
+    class="table-scroll"
+    role="group"
+    aria-label="Scores table, scrolls sideways"
+    tabindex="0"
+    data-lighthouse-body
+    hidden
+  >
+    <table class="scores">
+      <caption class="visually-hidden">Lighthouse scores by page, out of 100</caption>
+      <thead>
+        <tr>
+          <th scope="col">Page</th>
+          {CATEGORIES.map(([, label]) => (
+            <th scope="col">{label}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody data-lighthouse-rows></tbody>
+    </table>
+  </div>
+  <p class="source" data-lighthouse-source hidden>
+    Measured by Lighthouse <span data-lighthouse-version></span> on the deploy that's live,{' '}
+    <a data-lighthouse-link href="/lighthouse.json">
+      see the run
+    </a>
+    , <span data-lighthouse-asof></span>
+  </p>
+</section>
+
+<style>
+  /* position: relative, so the rating words (visually hidden, absolutely positioned) stay
+     inside the scroller instead of widening a phone's page. */
+  .table-scroll {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .scores {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  /* :global: the rows are drawn by src/scripts/insights.ts, outside this component's scope. */
+  .scores :global(th),
+  .scores :global(td) {
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--separator);
+    white-space: nowrap;
+  }
+
+  .scores thead th {
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+  }
+
+  .scores :global(td code) {
+    font-family: var(--font-mono);
+  }
+
+  /* A score: the number, with a ring in Lighthouse's three colours, and its rating in words. */
+  .scores :global(.score) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--weight-semibold);
+  }
+
+  .scores :global(.score::before) {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+  }
+
+  .scores :global(.good) {
+    color: var(--score-good);
+  }
+
+  .scores :global(.average) {
+    color: var(--score-average);
+  }
+
+  .scores :global(.poor) {
+    color: var(--score-poor);
+  }
+</style>

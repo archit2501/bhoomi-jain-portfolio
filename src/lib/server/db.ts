@@ -258,7 +258,36 @@ export function createRepo(db: D1Like, now: () => number = Date.now) {
         return id;
       },
     },
+
+    totals: {
+      /**
+       * Site-wide counts for Insights (task 4.2.2): only totals, nothing about any one visitor.
+       * "Answered" is the conversations she has replied to.
+       */
+      async site(): Promise<SiteTotals> {
+        const row = await db
+          .prepare(
+            `SELECT
+              (SELECT count(*) FROM likes) AS likes,
+              (SELECT count(*) FROM comments WHERE status = 'approved') AS comments,
+              (SELECT count(*) FROM dm_threads) AS conversations,
+              (SELECT count(DISTINCT thread_id) FROM dm_messages WHERE sender = 'bhoomi') AS answered,
+              (SELECT count(*) FROM poll_votes) AS votes`,
+          )
+          .first<SiteTotals>();
+        if (!row) throw new Error('totals: no answer from the database');
+        return row;
+      },
+    },
   };
+}
+
+export interface SiteTotals {
+  likes: number;
+  comments: number;
+  conversations: number;
+  answered: number;
+  votes: number;
 }
 
 export type Repo = ReturnType<typeof createRepo>;

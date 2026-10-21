@@ -1,0 +1,47 @@
+---
+/**
+ * Insights: the numbers from her résumé, each with the line it comes from, the résumé it's from
+ * ("as of" that résumé), and a link to the post that tells it when there is one.
+ */
+import type { Figure } from '../../lib/content-schema';
+
+interface Props {
+  figures: [string, Figure][];
+  posts: { id: string; data: { title: string } }[];
+  /** "2026", from the résumé's own source line. */
+  year: string | null;
+}
+
+const { figures, posts, year } = Astro.props;
+// The post a figure's source names, longest title first so "SmartBlog AI" beats "AI".
+const titled = [...posts].sort((a, b) => b.data.title.length - a.data.title.length);
+const postFor = (source: string) => titled.find((p) => source.includes(p.data.title));
+---
+
+<section class="panel" aria-labelledby="resume-title">
+  <h2 id="resume-title">From her résumé</h2>
+  <ul class="tiles" role="list">
+    {figures.map(([id, figure]) => {
+      const post = postFor(figure.source);
+      return (
+        <li class="tile" id={id}>
+          <p class="value">{figure.value}</p>
+          <p class="label">{figure.label}</p>
+          <p class="source">
+            {figure.source}
+            {post && (
+              <>
+                {' '}
+                <a href={`/p/${post.id}/`}>See the post</a>
+              </>
+            )}
+          </p>
+        </li>
+      );
+    })}
+  </ul>
+  <p class="source">
+    From <a href="/">her résumé</a>
+    {year ? `, as of ${year}` : ''}.
+  </p>
+</section>
