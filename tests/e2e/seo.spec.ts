@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { FIRST_NAME, highlights, NAME, pageTitle, posts, profile, row } from './fixtures';
+import { FIRST_NAME, highlights, NAME, pageTitle, posts, profile, reels, row } from './fixtures';
 
 const PAGES = [
   '/',
   '/reels/',
   `/p/${posts[0].id}/`,
   `/stories/${row[0].id}/`,
+  `/reels/${reels[0].id}/`,
   '/feed/',
   '/explore/',
   '/direct/',
@@ -70,6 +71,7 @@ test('sitemap lists every page and robots.txt points to it', async ({ request })
   }
   expect(locs.filter((p) => p.startsWith('/p/'))).toHaveLength(posts.length);
   expect(locs.filter((p) => p.startsWith('/stories/'))).toHaveLength(highlights.length);
+  expect(locs.filter((p) => /^\/reels\/.+/.test(p))).toHaveLength(reels.length);
   for (const loc of locs.slice(0, 4)) {
     expect((await request.get(loc)).status()).toBe(200);
   }

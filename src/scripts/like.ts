@@ -42,12 +42,14 @@ interface LikeChange {
 export function initLike(root: HTMLElement): void {
   const row = root.querySelector<HTMLElement>('.action-row');
   const button = row?.querySelector<HTMLButtonElement>('.like');
+  // The reels rail has no room for a likes line; the button alone shows the like there.
   const line = row?.querySelector<HTMLElement>('.likes');
   const id = row?.dataset.post;
-  if (!row || !button || !line || !id) return;
+  if (!row || !button || !id) return;
 
   const show = (liked: boolean) => {
     button.setAttribute('aria-pressed', String(liked));
+    if (!line) return;
     const text = likesLine(liked);
     line.textContent = text ?? '';
     line.hidden = !text;
@@ -91,7 +93,7 @@ export function initLike(root: HTMLElement): void {
   });
 
   // Double-tap: the big heart at the tap point, slightly tilted, and the icon springs with it.
-  const media = root.querySelector<HTMLElement>('.media');
+  const media = root.querySelector<HTMLElement>('[data-like-media]');
   const template = media?.querySelector<HTMLElement>('.burst');
   const burst = (x: number, y: number) => {
     if (button.getAttribute('aria-pressed') !== 'true') set(true);
