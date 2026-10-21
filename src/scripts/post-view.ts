@@ -16,15 +16,20 @@ export function enhancePostView(root: HTMLElement): void {
 
   const current = () =>
     track ? slideIndex(track.scrollLeft, track.clientWidth, slides.length) : 0;
+  // The slide a smooth scroll is heading to: quick clicks count from there, not from wherever
+  // the scroll happens to be mid-animation.
+  let target: number | null = null;
   const sync = () => {
     const i = current();
+    if (i === target) target = null;
     dots.forEach((dot, j) => dot.classList.toggle('on', j === i));
     if (prev) prev.hidden = i === 0;
     if (next) next.hidden = i === slides.length - 1;
   };
   const go = (step: 1 | -1) => {
     if (!track) return;
-    const i = Math.min(slides.length - 1, Math.max(0, current() + step));
+    const i = Math.min(slides.length - 1, Math.max(0, (target ?? current()) + step));
+    target = i;
     track.scrollTo({ left: i * track.clientWidth, behavior: reducedMotion() ? 'auto' : 'smooth' });
     // Announced on manual navigation only, as the carousel pattern recommends.
     if (slideStatus) slideStatus.textContent = `Slide ${i + 1} of ${slides.length}`;
@@ -38,6 +43,16 @@ export function enhancePostView(root: HTMLElement): void {
     event.preventDefault();
     event.stopPropagation();
     go(event.key === 'ArrowRight' ? 1 : -1);
+  });
+
+  // Tags on screenshots show and hide together with their button, as on Instagram photos.
+  root.querySelectorAll<HTMLButtonElement>('.tags-toggle').forEach((toggle) => {
+    toggle.addEventListener('click', () => {
+      const on = toggle.getAttribute('aria-pressed') !== 'true';
+      toggle.setAttribute('aria-pressed', String(on));
+      const label = toggle.querySelector('.visually-hidden');
+      if (label) label.textContent = on ? 'Hide tags' : 'Show tags';
+    });
   });
 
   const like = root.querySelector<HTMLButtonElement>('.like');

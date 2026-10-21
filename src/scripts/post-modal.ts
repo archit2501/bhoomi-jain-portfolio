@@ -45,7 +45,25 @@ export function initPostModal(): void {
   const open = (slug: string) => {
     returnUrl = location.pathname;
     returnTitle = document.title;
-    if (show(slug)) history.pushState({ post: slug }, '', `/p/${slug}/`);
+    const from = tile(slug);
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!from || reduced || !document.startViewTransition) {
+      if (show(slug)) history.pushState({ post: slug }, '', `/p/${slug}/`);
+      return;
+    }
+    // The tile grows into the pop-up's media: the name moves from one to the other mid-transition.
+    let media: HTMLElement | null = null;
+    const transition = document.startViewTransition(() => {
+      from.style.setProperty('view-transition-name', 'none');
+      if (!show(slug)) return;
+      history.pushState({ post: slug }, '', `/p/${slug}/`);
+      media = body.querySelector<HTMLElement>('.media');
+      media?.style.setProperty('view-transition-name', `post-${slug}`);
+    });
+    void transition.finished.finally(() => {
+      from.style.removeProperty('view-transition-name');
+      media?.style.removeProperty('view-transition-name');
+    });
   };
 
   const step = (direction: 1 | -1) => {

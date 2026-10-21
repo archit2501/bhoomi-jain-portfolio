@@ -4,6 +4,7 @@ import { postDate } from '../../lib/post-date';
 import { tileTone } from '../../lib/site';
 import Avatar from '../Avatar.astro';
 import Media from '../Media.astro';
+import { slideFace } from '../../lib/slides';
 import TypeTile from '../post/TypeTile.astro';
 
 interface Props {
@@ -45,7 +46,7 @@ const caption = body.trim().split(/\n\s*\n/)[0];
         fill
       />
     ) : (
-      <TypeTile headline={first.headline} detail={first.detail} tone={tileTone(data.order)} />
+      <TypeTile {...slideFace(first)} tone={tileTone(data.order)} />
     )}
   </a>
   <div class="card-body">

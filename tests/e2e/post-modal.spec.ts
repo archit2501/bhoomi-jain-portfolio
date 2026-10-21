@@ -37,6 +37,8 @@ test.describe('desktop pop-up', () => {
     await page.goto('/');
     await page.locator(tile(first.id)).click();
     const dialog = page.locator('#post-modal');
+    // The tile grows into the pop-up (a view transition), so wait until it is open.
+    await expect(dialog).toBeVisible();
     await expect(dialog.locator('.post-prev')).toBeHidden();
     await page.keyboard.press('ArrowRight');
     await expect(page).toHaveURL(new RegExp(`/p/${second.id}/$`));

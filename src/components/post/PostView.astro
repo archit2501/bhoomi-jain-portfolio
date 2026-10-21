@@ -1,10 +1,13 @@
 ---
+import { getEntry, render } from 'astro:content';
 import Icon from '../Icon.astro';
 import type { Post, Profile } from '../../lib/content-schema';
 import { postDate } from '../../lib/post-date';
 import { tileTone } from '../../lib/site';
 import Avatar from '../Avatar.astro';
 import Media from '../Media.astro';
+import CodeSlide from './CodeSlide.astro';
+import DiagramSlide from './DiagramSlide.astro';
 import TypeTile from './TypeTile.astro';
 
 interface Props {
@@ -16,7 +19,10 @@ interface Props {
 
 const { post, profile, variant } = Astro.props;
 const { id } = post;
-const { title, media, location, org, date, dateLabel, order, testimonials } = post.data;
+const { title, media, location, org, date, dateLabel, order, testimonials, tldr } = post.data;
+// The caption is markdown (lists, emphasis, links), rendered by Astro like any content page.
+const entry = await getEntry('posts', id);
+const Caption = entry ? (await render(entry)).Content : undefined;
 const when = postDate(date, dateLabel);
 const tone = tileTone(order);
 const initialsOf = (name: string) =>
@@ -42,7 +48,7 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     </div>
   </header>
 
-  <div class="media">
+  <div class="media" style={variant === 'page' ? `--vt-name: post-${id}` : undefined}>
     <div
       class="track"
       tabindex={media.length > 1 ? 0 : undefined}
@@ -55,17 +61,48 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
           aria-roledescription="slide"
           aria-label={`${i + 1} of ${media.length}`}
         >
-          {item.type === 'image' ? (
-            <Media
-              src={item.src}
-              alt={item.alt}
-              widths={[480, 720, 1080]}
-              sizes="(min-width: 768px) 600px, 100vw"
-              priority={i === 0}
-              fill
-            />
-          ) : (
+          {item.type === 'image' && (
+            <>
+              <Media
+                src={item.src}
+                alt={item.alt}
+                widths={[480, 720, 1080]}
+                sizes="(min-width: 768px) 600px, 100vw"
+                priority={i === 0}
+                fill
+              />
+              {item.tags.length > 0 && (
+                <>
+                  <ul class="tags" role="list" aria-label="Tagged in this screen">
+                    {item.tags.map((tag) => (
+                      <li style={`left: ${tag.x}%; top: ${tag.y}%`}>
+                        <a class="tag" href={`/explore/?q=${encodeURIComponent(tag.label)}`}>
+                          {tag.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  <button class="tags-toggle" type="button" aria-pressed="false">
+                    <Icon name="tagged" size={16} />
+                    <span class="visually-hidden">Show tags</span>
+                  </button>
+                </>
+              )}
+            </>
+          )}
+          {item.type === 'text' && (
             <TypeTile headline={item.headline} detail={item.detail} tone={tone} />
+          )}
+          {item.type === 'diagram' && (
+            <DiagramSlide
+              id={`${id}-${i}-${variant}`}
+              title={item.title}
+              nodes={item.nodes}
+              edges={item.edges}
+            />
+          )}
+          {item.type === 'code' && (
+            <CodeSlide code={item.code} lang={item.lang} caption={item.caption} />
           )}
         </div>
       ))}
@@ -95,13 +132,28 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     <div class="comment">
       <Avatar size={32} src={profile.avatar.src} alt="" initials={initials} />
       <div>
-        <p class="text">
+        <div class="text">
           <strong>{profile.username}</strong>
-          <span class="caption">{post.body.trim()}</span>
-        </p>
+          <div class="caption">{Caption ? <Caption /> : post.body.trim()}</div>
+        </div>
         <p class="meta">{org}</p>
       </div>
     </div>
+    {tldr && (
+      <div class="comment pinned">
+        <Avatar size={32} src={profile.avatar.src} alt="" initials={initials} />
+        <div>
+          <p class="text">
+            <strong>{profile.username}</strong>
+            <span class="caption">{tldr}</span>
+          </p>
+          <p class="meta">
+            <Icon name="pin" filled size={12} />
+            Pinned
+          </p>
+        </div>
+      </div>
+    )}
     {testimonials.map((t) => (
       <div class="comment">
         <Avatar size={32} alt="" initials={initialsOf(t.name)} />
@@ -210,9 +262,71 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
   }
 
   .slide {
+    position: relative;
     flex: 0 0 100%;
     height: 100%;
     scroll-snap-align: start;
+  }
+
+  /* Tags on a screenshot, hidden until the tag button is pressed, as on Instagram photos. */
+  .tags {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-fade-in) var(--ease-ig);
+  }
+
+  .slide:has(.tags-toggle[aria-pressed='true']) .tags {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .tags li {
+    position: absolute;
+    transform: translate(-50%, 6px);
+  }
+
+  .tag {
+    position: relative;
+    display: inline-block;
+    padding: 6px 10px;
+    color: #ffffff;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    font-weight: var(--weight-semibold);
+    white-space: nowrap;
+    text-decoration: none;
+    background: rgb(0 0 0 / 82%);
+    border-radius: 6px;
+  }
+
+  .tag::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: calc(50% - 5px);
+    border: 5px solid transparent;
+    border-top: 0;
+    border-bottom-color: rgb(0 0 0 / 82%);
+  }
+
+  .tags-toggle {
+    position: absolute;
+    bottom: var(--space-3);
+    left: var(--space-3);
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    color: #ffffff;
+    background: rgb(0 0 0 / 72%);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
   }
 
   .slide :global(img) {
@@ -320,6 +434,45 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
   .caption {
     margin-left: var(--space-1);
     white-space: pre-line;
+  }
+
+  /* The markdown caption: its first paragraph runs on after her username, as on Instagram. */
+  div.text {
+    margin: 0;
+  }
+
+  div.caption {
+    display: inline;
+    white-space: normal;
+  }
+
+  div.caption :global(p) {
+    margin: 0 0 var(--space-2);
+  }
+
+  div.caption :global(p:first-child) {
+    display: inline;
+  }
+
+  div.caption :global(ul),
+  div.caption :global(ol) {
+    margin: var(--space-2) 0;
+    padding-left: 1.2em;
+  }
+
+  div.caption :global(a) {
+    color: var(--accent-text);
+  }
+
+  div.caption :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
+  .pinned .meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
   }
 
   .actions {

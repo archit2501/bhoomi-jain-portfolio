@@ -11,12 +11,26 @@ media:
   - type: 'text'
     headline: 'Conversational AI'
     detail: 'Real-time chat in React on a FastAPI backend'
+  - type: 'diagram'
+    title: 'How the chat app fits together'
+    nodes:
+      - id: 'client'
+        label: 'React chat UI'
+        detail: 'Optimistic UI · streaming hooks'
+      - id: 'api'
+        label: 'FastAPI on AWS EC2'
+        detail: 'REST backend'
+    edges:
+      - from: 'client'
+        to: 'api'
+        label: 'REST, batched'
   - type: 'text'
     headline: '40%'
     detail: 'lower end-to-end latency on AWS EC2'
   - type: 'text'
     headline: '500+'
     detail: 'test sessions without UI regressions'
+tldr: 'Real-time React chat on a FastAPI backend deployed to AWS EC2: 40% lower latency and 500+ test sessions without UI regressions.'
 figures:
   - 'latency'
   - 'test-sessions'
@@ -26,4 +40,4 @@ A real-time chat interface in ReactJS with optimistic UI updates, controlled inp
 
 The React client talks to a FastAPI backend over REST and runs on AWS EC2. Request batching, lazy loading and asset compression cut end-to-end latency by 40%.
 
-Stack: ReactJS · JavaScript · CSS3 · FastAPI · REST · AWS EC2
+**Stack:** ReactJS · JavaScript · CSS3 · FastAPI · REST · AWS EC2
