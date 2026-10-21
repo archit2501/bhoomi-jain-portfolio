@@ -1,9 +1,13 @@
 ---
+import { Picture } from 'astro:assets';
+import { mediaImage } from '../lib/media';
+
 interface Props {
   /** Diameter of the photo itself, without the ring. */
   size: number;
   /** "story" draws her accent ring (an unseen story); "none" draws no ring. */
   ring?: 'story' | 'none';
+  /** A photo under src/assets/media/, as content refers to it. */
   src?: string;
   alt: string;
   initials: string;
@@ -22,7 +26,17 @@ const outer = ring === 'story' ? size + 2 * (ringWidth + gap) : size;
   style={`--size: ${size}px; --outer: ${outer}px; --ring-width: ${ringWidth}px; --gap: ${gap}px`}
 >
   {src ? (
-    <img src={src} alt={alt} width={size} height={size} />
+    <Picture
+      src={mediaImage(src)}
+      alt={alt}
+      formats={['avif', 'webp']}
+      widths={[size, size * 2, size * 3]}
+      sizes={`${size}px`}
+      width={size}
+      height={size}
+      fit="cover"
+      decoding="async"
+    />
   ) : (
     <span
       class="initials"

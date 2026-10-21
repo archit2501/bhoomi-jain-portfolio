@@ -51,6 +51,11 @@ a {
   display: none !important;
 }
 
+/* astro:assets wraps each photo in <picture>; let the <img> lay out as if it were the child. */
+picture {
+  display: contents;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

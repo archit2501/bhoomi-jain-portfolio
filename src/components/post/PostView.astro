@@ -399,10 +399,13 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
       max-width: 935px;
       margin: 0 auto;
       border: 1px solid var(--separator);
+      /* Split the column the page actually has (the side rail already took its share), so the
+         media shrinks before the 335px details column is pushed off-screen. */
+      grid-template-columns: minmax(0, 600px) minmax(335px, 1fr);
     }
 
     .page .media {
-      width: min(600px, 60vw);
+      width: 100%;
     }
 
     /* 4:5 media as tall as the viewport allows, leaving room for the 335px details column. */

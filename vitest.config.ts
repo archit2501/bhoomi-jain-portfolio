@@ -2,7 +2,16 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
+    projects: [
+      {
+        test: {
+          name: 'unit',
+          include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
+          exclude: ['src/**/*.container.test.ts'],
+        },
+      },
+      './vitest.components.config.ts',
+    ],
     coverage: {
       provider: 'v8',
       // The 80% gate covers the logic in src/lib. Browser wiring in src/scripts (pop-up, carousel,
