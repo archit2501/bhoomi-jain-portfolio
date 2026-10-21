@@ -1,0 +1,146 @@
+---
+/**
+ * The stories tray at the top of the home feed: her intro story first (her photo in her ring),
+ * then her highlights. Each opens in the story viewer, or its own page without JavaScript.
+ */
+import type { Highlight, Profile } from '../../lib/content-schema';
+import Avatar from '../Avatar.astro';
+import Media from '../Media.astro';
+
+interface Props {
+  profile: Profile;
+  intro?: { id: string; data: Highlight };
+  highlights: { id: string; data: Highlight }[];
+}
+
+const { profile, intro, highlights } = Astro.props;
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
+const count = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
+---
+
+<nav class="tray" aria-label="Stories">
+  <ul role="list">
+    {intro && (
+      <li>
+        <a
+          class="tray-item"
+          href={`/stories/${intro.id}/`}
+          data-story={intro.id}
+          aria-label={`${profile.username}'s story, ${count(intro.data.frames.length)}`}
+        >
+          <Avatar size={56} ring="story" src={profile.avatar.src} alt="" initials={initials} />
+          <span class="label" aria-hidden="true">
+            {profile.username}
+          </span>
+        </a>
+      </li>
+    )}
+    {highlights.map(({ id, data }) => (
+      <li>
+        <a
+          class="tray-item"
+          href={`/stories/${id}/`}
+          data-story={id}
+          aria-label={`Highlight: ${data.label}, ${count(data.frames.length)}`}
+        >
+          <span class="ring">
+            {data.cover.type === 'image' ? (
+              <Media
+                class="cover"
+                src={data.cover.src}
+                alt=""
+                widths={[112, 168]}
+                sizes="56px"
+                width={112}
+                height={112}
+              />
+            ) : (
+              <span class="cover" aria-hidden="true">
+                {data.cover.text}
+              </span>
+            )}
+          </span>
+          <span class="label" aria-hidden="true">
+            {data.label}
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .tray ul {
+    display: flex;
+    gap: var(--space-3);
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    overflow-x: auto;
+    list-style: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--space-4);
+    scrollbar-width: none;
+  }
+
+  .tray ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  li {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  .tray-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    width: 66px;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: var(--radius-card);
+  }
+
+  /* A highlight: a 1px neutral ring with a small gap, as on her profile. */
+  .ring {
+    display: flex;
+    padding: 3px;
+    border: 1px solid var(--stroke);
+    border-radius: 50%;
+  }
+
+  .cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    color: var(--text);
+    background: var(--bg-secondary);
+    border-radius: 50%;
+    font-size: var(--fs-16);
+    line-height: 1;
+    font-weight: var(--weight-semibold);
+    object-fit: cover;
+  }
+
+  .label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 470px) {
+    .tray ul {
+      padding-inline: 0;
+    }
+  }
+</style>
