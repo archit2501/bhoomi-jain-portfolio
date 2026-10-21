@@ -13,6 +13,8 @@
     { "binding": "FLAGS" },
     // Daily write counters, a site-wide ceiling per kind of write (src/lib/server/guard.ts).
     { "binding": "COUNTERS" },
+    // Her GitHub snapshot, refreshed hourly (src/workers/github-sync.ts).
+    { "binding": "SNAPSHOTS" },
   ],
   "d1_databases": [
     // Likes, comments, DMs, poll votes and question answers (migrations/).
@@ -30,13 +32,20 @@
   // The live room: "Active now" and live poll results (src/workers/presence.ts).
   "durable_objects": { "bindings": [{ "name": "PRESENCE", "class_name": "Presence" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Presence"] }],
-  // Secrets (never in this file): TURNSTILE_SECRET, set with `wrangler secret put` (docs/runbook.md).
+  // The hourly GitHub sync, at seven past the hour (src/worker.ts).
+  "triggers": { "crons": ["7 * * * *"] },
+  // Secrets (never in this file), set with `wrangler secret put` (docs/runbook.md): TURNSTILE_SECRET,
+  // APPROVAL_SECRET, the notice channels, ANTHROPIC_API_KEY and GITHUB_TOKEN.
   "env": {
     // Pull-request previews run as their own Worker (bhoomi-jain-portfolio-preview) with their own
     // database, KV and rate limits, so a preview can never read or write production data.
     // Build with CLOUDFLARE_ENV=preview to target it (.github/workflows/deploy.yml).
     "preview": {
-      "kv_namespaces": [{ "binding": "FLAGS" }, { "binding": "COUNTERS" }],
+      "kv_namespaces": [
+        { "binding": "FLAGS" },
+        { "binding": "COUNTERS" },
+        { "binding": "SNAPSHOTS" },
+      ],
       "durable_objects": { "bindings": [{ "name": "PRESENCE", "class_name": "Presence" }] },
       "d1_databases": [
         {
