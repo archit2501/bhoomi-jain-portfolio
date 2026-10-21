@@ -1,8 +1,10 @@
 ---
 import Mark from '../../assets/mark.svg';
 import Wordmark from '../../assets/wordmark.svg';
+import Icon from '../Icon.astro';
+import MoreMenu from './MoreMenu.astro';
 import NavIcon from './NavIcon.astro';
-import { NAV_ITEMS, type NavId } from './nav-items';
+import { SIDE_NAV, type NavId } from './nav-items';
 
 interface Props {
   current?: NavId;
@@ -12,26 +14,32 @@ const { current } = Astro.props;
 ---
 
 <nav class="side-nav" aria-label="Primary">
-  <a class="logo" href="/" aria-label="bhoomi, home">
+  <a class="logo" href="/" aria-label="bhoomi, profile">
     <Wordmark class="logo-wide" height={29} aria-hidden="true" />
     <Mark class="logo-narrow" height={24} aria-hidden="true" />
   </a>
   <ul role="list">
-    {NAV_ITEMS.map((item) => (
+    {SIDE_NAV.map((item) => (
       <li>
         <a
           class="item"
           href={item.href}
           aria-current={item.id === current ? 'page' : undefined}
-          data-open-contact={item.opensContact ? '' : undefined}
+          data-opens={item.opens}
+          aria-haspopup={item.opens ? 'dialog' : undefined}
         >
-          <NavIcon name={item.id} active={item.id === current} />
+          <NavIcon item={item} active={item.id === current} />
           <span class="label">{item.label}</span>
         </a>
       </li>
     ))}
   </ul>
+  <button class="item more" type="button" popovertarget="more-menu" aria-haspopup="dialog">
+    <Icon name="more" size={24} />
+    <span class="label">More</span>
+  </button>
 </nav>
+<MoreMenu />
 
 <style>
   .side-nav {
@@ -42,19 +50,25 @@ const { current } = Astro.props;
     .side-nav {
       position: fixed;
       inset: 0 auto 0 0;
-      z-index: 20;
+      z-index: 30;
       display: flex;
       flex-direction: column;
       width: 72px;
       padding: var(--space-2) var(--space-3) var(--space-5);
       background: var(--bg);
       border-right: 1px solid var(--separator);
+      transition: width var(--dur-panel) var(--ease-ig);
     }
   }
 
   @media (min-width: 1264px) {
     .side-nav {
       width: 244px;
+    }
+
+    /* A search or notifications panel folds the sidebar back to the icon rail, as on Instagram. */
+    :global(html[data-panel-open]) .side-nav {
+      width: 72px;
     }
   }
 
@@ -85,21 +99,44 @@ const { current } = Astro.props;
     display: flex;
     align-items: center;
     gap: var(--space-4);
+    width: 100%;
+    min-height: 48px;
     padding: var(--space-3);
     color: var(--text);
+    font: inherit;
     font-size: var(--fs-16);
     line-height: var(--lh-16);
+    text-align: left;
     text-decoration: none;
+    background: none;
+    border: 0;
     border-radius: var(--radius-button);
-    transition: background-color 0.1s cubic-bezier(0.17, 0.17, 0, 1);
+    cursor: pointer;
+    transition: background-color var(--dur-hover) var(--ease-ig);
   }
 
-  .item:hover {
-    background: var(--hover-overlay);
+  @media (hover: hover) {
+    .item:hover {
+      background: var(--hover-overlay);
+    }
+  }
+
+  .item :global(svg) {
+    flex-shrink: 0;
+    transition: transform var(--dur-press) var(--ease-ig);
+  }
+
+  .item:active :global(svg),
+  .item:active :global(.nav-avatar) {
+    transform: scale(var(--press-scale-icon));
   }
 
   .item[aria-current='page'] .label {
     font-weight: var(--weight-bold);
+  }
+
+  .more {
+    margin-top: auto;
   }
 
   /* The 72px rail shows icons only; labels stay available to screen readers. */
@@ -113,15 +150,15 @@ const { current } = Astro.props;
   }
 
   @media (min-width: 1264px) {
-    .logo-wide {
+    :global(html:not([data-panel-open])) .logo-wide {
       display: block;
     }
 
-    .logo-narrow {
+    :global(html:not([data-panel-open])) .logo-narrow {
       display: none;
     }
 
-    .label {
+    :global(html:not([data-panel-open])) .label {
       position: static;
       width: auto;
       height: auto;

@@ -71,6 +71,19 @@ describe('design tokens', () => {
           expect(contrastRatio(t.text, t[surface])).toBeGreaterThanOrEqual(4.5);
         }
         expect(contrastRatio(t['text-secondary'], t.bg)).toBeGreaterThanOrEqual(4.5);
+        expect(contrastRatio(t['text-secondary'], t['bg-secondary'])).toBeGreaterThanOrEqual(4.5);
+      });
+
+      it('secondary text still passes 4.5:1 on a hovered row', () => {
+        // --hover-overlay is the text colour at 5% (light) or white at 10% (dark) over the page.
+        const [r1, g1, b1] = parseHex(t.bg);
+        const [r2, g2, b2] = parseHex(name === 'light' ? t.text : '#ffffff');
+        const a = name === 'light' ? 0.05 : 0.1;
+        const mix = (x: number, y: number) => Math.round(x * (1 - a) + y * a);
+        const hovered = `#${[mix(r1, r2), mix(g1, g2), mix(b1, b2)]
+          .map((c) => c.toString(16).padStart(2, '0'))
+          .join('')}`;
+        expect(contrastRatio(t['text-secondary'], hovered)).toBeGreaterThanOrEqual(4.5);
       });
 
       it('accent text passes 4.5:1 and button text passes 4.5:1 on the accent', () => {

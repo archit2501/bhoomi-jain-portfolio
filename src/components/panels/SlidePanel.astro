@@ -1,0 +1,143 @@
+---
+import Icon from '../Icon.astro';
+
+interface Props {
+  id: string;
+  title: string;
+}
+
+const { id, title } = Astro.props;
+---
+
+<!--
+  instagram.com's Search and Notifications drawers: they slide out beside the icon rail, fold the
+  sidebar to icons, and close on Esc or a click outside. A modal <dialog> gives focus trapping and
+  Esc for free; the shell script (src/scripts/shell.ts) opens it and restores focus.
+-->
+<dialog {id} class="slide-panel" aria-labelledby={`${id}-title`}>
+  <div class="panel-inner">
+    <header class="panel-head">
+      <h2 id={`${id}-title`} class="panel-title">
+        {title}
+      </h2>
+      <button class="panel-close" type="button" data-close aria-label="Close">
+        <Icon name="close" size={24} />
+      </button>
+    </header>
+    <slot />
+  </div>
+</dialog>
+
+<style>
+  .slide-panel {
+    position: fixed;
+    inset: 0 auto 0 72px;
+    width: min(397px, calc(100vw - 72px));
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    background: var(--bg);
+    border: 0;
+    border-right: 1px solid var(--separator);
+    border-radius: 0 var(--radius-sheet) var(--radius-sheet) 0;
+    box-shadow: var(--shadow-strong);
+    overflow: hidden;
+    transform: translateX(-100%);
+    opacity: 0;
+    transition:
+      transform var(--dur-panel) var(--ease-ig),
+      opacity var(--dur-panel) var(--ease-ig),
+      display var(--dur-panel) allow-discrete,
+      overlay var(--dur-panel) allow-discrete;
+  }
+
+  /* While it animates out it stays in the top layer: let clicks through to the page. */
+  .slide-panel:not([open]),
+  .slide-panel:not([open])::backdrop {
+    pointer-events: none;
+  }
+
+  .slide-panel[open] {
+    transform: none;
+    opacity: 1;
+  }
+
+  @starting-style {
+    .slide-panel[open] {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+  }
+
+  /* No dimming: the page stays visible beside the drawer, as on Instagram. */
+  .slide-panel::backdrop {
+    background: transparent;
+  }
+
+  .panel-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-6) var(--space-3) var(--space-4) var(--space-6);
+  }
+
+  /* On a phone the drawer is a full screen with a way out; on desktop Esc or a click outside. */
+  .panel-close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  @media (max-width: 767px) {
+    .slide-panel {
+      inset: 0;
+      width: 100vw;
+      padding-top: env(safe-area-inset-top, 0px);
+      border-radius: 0;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .panel-close {
+      display: none;
+    }
+  }
+
+  .panel-title {
+    margin: 0;
+    font-size: var(--fs-24);
+    line-height: var(--lh-24);
+    font-weight: var(--weight-semibold);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slide-panel,
+    .slide-panel[open] {
+      transform: none;
+      transition-property: opacity, display, overlay;
+    }
+
+    @starting-style {
+      .slide-panel[open] {
+        transform: none;
+      }
+    }
+  }
+</style>

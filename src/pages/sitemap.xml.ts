@@ -7,6 +7,11 @@ export const GET: APIRoute = async ({ site }) => {
   const paths = [
     '/',
     '/reels/',
+    '/feed/',
+    '/explore/',
+    '/direct/',
+    '/notifications/',
+    '/insights/',
     ...posts.map((p) => `/p/${p.id}/`),
     ...highlights.map((h) => `/stories/${h.id}/`),
   ];

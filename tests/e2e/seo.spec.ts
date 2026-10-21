@@ -1,7 +1,17 @@
 import { expect, test } from '@playwright/test';
 import { FIRST_NAME, highlights, NAME, pageTitle, posts, profile, row } from './fixtures';
 
-const PAGES = ['/', '/reels/', `/p/${posts[0].id}/`, `/stories/${row[0].id}/`];
+const PAGES = [
+  '/',
+  '/reels/',
+  `/p/${posts[0].id}/`,
+  `/stories/${row[0].id}/`,
+  '/feed/',
+  '/explore/',
+  '/direct/',
+  '/notifications/',
+  '/insights/',
+];
 
 for (const path of PAGES) {
   test(`${path}: canonical link, share card and the not-affiliated footer`, async ({ page }) => {
@@ -48,7 +58,16 @@ test('sitemap lists every page and robots.txt points to it', async ({ request })
   const sitemap = await (await request.get('/sitemap.xml')).text();
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
   expect(locs).toContain('/');
-  expect(locs).toContain('/reels/');
+  for (const path of [
+    '/reels/',
+    '/feed/',
+    '/explore/',
+    '/direct/',
+    '/notifications/',
+    '/insights/',
+  ]) {
+    expect(locs).toContain(path);
+  }
   expect(locs.filter((p) => p.startsWith('/p/'))).toHaveLength(posts.length);
   expect(locs.filter((p) => p.startsWith('/stories/'))).toHaveLength(highlights.length);
   for (const loc of locs.slice(0, 4)) {

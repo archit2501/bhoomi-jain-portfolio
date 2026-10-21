@@ -1,0 +1,54 @@
+---
+import PostGrid from '../components/profile/PostGrid.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../lib/content';
+
+const { posts } = await loadSiteContent();
+const ordered = [...posts].sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="Explore" current="explore" image="/og/pages/explore.png">
+  <section class="explore" aria-labelledby="explore-title">
+    <h1 id="explore-title" class="visually-hidden">
+      Explore
+    </h1>
+    <!-- Like the app: the bar opens the search screen (the same search as the desktop drawer). -->
+    <button class="search" type="button" data-opens="panel-search" data-anywhere>
+      <span>Search</span>
+    </button>
+    <PostGrid posts={ordered} />
+  </section>
+</BaseLayout>
+
+<style>
+  .explore {
+    max-width: 935px;
+    margin: 0 auto;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    width: calc(100% - 2 * var(--space-4));
+    height: 36px;
+    margin: var(--space-3) var(--space-4);
+    padding: 0 var(--space-4);
+    color: var(--text-secondary);
+    font: inherit;
+    text-align: left;
+    background: var(--bg-secondary);
+    border: 0;
+    border-radius: var(--radius-card);
+    cursor: text;
+  }
+
+  @media (min-width: 768px) {
+    .explore {
+      padding: var(--space-6) var(--space-4);
+    }
+
+    .search {
+      display: none;
+    }
+  }
+</style>

@@ -1,14 +1,46 @@
 ---
+import { loadSiteContent } from '../../lib/content';
+import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
-import type { NavId } from './nav-items';
+import type { NavItem } from './nav-items';
 
 interface Props {
-  name: NavId;
+  item: NavItem;
   active?: boolean;
 }
 
-const { name, active = false } = Astro.props;
+const { item, active = false } = Astro.props;
+const { profile } = await loadSiteContent();
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
 ---
 
-<!-- Instagram's active tab is the filled glyph, not a heavier stroke. -->
-<Icon name={name} filled={active} size={24} />
+{item.id === 'profile' ? (
+  /* Instagram's Profile tab is her photo, ringed when it's the current page. */
+  <span class:list={['nav-avatar', { active }]}>
+    <Avatar size={24} src={profile.avatar.src} alt="" initials={initials} />
+  </span>
+) : (
+  /* The active tab is the filled glyph, not a heavier stroke. */
+  <Icon name={item.icon} filled={active} size={24} />
+)}
+
+<style>
+  .nav-avatar {
+    display: inline-flex;
+    padding: 1px;
+    border: 2px solid transparent;
+    border-radius: 50%;
+  }
+
+  .nav-avatar.active {
+    border-color: var(--text);
+  }
+
+  .nav-avatar :global(.initials) {
+    font-size: var(--fs-10);
+  }
+</style>

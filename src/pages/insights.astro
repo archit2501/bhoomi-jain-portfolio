@@ -1,0 +1,83 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../lib/content';
+
+const { figures } = await loadSiteContent();
+const stats = Object.entries(figures).filter(([, f]) => f.verified);
+---
+
+<!-- Her "professional dashboard": every number with the résumé line it comes from. -->
+<BaseLayout title="Insights" current="insights" image="/og/pages/insights.png">
+  <section class="insights" aria-labelledby="insights-title">
+    <h1 id="insights-title">Insights</h1>
+    <p class="lede">Every number on this site, with where it comes from.</p>
+    <ul class="tiles" role="list">
+      {stats.map(([id, figure]) => (
+        <li class="tile" id={id}>
+          <p class="value">{figure.value}</p>
+          <p class="label">{figure.label}</p>
+          <p class="source">{figure.source}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  .insights {
+    max-width: 935px;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4) var(--space-8);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: var(--fs-24);
+    line-height: var(--lh-24);
+    font-weight: var(--weight-semibold);
+  }
+
+  .lede {
+    margin: var(--space-1) 0 var(--space-6);
+    color: var(--text-secondary);
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tile {
+    padding: var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-card);
+  }
+
+  .tile p {
+    margin: 0;
+  }
+
+  .value {
+    font-family: var(--font-display);
+    font-size: var(--fs-28);
+    line-height: var(--lh-28);
+    font-weight: var(--weight-bold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .label {
+    margin-top: var(--space-1);
+    font-weight: var(--weight-semibold);
+  }
+
+  .source {
+    margin-top: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+  }
+</style>

@@ -8,6 +8,11 @@ const PAGES = [
   `/stories/${row[0].id}/`,
   '/stories/intro/',
   `/p/${posts[0].id}/`,
+  '/feed/',
+  '/explore/',
+  '/direct/',
+  '/notifications/',
+  '/insights/',
   '/404.html',
 ];
 
@@ -17,7 +22,7 @@ for (const path of PAGES) {
       await page.emulateMedia({ colorScheme });
       await page.goto(path);
       const { violations } = await new AxeBuilder({ page })
-        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
         .analyze();
       const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
       expect(serious.map((v) => `${v.id}: ${v.help} (${v.nodes.length})`)).toEqual([]);
@@ -28,7 +33,7 @@ for (const path of PAGES) {
 test('the contact sheet has no serious accessibility issues when open', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.locator('nav.bottom-tabs').getByRole('link', { name: 'Messages' }).click();
+  await page.locator('header.profile').getByRole('link', { name: 'Contact' }).click();
   const { violations } = await new AxeBuilder({ page }).include('#contact-sheet').analyze();
   const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);

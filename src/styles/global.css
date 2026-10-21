@@ -47,6 +47,22 @@ a {
   outline-offset: 2px;
 }
 
+/* The phone's sticky bars, and room for them when the browser scrolls something into view, so a
+   focused element is never hidden underneath (WCAG 2.2, 2.4.11 Focus Not Obscured). */
+:root {
+  --top-bar-h: 44px;
+  --bottom-bar-h: 49px;
+  scroll-padding-top: calc(var(--top-bar-h) + env(safe-area-inset-top, 0px) + 8px);
+  scroll-padding-bottom: calc(var(--bottom-bar-h) + env(safe-area-inset-bottom, 0px) + 8px);
+}
+
+@media (min-width: 768px) {
+  :root {
+    scroll-padding-top: 8px;
+    scroll-padding-bottom: 8px;
+  }
+}
+
 [hidden] {
   display: none !important;
 }

@@ -1,0 +1,151 @@
+---
+import { Picture } from 'astro:assets';
+import type { Post, Profile } from '../../lib/content-schema';
+import { mediaImage } from '../../lib/media';
+import { postDate } from '../../lib/post-date';
+import { tileTone } from '../../lib/site';
+import Avatar from '../Avatar.astro';
+import TypeTile from '../post/TypeTile.astro';
+
+interface Props {
+  post: { id: string; data: Post; body: string };
+  profile: Profile;
+}
+
+const { post, profile } = Astro.props;
+const { id, data, body } = post;
+const first = data.media[0];
+const when = postDate(data.date, data.dateLabel);
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
+const caption = body.trim().split(/\n\s*\n/)[0];
+---
+
+<article class="feed-card" aria-labelledby={`feed-${id}`}>
+  <header class="card-head">
+    <Avatar size={32} src={profile.avatar.src} alt="" initials={initials} />
+    <p class="who">
+      <a class="username" href="/">
+        {profile.username}
+      </a>
+      {data.org && <span class="org">{data.org}</span>}
+    </p>
+  </header>
+  <a class="media" href={`/p/${id}/`} aria-label={`Open post: ${data.title}`}>
+    {first.type === 'image' ? (
+      <Picture
+        src={mediaImage(first.src)}
+        alt={first.alt}
+        formats={['avif', 'webp']}
+        widths={[360, 470, 720, 940]}
+        sizes="(min-width: 470px) 470px, 100vw"
+        width={470}
+        height={588}
+        fit="cover"
+        loading="lazy"
+        decoding="async"
+      />
+    ) : (
+      <TypeTile headline={first.headline} detail={first.detail} tone={tileTone(data.order)} />
+    )}
+  </a>
+  <div class="card-body">
+    <h2 id={`feed-${id}`} class="title">
+      {data.title}
+    </h2>
+    <p class="caption">
+      <strong>{profile.username}</strong> {caption}
+    </p>
+    <p class="meta">
+      <a href={`/p/${id}/`}>View post</a>
+      {when && <span> · {when.text}</span>}
+    </p>
+  </div>
+</article>
+
+<style>
+  .feed-card {
+    border-bottom: 1px solid var(--separator);
+    padding-bottom: var(--space-4);
+  }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .who {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  .username {
+    color: inherit;
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .org,
+  .meta,
+  .meta a {
+    color: var(--text-secondary);
+  }
+
+  .media {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--media-placeholder);
+  }
+
+  .media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-body {
+    padding: var(--space-3) var(--space-4) 0;
+  }
+
+  .title {
+    margin: 0 0 var(--space-1);
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    font-weight: var(--weight-semibold);
+  }
+
+  .caption {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  .meta {
+    margin: var(--space-2) 0 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  @media (min-width: 470px) {
+    .feed-card {
+      border: 1px solid var(--separator);
+      border-radius: var(--radius-button);
+      overflow: hidden;
+    }
+  }
+</style>

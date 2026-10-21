@@ -13,7 +13,8 @@
   --bg-secondary: #f3f5f7;
   --bg-elevated: #ffffff;
   --text: #0c1014;
-  --text-secondary: #6a717a;
+  /* A touch darker than Instagram's #6a717a so it still passes 4.5:1 on a hovered row. */
+  --text-secondary: #676e77;
   --separator: #dbdfe4;
   --stroke: #dbdbdb;
   --button-secondary: #f0f2f5;

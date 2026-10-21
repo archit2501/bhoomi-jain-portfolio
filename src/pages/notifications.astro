@@ -1,0 +1,30 @@
+---
+import EventList from '../components/panels/EventList.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../lib/content';
+
+const { events } = await loadSiteContent();
+---
+
+<BaseLayout title="Notifications" current="notifications" image="/og/pages/notifications.png">
+  <section class="notifications" aria-labelledby="notifications-title">
+    <h1 id="notifications-title">Notifications</h1>
+    <EventList events={events} />
+  </section>
+</BaseLayout>
+
+<style>
+  .notifications {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: var(--space-8);
+  }
+
+  h1 {
+    margin: 0;
+    padding: var(--space-6) var(--space-6) var(--space-4);
+    font-size: var(--fs-24);
+    line-height: var(--lh-24);
+    font-weight: var(--weight-semibold);
+  }
+</style>
