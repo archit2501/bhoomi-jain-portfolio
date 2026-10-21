@@ -2,21 +2,25 @@
 import Icon from '../Icon.astro';
 import type { Post, Reel } from '../../lib/content-schema';
 import { pageTitle } from '../../lib/site';
+import EmptyState from '../EmptyState.astro';
 import ReelsGrid from '../reels/ReelsGrid.astro';
 import PostGrid from './PostGrid.astro';
 
-export type ProfileTab = 'posts' | 'reels';
+export type ProfileTab = 'posts' | 'reels' | 'tagged';
 
 interface Props {
   selected: ProfileTab;
   posts: { id: string; data: Post }[];
   reels: { id: string; data: Reel }[];
+  /** Her first name, for the Tagged tab's empty state. */
+  firstName: string;
 }
 
-const { selected, posts, reels } = Astro.props;
+const { selected, posts, reels, firstName } = Astro.props;
 const tabs = [
   { id: 'posts', label: 'Posts', href: '/', title: pageTitle(), icon: 'grid' },
   { id: 'reels', label: 'Reels', href: '/reels/', title: pageTitle('Reels'), icon: 'reels' },
+  { id: 'tagged', label: 'Tagged', href: '/tagged/', title: pageTitle('Tagged'), icon: 'tagged' },
 ] as const;
 ---
 
@@ -42,6 +46,16 @@ const tabs = [
   </div>
   <div role="tabpanel" id="panel-reels" aria-labelledby="tab-reels" hidden={selected !== 'reels'}>
     <ReelsGrid reels={reels} />
+  </div>
+  <div
+    role="tabpanel"
+    id="panel-tagged"
+    aria-labelledby="tab-tagged"
+    hidden={selected !== 'tagged'}
+  >
+    <EmptyState icon="tagged" title="No tagged posts yet">
+      When teammates and clients vouch for {firstName}'s work, their notes will show up here.
+    </EmptyState>
   </div>
 </section>
 

@@ -3,6 +3,7 @@ import Icon from '../Icon.astro';
 import type { Figure, Highlight, Profile } from '../../lib/content-schema';
 import Avatar from '../Avatar.astro';
 import ActionButtons from './ActionButtons.astro';
+import NoteBubble from './NoteBubble.astro';
 import StatsRow from './StatsRow.astro';
 
 interface Props {
@@ -22,10 +23,15 @@ const initials = profile.displayName
   .join('')
   .slice(0, 2);
 const linkLabel = profile.links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
+// Instagram shows the first link and "and N more", which opens the links sheet.
+const moreLinks = [profile.links.email, profile.links.github, profile.links.resume].filter(
+  Boolean,
+).length;
 ---
 
 <header class="profile">
   <div class="avatar-cell">
+    {profile.note && <NoteBubble note={profile.note} />}
     <AvatarWrap
       class="avatar-link"
       href={intro && `/stories/${intro.id}/`}
@@ -59,10 +65,17 @@ const linkLabel = profile.links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
   <div class="about">
     <p class="category">{profile.category}</p>
     <p class="bio">{profile.bio}</p>
-    <a class="bio-link" href={profile.links.linkedin} target="_blank" rel="noopener noreferrer">
-      <Icon name="link" size={12} />
-      <span>{linkLabel}</span>
-    </a>
+    <p class="links">
+      <a class="bio-link" href={profile.links.linkedin} target="_blank" rel="noopener noreferrer">
+        <Icon name="link" size={12} />
+        <span>{linkLabel}</span>
+      </a>
+      {moreLinks > 0 && (
+        <a class="more-links" href="#contact" data-open-contact aria-haspopup="dialog">
+          and {moreLinks} more
+        </a>
+      )}
+    </p>
   </div>
   <ActionButtons links={profile.links} />
 </header>
@@ -111,6 +124,7 @@ const linkLabel = profile.links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
   }
 
   .avatar-cell {
+    position: relative;
     grid-area: avatar;
   }
 
@@ -160,11 +174,25 @@ const linkLabel = profile.links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
     white-space: pre-line;
   }
 
+  .links {
+    margin: var(--space-1) 0 0;
+  }
+
+  .more-links {
+    margin-left: 0.3em;
+    color: var(--accent-text);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+  }
+
+  .more-links:hover {
+    text-decoration: underline;
+  }
+
   .bio-link {
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
-    margin-top: var(--space-1);
     color: var(--accent-text);
     font-weight: var(--weight-semibold);
     text-decoration: none;

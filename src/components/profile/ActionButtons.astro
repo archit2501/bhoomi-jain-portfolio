@@ -8,19 +8,28 @@ interface Props {
 const { links } = Astro.props;
 ---
 
-<!-- Real actions in the slots Instagram uses for Follow and Message. Nothing here needs an account. -->
+<!--
+  Real actions in the slots Instagram uses for Follow and Message: Message opens her inbox,
+  then the résumé (or email until there is one) and LinkedIn. Nothing here needs an account.
+-->
 <div class="actions">
-  <a class="btn primary" href="#contact" data-open-contact>
-    Contact
+  <a class="btn primary" href="/direct/">
+    Message
   </a>
+  {links.resume ? (
+    <a class="btn secondary" href={links.resume}>
+      Résumé
+    </a>
+  ) : (
+    links.email && (
+      <a class="btn secondary" href={`mailto:${links.email}`}>
+        Email
+      </a>
+    )
+  )}
   <a class="btn secondary" href={links.linkedin} target="_blank" rel="noopener noreferrer">
     LinkedIn
   </a>
-  {links.resume && (
-    <a class="btn secondary" href={links.resume}>
-      Resume
-    </a>
-  )}
 </div>
 
 <style>

@@ -90,6 +90,7 @@ export const profileSchema = z.object({
   stats: z.array(text).length(3),
   links: z.object({
     linkedin: z.url(),
+    github: z.url().optional(),
     resume: text.optional(),
     email: z.email().optional(),
   }),

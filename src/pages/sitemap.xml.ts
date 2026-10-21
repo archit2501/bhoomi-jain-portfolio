@@ -7,6 +7,7 @@ export const GET: APIRoute = async ({ site }) => {
   const paths = [
     '/',
     '/reels/',
+    '/tagged/',
     '/feed/',
     '/explore/',
     '/direct/',

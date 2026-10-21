@@ -222,13 +222,14 @@ test.describe('wide desktop', () => {
   });
 });
 
-test('contact sheet still opens from the profile and closes from the backdrop', async ({
-  page,
-}) => {
+test('the links sheet opens from the bio and closes from its button', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.locator('header.profile').getByRole('link', { name: 'Contact' }).click();
-  const sheet = page.getByRole('dialog', { name: `Contact ${NAME}` });
+  await page
+    .locator('header.profile')
+    .getByRole('link', { name: /^and \d+ more$/ })
+    .click();
+  const sheet = page.getByRole('dialog', { name: 'Links' });
   await expect(sheet).toBeVisible();
   await expect(sheet.getByRole('link', { name: /LinkedIn/ })).toHaveAttribute(
     'href',
