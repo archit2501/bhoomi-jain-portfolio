@@ -1,6 +1,9 @@
 /*
- * Neutrals, type scale and spacing follow Instagram's 2026 web UI (research/03-uiux.md B1.7-B1.8).
- * Her accent replaces Instagram's story gradient and primary blue: a peacock teal ring and teal buttons.
+ * Neutrals, type scale and spacing follow Instagram's 2026 web UI, re-measured against
+ * instagram.com's own CSS (research/04-instagram-screens.md §12, research/03-uiux.md B.2).
+ * Her accent and story ring replace Instagram's brand colours: a cool "green build" gradient
+ * (lime, emerald, cyan, ocean blue) that ends on her button colour. Instagram's primary blue and
+ * warm ring stops are banned by tests/brand-guard.test.ts.
  * tests/contrast.test.ts checks every pairing below in both themes.
  */
 :root {
@@ -20,13 +23,26 @@
   --scrim: rgb(0 0 0 / 65%);
   --like: #ff3040;
 
-  --accent: #0b7a75;
-  --accent-hover: #09655f;
+  /* Her colour: buttons, links and the end of her story ring. */
+  --accent: #0369a1;
+  --accent-hover: #075985;
   --on-accent: #ffffff;
-  --accent-text: #0b7a75;
-  --ring-start: #0e9f94;
-  --ring-end: #0b5e7a;
-  --ring: linear-gradient(45deg, var(--ring-start), var(--ring-end));
+  --accent-text: #0369a1;
+
+  /* Story ring: an unseen story. Seen stories get the plain stroke, as on Instagram. */
+  --ring-1: #65a30d;
+  --ring-2: #059669;
+  --ring-3: #0891b2;
+  --ring-4: #0369a1;
+  --ring: linear-gradient(
+    35deg,
+    var(--ring-1) 0%,
+    var(--ring-2) 34%,
+    var(--ring-3) 66%,
+    var(--ring-4) 100%
+  );
+  --ring-seen: var(--stroke);
+
   /* Focus is drawn in the text colour: the strongest contrast on every page surface. */
   --focus: var(--text);
   /* On photos and coloured tiles, which can be any colour: a white ring inside a near-black one,
@@ -35,13 +51,28 @@
   --focus-ring-dark: #0c1014;
   --focus-media: inset 0 0 0 2px var(--focus-ring-light), inset 0 0 0 4px var(--focus-ring-dark);
 
-  /* Story canvas: always dark, like Instagram's, so it doesn't change with the theme. */
-  --story-start: #0b5e7a;
+  /* Media: stories and reels play on black in both themes, as on Instagram. Photos sit on a
+     placeholder colour until they decode, and get a hairline edge in dark mode. */
+  --media-stage: #000000;
+  --media-placeholder: #e9ebee;
+  --media-edge: none;
+
+  /* Text tiles and story text frames (until real media replaces them): always dark. */
+  --story-start: #075985;
   --story-end: #0c1014;
   --on-story: #ffffff;
   --tile-slate: #2b3036;
 
+  /* Type. UI chrome uses the system stack, as instagram.com does. Her content (story text,
+     slides, reel captions, Notes) uses Plus Jakarta Sans, the closest open stand-in for
+     Instagram's proprietary typeface, and code uses Geist Mono. Both are self-hosted (Fontsource). */
   --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', var(--font);
+  --font-mono:
+    'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
+    monospace;
+  --fs-10: 10px;
+  --lh-10: 12px;
   --fs-12: 12px;
   --lh-12: 16px;
   --fs-14: 14px;
@@ -52,6 +83,8 @@
   --lh-20: 25px;
   --fs-24: 24px;
   --lh-24: 27px;
+  --fs-28: 28px;
+  --lh-28: 32px;
   --fs-32: 32px;
   --lh-32: 40px;
   --tracking-body: -0.15px;
@@ -67,9 +100,74 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-11: 44px;
+
+  /* Shape: controls 8, containers 12-16, chat bubbles 22, media square in the grid. */
   --radius-button: 8px;
   --radius-card: 12px;
+  --radius-sheet: 16px;
+  --radius-dialog: 24px;
+  --radius-bubble: 22px;
+  --radius-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgb(11 16 20 / 8%), 0 2px 8px rgb(11 16 20 / 6%);
   --shadow-strong: 0 4px 32px 0 rgb(11 16 20 / 16%);
+
+  /*
+   * Motion, from Instagram's own CSS where it defines a value: chrome moves on its
+   * cubic-bezier(.17,.17,0,1), dialogs open in 100ms scaling from 1.2 to 1, the story cube turns
+   * in 350ms, panels slide in 300ms, and loading placeholders pulse in steps rather than shimmer.
+   * Springs only where Instagram uses them: the like heart and bottom sheets.
+   * Every use needs a prefers-reduced-motion fallback (task 2.2.2).
+   */
+  --ease-ig: cubic-bezier(0.17, 0.17, 0, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Spring (stiffness 520, damping 18) sampled into linear(); peaks at about 1.26. */
+  --ease-spring: linear(
+    0,
+    0.062,
+    0.21,
+    0.408,
+    0.621,
+    0.824,
+    0.996,
+    1.126,
+    1.211,
+    1.252,
+    1.256,
+    1.23,
+    1.186,
+    1.132,
+    1.078,
+    1.028,
+    0.987,
+    0.958,
+    0.94,
+    0.933,
+    0.936,
+    0.944,
+    0.957,
+    0.971,
+    0.985,
+    0.997,
+    1.007,
+    1
+  );
+  --dur-press: 80ms;
+  --dur-hover: 100ms;
+  --dur-modal: 100ms;
+  --modal-from-scale: 1.2;
+  --dur-panel: 300ms;
+  --dur-sheet-in: 380ms;
+  --dur-sheet-out: 240ms;
+  --dur-story-open: 280ms;
+  --dur-story-cube: 350ms;
+  --dur-like: 420ms;
+  --dur-heart-burst: 900ms;
+  --dur-fade-in: 200ms;
+  --dur-skeleton: 1000ms;
+  --press-scale-icon: 0.96;
+  --press-scale-button: 0.98;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -81,14 +179,20 @@
     --text: #f8f9f9;
     --text-secondary: #a2aab4;
     --separator: #2b3036;
-    --stroke: #363636;
+    --stroke: #4a5058;
     --button-secondary: #25292e;
     --button-secondary-hover: #363c44;
     --button-secondary-text: #ffffff;
     --hover-overlay: rgb(255 255 255 / 10%);
-    --accent-text: #3fc9be;
-    --ring-start: #2ec4b6;
-    --ring-end: #4aa8d8;
+    --accent-text: #38bdf8;
+    --ring-1: #a3e635;
+    --ring-2: #34d399;
+    --ring-3: #22d3ee;
+    --ring-4: #38bdf8;
+    --media-placeholder: #1a1e23;
+    --media-edge: inset 0 0 0 1px rgb(255 255 255 / 6%);
+    --shadow-1: 0 0 0 1px rgb(255 255 255 / 6%);
+    --shadow-strong: 0 4px 32px 0 rgb(0 0 0 / 50%), inset 0 1px 0 rgb(255 255 255 / 6%);
   }
 }
 
@@ -100,12 +204,18 @@
   --text: #f8f9f9;
   --text-secondary: #a2aab4;
   --separator: #2b3036;
-  --stroke: #363636;
+  --stroke: #4a5058;
   --button-secondary: #25292e;
   --button-secondary-hover: #363c44;
   --button-secondary-text: #ffffff;
   --hover-overlay: rgb(255 255 255 / 10%);
-  --accent-text: #3fc9be;
-  --ring-start: #2ec4b6;
-  --ring-end: #4aa8d8;
+  --accent-text: #38bdf8;
+  --ring-1: #a3e635;
+  --ring-2: #34d399;
+  --ring-3: #22d3ee;
+  --ring-4: #38bdf8;
+  --media-placeholder: #1a1e23;
+  --media-edge: inset 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-1: 0 0 0 1px rgb(255 255 255 / 6%);
+  --shadow-strong: 0 4px 32px 0 rgb(0 0 0 / 50%), inset 0 1px 0 rgb(255 255 255 / 6%);
 }

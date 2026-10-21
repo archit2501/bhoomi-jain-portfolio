@@ -52,7 +52,7 @@ describe('ogSvg', () => {
 
   it('uses each tone and works without a detail line', () => {
     expect(ogSvg({ ...card, tone: 2, detail: undefined })).toContain('#2b3036');
-    expect(ogSvg({ ...card, tone: 3 })).toContain('#0b7a75');
+    expect(ogSvg({ ...card, tone: 3 })).toContain('#0369a1');
   });
 
   it('shrinks a two-line headline', () => {

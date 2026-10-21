@@ -2,15 +2,17 @@
 interface Props {
   headline: string;
   detail?: string;
-  /** 1: teal canvas, 2: slate canvas, 3: solid accent. Grid tiles rotate through them. */
+  /** 1: ocean-blue canvas, 2: slate canvas, 3: solid accent. Grid tiles rotate through them. */
   tone?: 1 | 2 | 3;
 }
 
 const { headline, detail, tone = 1 } = Astro.props;
+// The headline shrinks so its longest word fits the tile, even where the browser can't hyphenate.
+const longest = Math.max(...headline.split(/\s+/).map((word) => word.length));
 ---
 
 <!-- A text post, Instagram "Create" style: type on a colour field, scaled to the tile. -->
-<div class:list={['type-tile', `tone-${tone}`]}>
+<div class:list={['type-tile', `tone-${tone}`]} style={`--longest: ${longest}`}>
   <div class="content">
     <p class="headline">{headline}</p>
     {detail && <p class="detail">{detail}</p>}
@@ -23,6 +25,7 @@ const { headline, detail, tone = 1 } = Astro.props;
     width: 100%;
     height: 100%;
     color: var(--on-story);
+    font-family: var(--font-display);
   }
 
   .tone-1 {
@@ -49,11 +52,15 @@ const { headline, detail, tone = 1 } = Astro.props;
   .headline,
   .detail {
     margin: 0;
-    overflow-wrap: anywhere;
+    /* Break long words at syllables ("Conversa-tional"), never at an arbitrary letter. */
+    hyphens: auto;
+    overflow-wrap: break-word;
+    text-wrap: balance;
   }
 
   .headline {
-    font-size: clamp(14px, 13cqi, 48px);
+    /* 82cqi of text width, at about 0.6em per bold character: 137cqi / characters. */
+    font-size: clamp(12px, min(13cqi, calc(137cqi / var(--longest))), 48px);
     line-height: 1.1;
     font-weight: var(--weight-bold);
     letter-spacing: -0.02em;
