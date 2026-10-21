@@ -25,7 +25,7 @@ vi.mock('../lib/content', () => ({
       links: { linkedin: 'https://www.linkedin.com/in/example' },
     },
     // The layout's search, notifications and create sheet read these; empty is enough here.
-    resume: { projects: {}, skills: {} },
+    resume: { projects: {}, skills: {}, certifications: [] },
     figures: {},
     posts: [],
     highlights: [],

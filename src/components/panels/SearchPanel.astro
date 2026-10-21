@@ -1,9 +1,15 @@
 ---
+import Icon from '../Icon.astro';
 import { loadSiteContent } from '../../lib/content';
-import { buildSearchIndex } from '../../lib/search';
+import { buildSearchIndex, SEARCH_TABS } from '../../lib/search';
 import SlidePanel from './SlidePanel.astro';
 
+/**
+ * Search (task 4.1.1): instagram.com's drawer on desktop, a full screen on a phone. The index is
+ * built here at build time; src/scripts/search.ts matches as the visitor types, typos and all.
+ */
 const index = buildSearchIndex(await loadSiteContent());
+const marks = ['grid', 'code', 'reels', 'play', 'resume'] as const;
 ---
 
 <SlidePanel id="panel-search" title="Search">
@@ -11,82 +17,94 @@ const index = buildSearchIndex(await loadSiteContent());
     <label class="visually-hidden" for="search-input">
       Search projects, skills and stories
     </label>
-    <input
-      id="search-input"
-      class="search-input"
-      type="search"
-      name="q"
-      placeholder="Search"
-      autocomplete="off"
-      autocapitalize="off"
-      spellcheck="false"
-      enterkeyhint="search"
-      data-search-input
-    />
+    <div class="field">
+      <Icon name="search" size={16} />
+      <input
+        id="search-input"
+        class="search-input"
+        type="search"
+        name="q"
+        placeholder="Search"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        enterkeyhint="search"
+        data-search-input
+      />
+      <button type="button" class="clear" aria-label="Clear search" data-search-clear hidden>
+        <Icon name="close" size={12} />
+      </button>
+    </div>
   </form>
+
+  <div class="tabs" role="tablist" aria-label="What to show" data-search-tabs hidden>
+    {SEARCH_TABS.map((tab) => (
+      <button
+        type="button"
+        role="tab"
+        id={`search-tab-${tab.id}`}
+        aria-selected={tab.id === 'top' ? 'true' : 'false'}
+        aria-controls="search-results"
+        tabindex={tab.id === 'top' ? 0 : -1}
+        data-tab={tab.id}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+
   <p class="status visually-hidden" role="status" data-search-status></p>
-  <ul class="results" role="list" data-search-results></ul>
+
+  <section class="recent" aria-labelledby="recent-title" data-search-recent hidden>
+    <div class="recent-head">
+      <h3 id="recent-title">Recent</h3>
+      <button type="button" class="clear-all" data-recent-clear>
+        Clear all
+      </button>
+    </div>
+    <ul class="results" role="list" data-recent-list></ul>
+  </section>
+
+  <div
+    id="search-results"
+    role="tabpanel"
+    aria-labelledby="search-tab-top"
+    class="results-panel"
+    data-search-panel
+  >
+    <ul class="results" role="list" data-search-results></ul>
+    <div class="empty" data-search-empty hidden>
+      <span class="empty-mark" aria-hidden="true">
+        <Icon name="search" size={28} />
+      </span>
+      <p class="empty-title" data-empty-title>
+        No results
+      </p>
+      <p class="empty-text">
+        Try a skill like React, a project, or a place she's worked. Typos are fine.
+      </p>
+      <a class="empty-link" href="/explore/">
+        Browse Explore
+      </a>
+    </div>
+  </div>
+
   <p class="hint" data-search-hint>
     Projects, skills, experience and stories.
   </p>
+
+  {marks.map((name) => (
+    <template data-mark={name}>
+      <Icon name={name} size={20} />
+    </template>
+  ))}
   <script type="application/json" data-search-index set:html={JSON.stringify(index)} />
 </SlidePanel>
 
 <script>
-  import { search, type SearchItem } from '../../lib/search';
+  import { initSearch } from '../../scripts/search';
 
-  const panel = document.getElementById('panel-search');
-  const input = panel?.querySelector<HTMLInputElement>('[data-search-input]');
-  const list = panel?.querySelector<HTMLUListElement>('[data-search-results]');
-  const status = panel?.querySelector<HTMLElement>('[data-search-status]');
-  const hint = panel?.querySelector<HTMLElement>('[data-search-hint]');
-  const raw = panel?.querySelector('[data-search-index]')?.textContent ?? '[]';
-  const index = JSON.parse(raw) as SearchItem[];
-
-  const render = () => {
-    if (!input || !list || !status || !hint) return;
-    const query = input.value.trim();
-    const results = search(index, query);
-    list.replaceChildren(
-      ...results.map((item) => {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.className = 'result';
-        a.href = item.href;
-        const title = document.createElement('span');
-        title.className = 'result-title';
-        title.textContent = item.title;
-        const kind = document.createElement('span');
-        kind.className = 'result-kind';
-        kind.textContent = item.kind;
-        a.append(title, kind);
-        li.append(a);
-        return li;
-      }),
-    );
-    hint.hidden = query.length > 0;
-    status.textContent = query
-      ? results.length
-        ? `${results.length} result${results.length === 1 ? '' : 's'}`
-        : `No results for "${query}"`
-      : '';
-    if (query && !results.length) {
-      const li = document.createElement('li');
-      li.className = 'no-results';
-      li.textContent = `No results for "${query}".`;
-      list.append(li);
-    }
-  };
-
-  input?.addEventListener('input', render);
-  panel?.querySelector('[data-search-form]')?.addEventListener('submit', (event) => {
-    // Enter opens the first result rather than reloading the page.
-    const first = list?.querySelector<HTMLAnchorElement>('a.result');
-    if (first) {
-      event.preventDefault();
-      first.click();
-    }
-  });
+  initSearch();
 </script>
 
 <style>
@@ -94,15 +112,112 @@ const index = buildSearchIndex(await loadSiteContent());
     padding: 0 var(--space-4) var(--space-4);
   }
 
+  .field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    color: var(--text-secondary);
+  }
+
+  .field > :global(.icon) {
+    position: absolute;
+    left: var(--space-4);
+    pointer-events: none;
+  }
+
   .search-input {
     width: 100%;
     height: 40px;
-    padding: 0 var(--space-4);
+    padding: 0 40px;
     color: var(--text);
     font: inherit;
     background: var(--bg-secondary);
     border: 0;
     border-radius: var(--radius-card);
+  }
+
+  /* The browser's own clear button: ours is the round one. */
+  .search-input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
+  .clear {
+    position: absolute;
+    right: var(--space-3);
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: var(--bg);
+    background: var(--text-secondary);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .clear[hidden] {
+    display: none;
+  }
+
+  /* Instagram's search tabs: words in a row, the chosen one underlined. */
+  /* flex: none, or the panel's column squeezes a scrolling row to nothing under long results. */
+  .tabs {
+    display: flex;
+    flex: none;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--separator);
+    scrollbar-width: none;
+  }
+
+  .tabs[hidden] {
+    display: none;
+  }
+
+  .tabs button {
+    flex: 1 0 auto;
+    min-height: 44px;
+    padding: 0 var(--space-3);
+    font: inherit;
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+    background: none;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+  }
+
+  .tabs button[aria-selected='true'] {
+    color: var(--text);
+    border-bottom-color: var(--text);
+  }
+
+  .recent-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-6) var(--space-1);
+    border-top: 1px solid var(--separator);
+  }
+
+  .recent-head h3 {
+    margin: 0;
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-semibold);
+  }
+
+  .clear-all {
+    padding: var(--space-1) 0;
+    font: inherit;
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    color: var(--accent-text);
+    background: none;
+    border: 0;
+    cursor: pointer;
   }
 
   .search-input::placeholder {
@@ -113,16 +228,116 @@ const index = buildSearchIndex(await loadSiteContent());
     margin: 0;
     padding: var(--space-2) 0;
     list-style: none;
-    border-top: 1px solid var(--separator);
+  }
+
+  .results:empty {
+    display: none;
+  }
+
+  .results :global(li) {
+    position: relative;
+    display: flex;
+    align-items: center;
   }
 
   .results :global(.result) {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 50px;
+    flex: 1;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+    min-height: 60px;
     padding: var(--space-2) var(--space-6);
     color: inherit;
+    text-decoration: none;
+  }
+
+  /* A round mark where Instagram puts a profile photo: what kind of thing it is. */
+  .results :global(.result-mark) {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    font-size: var(--fs-20);
+    color: var(--text);
+    border: 1px solid var(--separator);
+    border-radius: 50%;
+  }
+
+  .results :global(.result-text) {
+    display: grid;
+    min-width: 0;
+  }
+
+  .results :global(.result-title),
+  .results :global(.result-kind) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .results :global(.remove) {
+    position: absolute;
+    right: var(--space-4);
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    font-size: var(--fs-20);
+    color: var(--text-secondary);
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .recent .results :global(.result) {
+    padding-right: 56px;
+  }
+
+  .empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    padding: var(--space-11) var(--space-6);
+    text-align: center;
+  }
+
+  .empty[hidden] {
+    display: none;
+  }
+
+  .empty-mark {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--space-2);
+    border: 2px solid var(--text);
+    border-radius: 50%;
+  }
+
+  .empty-title {
+    margin: 0;
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-semibold);
+    overflow-wrap: anywhere;
+  }
+
+  .empty-text {
+    margin: 0;
+    max-width: 28ch;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    color: var(--text-secondary);
+  }
+
+  .empty-link {
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    color: var(--accent-text);
     text-decoration: none;
   }
 
@@ -137,14 +352,12 @@ const index = buildSearchIndex(await loadSiteContent());
   }
 
   .results :global(.result-kind),
-  .results :global(.no-results),
   .hint {
     color: var(--text-secondary);
     font-size: var(--fs-14);
     line-height: var(--lh-14);
   }
 
-  .results :global(.no-results),
   .hint {
     margin: 0;
     padding: var(--space-4) var(--space-6);
