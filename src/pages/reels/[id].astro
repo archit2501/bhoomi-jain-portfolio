@@ -18,6 +18,7 @@ const reel = reels.find((r) => r.id === start)!;
   title={`${reel.data.title} · Reels`}
   description={reel.data.description ?? reel.data.title}
   current="reels"
+  image={`/og/r/${reel.id}.png`}
   immersive
 >
   <ReelsFeed reels={reels} profile={profile} start={start} />

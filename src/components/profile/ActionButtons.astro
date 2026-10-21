@@ -1,5 +1,6 @@
 ---
 import type { Profile } from '../../lib/content-schema';
+import Icon from '../Icon.astro';
 
 interface Props {
   links: Profile['links'];
@@ -30,6 +31,10 @@ const { links } = Astro.props;
   <a class="btn secondary" href={links.linkedin} target="_blank" rel="noopener noreferrer">
     LinkedIn
   </a>
+  <!-- Where Instagram puts its people button: share her profile. Without JavaScript, the link. -->
+  <a class="btn secondary square" href="/" aria-label="Share profile" data-open-share>
+    <Icon name="share" size={16} />
+  </a>
 </div>
 
 <style>
@@ -52,6 +57,12 @@ const { links } = Astro.props;
     white-space: nowrap;
     border-radius: var(--radius-button);
     transition: background-color 0.1s cubic-bezier(0.17, 0.17, 0, 1);
+  }
+
+  .square {
+    flex: none;
+    width: 32px;
+    padding: 0;
   }
 
   .primary {
