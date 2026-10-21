@@ -72,6 +72,60 @@ picture {
   display: contents;
 }
 
+/*
+ * Media.astro: the placeholder (dominant colour, then the tiny preview, stretched and so blurred)
+ * paints at once; the photo fades in over it when decoded. Without JavaScript photos show as
+ * normal. While a photo is really loading the placeholder pulses in steps, as Instagram's
+ * skeletons do (not a shimmer).
+ */
+.media-box {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background-color: var(--media-color, var(--media-placeholder));
+  background-image: var(--media-preview, none);
+  background-position: center;
+  background-size: cover;
+  box-shadow: var(--media-edge);
+}
+
+.media-fill {
+  width: 100%;
+  height: 100%;
+}
+
+.media-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity var(--dur-fade-in) var(--ease-ig);
+}
+
+.js .media-img:not([data-loaded]) {
+  opacity: 0;
+}
+
+.js .media-box:has(.media-img:not([data-loaded])) {
+  animation: media-pulse var(--dur-skeleton) steps(10) infinite alternate;
+}
+
+@keyframes media-pulse {
+  to {
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media-img {
+    transition: none;
+  }
+
+  .js .media-box:has(.media-img:not([data-loaded])) {
+    animation: none;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

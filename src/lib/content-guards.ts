@@ -124,6 +124,15 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
   phones.push(...findPhoneNumbers(JSON.stringify(content.resume)));
   for (const phone of phones) errors.push(`a phone number is in the content: "${phone}"`);
 
+  // Real photos and screens are what make it look like Instagram. Until they arrive the grid uses
+  // text tiles; a production build allows one text post (a deliberate quote), not a grid of them.
+  const textOnly = content.posts.filter((p) => p.data.media.every((m) => m.type === 'text'));
+  if (options.requireVerified && textOnly.length > 1) {
+    errors.push(
+      `${textOnly.length} posts have no photo or screen (one text post is allowed): ${textOnly.map((p) => p.id).join(', ')}`,
+    );
+  }
+
   const unverified = Object.entries(figures)
     .filter(([, f]) => !f.verified)
     .map(([fid, f]) => `${fid}: ${f.value} ${f.label}`);

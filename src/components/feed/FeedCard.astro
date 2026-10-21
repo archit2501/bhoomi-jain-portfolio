@@ -1,10 +1,9 @@
 ---
-import { Picture } from 'astro:assets';
 import type { Post, Profile } from '../../lib/content-schema';
-import { mediaImage } from '../../lib/media';
 import { postDate } from '../../lib/post-date';
 import { tileTone } from '../../lib/site';
 import Avatar from '../Avatar.astro';
+import Media from '../Media.astro';
 import TypeTile from '../post/TypeTile.astro';
 
 interface Props {
@@ -34,19 +33,16 @@ const caption = body.trim().split(/\n\s*\n/)[0];
       {data.org && <span class="org">{data.org}</span>}
     </p>
   </header>
-  <a class="media" href={`/p/${id}/`} aria-label={`Open post: ${data.title}`}>
+  <a class="card-media" href={`/p/${id}/`} aria-label={`Open post: ${data.title}`}>
     {first.type === 'image' ? (
-      <Picture
-        src={mediaImage(first.src)}
+      <Media
+        src={first.src}
         alt={first.alt}
-        formats={['avif', 'webp']}
         widths={[360, 470, 720, 940]}
         sizes="(min-width: 470px) 470px, 100vw"
         width={470}
         height={588}
-        fit="cover"
-        loading="lazy"
-        decoding="async"
+        fill
       />
     ) : (
       <TypeTile headline={first.headline} detail={first.detail} tone={tileTone(data.order)} />
@@ -99,19 +95,13 @@ const caption = body.trim().split(/\n\s*\n/)[0];
     color: var(--text-secondary);
   }
 
-  .media {
+  .card-media {
     display: block;
     color: inherit;
     text-decoration: none;
     aspect-ratio: 4 / 5;
     overflow: hidden;
     background: var(--media-placeholder);
-  }
-
-  .media :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
 
   .card-body {
