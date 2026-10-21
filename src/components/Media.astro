@@ -1,0 +1,63 @@
+---
+import { Picture } from 'astro:assets';
+import { mediaImage, mediaPlaceholder } from '../lib/media';
+
+interface Props {
+  /** The photo's path under src/assets/media/, as content names it. */
+  src: string;
+  alt: string;
+  /** Resized widths in the srcset (each output as AVIF and WebP). */
+  widths: number[];
+  sizes: string;
+  /** Rendered box, for width/height attributes (no layout shift). Defaults to the photo's own. */
+  width?: number;
+  height?: number;
+  fit?: 'cover' | 'contain';
+  /** The first row and the largest paint load eagerly; everything else waits for scroll. */
+  priority?: boolean;
+  /** "fill" stretches the box over its parent (tiles, slides, story frames). */
+  fill?: boolean;
+  class?: string;
+  /** Anything else (Astro's scoped-style attribute among them) goes on the box. */
+  [attribute: string]: unknown;
+}
+
+const {
+  src,
+  alt,
+  widths,
+  sizes,
+  width,
+  height,
+  fit = 'cover',
+  priority = false,
+  fill = false,
+  class: className,
+  ...attributes
+} = Astro.props;
+const placeholder = mediaPlaceholder(src);
+const style = placeholder
+  ? `--media-color: ${placeholder.color}; --media-preview: url(${placeholder.preview})`
+  : undefined;
+---
+
+<!--
+  Every photo on the site: its dominant colour and a tiny blurred preview show at once, and the
+  real image fades in when it has decoded (src/scripts/media.ts). Styles are in global.css.
+-->
+<span class:list={['media-box', { 'media-fill': fill }, className]} style={style} {...attributes}>
+  <Picture
+    class="media-img"
+    src={mediaImage(src)}
+    alt={alt}
+    formats={['avif', 'webp']}
+    widths={widths}
+    sizes={sizes}
+    width={width}
+    height={height}
+    fit={fit}
+    loading={priority ? 'eager' : 'lazy'}
+    fetchpriority={priority ? 'high' : 'auto'}
+    decoding="async"
+  />
+</span>

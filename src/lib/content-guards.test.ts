@@ -116,6 +116,17 @@ describe('checkContent', () => {
     expect(result.unverified).toEqual(['deals: 7+ deals']);
   });
 
+  it('lets a production build have one text-only post, not two', () => {
+    const photo = { media: [{ type: 'image', src: 'a.jpg', alt: 'A' }] };
+    const one = site({ posts: [post('quote', 1), post('shot', 2, photo)] });
+    expect(checkContent(one, { requireVerified: true }).errors).toEqual([]);
+    const two = site({ posts: [post('a', 1), post('b', 2), post('shot', 3, photo)] });
+    expect(checkContent(two, { requireVerified: true }).errors).toEqual([
+      '2 posts have no photo or screen (one text post is allowed): a, b',
+    ]);
+    expect(checkContent(two, { requireVerified: false }).errors).toEqual([]);
+  });
+
   it('fails the deploy build on unverified figures', () => {
     const content = site({ figures: { ...site().figures, deals: figure('7+', 'deals', false) } });
     const { errors } = checkContent(content, { requireVerified: true });

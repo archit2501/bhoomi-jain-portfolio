@@ -1,8 +1,7 @@
 ---
 import Icon from '../Icon.astro';
-import { Picture } from 'astro:assets';
+import Media from '../Media.astro';
 import type { Highlight, Profile } from '../../lib/content-schema';
-import { mediaImage } from '../../lib/media';
 import { pageTitle } from '../../lib/site';
 import { frameDuration } from '../../lib/story/controller';
 import Avatar from '../Avatar.astro';
@@ -87,13 +86,12 @@ const initials = profile.displayName
       >
         {frame.type === 'image' ? (
           <>
-            <Picture
-              src={mediaImage(frame.src)}
+            <Media
+              src={frame.src}
               alt={frame.alt}
-              formats={['avif', 'webp']}
               widths={[480, 720, 1080]}
               sizes="(min-width: 768px) 480px, 100vw"
-              loading="lazy"
+              fill
             />
             {frame.caption && <p class="frame-caption">{frame.caption}</p>}
           </>

@@ -1,9 +1,8 @@
 ---
 import Icon from '../../components/Icon.astro';
-import { Picture } from 'astro:assets';
+import Media from '../../components/Media.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
-import { mediaImage } from '../../lib/media';
 
 export async function getStaticPaths() {
   const { highlights } = await loadSiteContent();
@@ -26,14 +25,13 @@ const { label, frames } = highlight.data;
         <li class={`frame tone-${(i % 3) + 1}`}>
           {frame.type === 'image' ? (
             <figure>
-              <Picture
-                src={mediaImage(frame.src)}
+              <Media
+                class="frame-photo"
+                src={frame.src}
                 alt={frame.alt}
-                formats={['avif', 'webp']}
                 widths={[360, 540, 720, 940]}
                 sizes="(min-width: 470px) 470px, 100vw"
-                loading={i === 0 ? 'eager' : 'lazy'}
-                decoding="async"
+                priority={i === 0}
               />
               {frame.caption && <figcaption>{frame.caption}</figcaption>}
             </figure>
@@ -112,8 +110,7 @@ const { label, frames } = highlight.data;
     margin: 0;
   }
 
-  figure img {
-    width: 100%;
+  .frame-photo {
     border-radius: var(--radius-button);
   }
 </style>

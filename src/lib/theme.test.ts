@@ -16,10 +16,15 @@ describe('parseTheme', () => {
 describe('THEME_BOOT_SCRIPT', () => {
   it('sets data-theme from storage and never throws', () => {
     const store = new Map([[THEME_KEY, 'dark']]);
-    const root = { dataset: {} as Record<string, string> };
+    const classes = new Set<string>();
+    const root = {
+      dataset: {} as Record<string, string>,
+      classList: { add: (c: string) => classes.add(c) },
+    };
     const run = new Function('localStorage', 'document', THEME_BOOT_SCRIPT);
     run({ getItem: (k: string) => store.get(k) ?? null }, { documentElement: root });
     expect(root.dataset.theme).toBe('dark');
+    expect(classes.has('js')).toBe(true);
     expect(() =>
       run(
         {

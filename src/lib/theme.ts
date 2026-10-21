@@ -10,7 +10,8 @@ export function parseTheme(stored: string | null): ThemeChoice {
 }
 
 /**
- * Inlined in <head> so a saved theme applies before the first paint (no light flash in dark).
- * Kept as a string because it must run before any module loads.
+ * Inlined in <head>, before the first paint: marks the page as running JavaScript (so photos can
+ * wait to fade in) and applies a saved theme (no light flash in dark). A string, because it must
+ * run before any module loads.
  */
-export const THEME_BOOT_SCRIPT = `try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;
+export const THEME_BOOT_SCRIPT = `document.documentElement.classList.add('js');try{var t=localStorage.getItem(${JSON.stringify(THEME_KEY)});if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}`;

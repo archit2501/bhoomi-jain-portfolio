@@ -1,6 +1,5 @@
 ---
-import { Picture } from 'astro:assets';
-import { mediaImage } from '../lib/media';
+import Media from './Media.astro';
 
 interface Props {
   /** Diameter of the photo itself, without the ring. */
@@ -26,16 +25,15 @@ const outer = ring === 'story' ? size + 2 * (ringWidth + gap) : size;
   style={`--size: ${size}px; --outer: ${outer}px; --ring-width: ${ringWidth}px; --gap: ${gap}px`}
 >
   {src ? (
-    <Picture
-      src={mediaImage(src)}
+    <Media
+      class="photo"
+      src={src}
       alt={alt}
-      formats={['avif', 'webp']}
       widths={[size, size * 2, size * 3]}
       sizes={`${size}px`}
       width={size}
       height={size}
-      fit="cover"
-      decoding="async"
+      priority={size >= 77}
     />
   ) : (
     <span
@@ -67,7 +65,7 @@ const outer = ring === 'story' ? size + 2 * (ringWidth + gap) : size;
     background: var(--stroke);
   }
 
-  img,
+  .photo,
   .initials {
     width: var(--size);
     height: var(--size);
@@ -75,7 +73,7 @@ const outer = ring === 'story' ? size + 2 * (ringWidth + gap) : size;
     object-fit: cover;
   }
 
-  .has-ring img,
+  .has-ring .photo,
   .has-ring .initials {
     box-sizing: content-box;
     border: var(--gap) solid var(--bg);

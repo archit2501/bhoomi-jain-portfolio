@@ -7,7 +7,13 @@ import Highlights from './profile/Highlights.astro';
 
 // Content names photos by their path under src/assets/media/. The tests swap in one fixture so
 // the image path runs without real photos in the repo.
-vi.mock('../lib/media', () => ({ mediaImage: () => portrait }));
+vi.mock('../lib/media', () => ({
+  mediaImage: () => portrait,
+  mediaPlaceholder: (src: string) =>
+    src.includes('cover')
+      ? { color: '#123456', preview: 'data:image/webp;base64,AAAA' }
+      : undefined,
+}));
 vi.mock('../lib/content', () => ({
   loadSiteContent: async () => ({
     profile: {
@@ -46,6 +52,9 @@ function expectOptimisedImages(html: string, count: number) {
   }
   expect(html).toContain('type="image/avif"');
   expect(html).toContain('type="image/webp"');
+  // Every photo sits in a Media box and fades in once loaded (src/scripts/media.ts).
+  expect(html).toContain('class="media-box');
+  for (const img of imgs) expect(img).toMatch(/class="[^"]*\bmedia-img\b/);
 }
 
 describe('photos go through astro:assets', () => {
@@ -69,7 +78,12 @@ describe('photos go through astro:assets', () => {
       },
     });
     expectOptimisedImages(html, 1);
-    expect(html).toMatch(/<img\b[^>]*class="[^"]*\bcover\b/);
+    // The cover class (and its scoped style) goes on the box, which carries the placeholder.
+    expect(html).toMatch(/<span[^>]*class="media-box cover"/);
+    expect(html).toMatch(/<span[^>]*class="media-box cover"[^>]*data-astro-cid-/);
+    expect(html).toContain(
+      '--media-color: #123456; --media-preview: url(data:image/webp;base64,AAAA)',
+    );
   });
 
   it('the avatar photo, at its size and its 2x and 3x widths', async () => {

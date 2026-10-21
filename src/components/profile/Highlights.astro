@@ -1,7 +1,6 @@
 ---
-import { Picture } from 'astro:assets';
 import type { Highlight } from '../../lib/content-schema';
-import { mediaImage } from '../../lib/media';
+import Media from '../Media.astro';
 
 interface Props {
   highlights: { id: string; data: Highlight }[];
@@ -23,18 +22,14 @@ const count = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
         >
           <span class="ring">
             {data.cover.type === 'image' ? (
-              <Picture
+              <Media
                 class="cover"
-                src={mediaImage(data.cover.src)}
+                src={data.cover.src}
                 alt=""
-                formats={['avif', 'webp']}
                 widths={[128, 154, 231]}
                 sizes="(min-width: 768px) 77px, 64px"
                 width={154}
                 height={154}
-                fit="cover"
-                loading="lazy"
-                decoding="async"
               />
             ) : (
               <span class="cover" aria-hidden="true">

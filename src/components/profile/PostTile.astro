@@ -1,9 +1,8 @@
 ---
 import Icon from '../Icon.astro';
-import { Picture } from 'astro:assets';
 import type { Post } from '../../lib/content-schema';
-import { mediaImage } from '../../lib/media';
 import { tileTone } from '../../lib/site';
+import Media from '../Media.astro';
 import TypeTile from '../post/TypeTile.astro';
 
 interface Props {
@@ -28,17 +27,15 @@ const tone = tileTone(order);
 <li class="tile">
   <a href={`/p/${post.id}/`} aria-label={label} data-post={post.id}>
     {first.type === 'image' ? (
-      <Picture
-        src={mediaImage(first.src)}
+      <Media
+        src={first.src}
         alt=""
-        formats={['avif', 'webp']}
         widths={[240, 360, 480, 720]}
         sizes="(min-width: 768px) 296px, 33vw"
         width={360}
         height={480}
-        fit="cover"
-        loading={eager ? 'eager' : 'lazy'}
-        decoding="async"
+        priority={eager}
+        fill
       />
     ) : (
       <TypeTile headline={first.headline} detail={first.detail} tone={tone} />
