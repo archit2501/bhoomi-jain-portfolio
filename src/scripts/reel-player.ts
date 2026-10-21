@@ -84,7 +84,9 @@ export function initReelsFeed(): void {
   });
 
   const step = (direction: 1 | -1) => {
-    const target = items[Math.min(items.length - 1, Math.max(0, current + direction))];
+    // Before the observer's first report, the page is on the first reel.
+    const from = Math.max(0, current);
+    const target = items[Math.min(items.length - 1, Math.max(0, from + direction))];
     target?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
   };
   prev?.addEventListener('click', () => step(-1));
