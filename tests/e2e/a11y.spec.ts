@@ -13,6 +13,7 @@ const PAGES = [
   '/direct/',
   '/notifications/',
   '/insights/',
+  '/tagged/',
   '/404.html',
 ];
 
@@ -30,10 +31,13 @@ for (const path of PAGES) {
   }
 }
 
-test('the contact sheet has no serious accessibility issues when open', async ({ page }) => {
+test('the links sheet has no serious accessibility issues when open', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.locator('header.profile').getByRole('link', { name: 'Contact' }).click();
+  await page
+    .locator('header.profile')
+    .getByRole('link', { name: /^and \d+ more$/ })
+    .click();
   const { violations } = await new AxeBuilder({ page }).include('#contact-sheet').analyze();
   const serious = violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);

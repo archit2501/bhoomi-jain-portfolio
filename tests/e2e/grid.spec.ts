@@ -99,3 +99,11 @@ test('keyboard focus on a tile draws the two-tone ring over the media', async ({
   expect(ring).toContain('rgb(255, 255, 255)');
   expect(ring).toContain('rgb(12, 16, 20)');
 });
+
+test('the Tagged tab has its own address and a designed empty state', async ({ page }) => {
+  await page.goto('/tagged/');
+  await expect(page.getByRole('tab', { name: 'Tagged' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page).toHaveTitle(pageTitle('Tagged'));
+  const panel = page.getByRole('tabpanel', { name: 'Tagged' });
+  await expect(panel.getByRole('heading', { name: 'No tagged posts yet' })).toBeVisible();
+});

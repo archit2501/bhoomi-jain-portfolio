@@ -1,0 +1,59 @@
+---
+import Icon from './Icon.astro';
+import type { IconName } from './icon-names';
+
+interface Props {
+  icon: IconName;
+  title: string;
+  /** Heading level, so the empty state fits the page's outline. */
+  level?: 2 | 3;
+}
+
+const { icon, title, level = 2 } = Astro.props;
+const Heading = `h${level}` as const;
+---
+
+<!-- Instagram's empty state: an outlined circle with a glyph, a title, a line of text, one action. -->
+<div class="empty-state">
+  <span class="glyph" aria-hidden="true">
+    <Icon name={icon} size={34} />
+  </span>
+  <Heading class="title">{title}</Heading>
+  <p class="body">
+    <slot />
+  </p>
+  <slot name="action" />
+</div>
+
+<style>
+  .empty-state {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: 60px var(--space-6);
+    text-align: center;
+  }
+
+  .glyph {
+    display: grid;
+    place-items: center;
+    width: 62px;
+    height: 62px;
+    border: 2px solid var(--text);
+    border-radius: 50%;
+  }
+
+  .title {
+    margin: var(--space-2) 0 0;
+    font-size: var(--fs-28);
+    line-height: var(--lh-28);
+    font-weight: var(--weight-bold);
+  }
+
+  .body {
+    max-width: 350px;
+    margin: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+</style>

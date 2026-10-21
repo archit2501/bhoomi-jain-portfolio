@@ -14,7 +14,7 @@ const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
 <dialog id="contact-sheet" class="sheet" aria-labelledby="contact-title">
   <div class="panel">
     <div class="head">
-      <h2 id="contact-title">Contact {profile.displayName}</h2>
+      <h2 id="contact-title">Links</h2>
       <button class="close" type="button" data-close aria-label="Close">
         <Icon name="close" size={24} />
       </button>
@@ -46,12 +46,23 @@ const linkedinLabel = links.linkedin.replace(/^https?:\/\/(www\.)?/, '');
           </button>
         </li>
       )}
+      {links.github && (
+        <li>
+          <a class="row" href={links.github} target="_blank" rel="noopener noreferrer">
+            <Icon name="github" size={22} />
+            <span>
+              <span class="row-title">GitHub</span>
+              <span class="row-detail">{links.github.replace(/^https?:\/\/(www\.)?/, '')}</span>
+            </span>
+          </a>
+        </li>
+      )}
       {links.resume && (
         <li>
           <a class="row" href={links.resume}>
             <Icon name="resume" size={22} />
             <span>
-              <span class="row-title">Resume</span>
+              <span class="row-title">Résumé</span>
               <span class="row-detail">PDF</span>
             </span>
           </a>

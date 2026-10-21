@@ -1,0 +1,90 @@
+---
+import type { Note } from '../../lib/content-schema';
+import { noteExpired } from '../../lib/note';
+
+interface Props {
+  note: Note;
+}
+
+const { note } = Astro.props;
+// Checked at build time too, so an expired note never ships in the HTML.
+const expired = noteExpired(note.until, new Date().toISOString().slice(0, 10));
+---
+
+<!--
+  Instagram's Note: a 60-character status in a speech bubble above the photo. It disappears after
+  its `until` date, checked again in the browser so it doesn't wait for the next build.
+-->
+{!expired && (
+  <p class="note" data-until={note.until}>
+    <span class="visually-hidden">Note: </span>
+    {note.text}
+  </p>
+)}
+
+<script>
+  import { noteExpired } from '../../lib/note';
+
+  const today = new Date().toISOString().slice(0, 10);
+  for (const note of document.querySelectorAll<HTMLElement>('.note[data-until]')) {
+    if (noteExpired(note.dataset.until, today)) note.hidden = true;
+  }
+</script>
+
+<style>
+  .note {
+    position: absolute;
+    z-index: 1;
+    inset: -14px auto auto 50%;
+    max-width: min(150px, 42vw);
+    margin: 0;
+    padding: 6px 12px;
+    color: var(--text);
+    background: var(--bg-elevated);
+    border-radius: var(--radius-sheet);
+    box-shadow: var(--shadow-1);
+    font-family: var(--font-display);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    text-align: center;
+    transform: translateX(-50%);
+    animation: note-pop var(--dur-like) var(--ease-spring) both;
+  }
+
+  /* The bubble's tail: two dots trailing towards the photo, as on Instagram. */
+  .note::before,
+  .note::after {
+    content: '';
+    position: absolute;
+    left: 30%;
+    background: inherit;
+    border-radius: 50%;
+    box-shadow: var(--shadow-1);
+  }
+
+  .note::before {
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+  }
+
+  .note::after {
+    bottom: -12px;
+    left: calc(30% - 4px);
+    width: 5px;
+    height: 5px;
+  }
+
+  @keyframes note-pop {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.6);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .note {
+      animation: none;
+    }
+  }
+</style>
