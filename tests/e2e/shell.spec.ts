@@ -84,7 +84,8 @@ test.describe('phone', () => {
     await bar.click();
     const panel = page.getByRole('dialog', { name: 'Search' });
     await expect(panel).toBeVisible();
-    expect((await panel.boundingBox())?.width).toBe(390);
+    // WebKit on Linux reports 390.00001px; compare whole pixels.
+    expect(Math.round((await panel.boundingBox())?.width ?? 0)).toBe(390);
     await page.getByRole('searchbox', { name: /Search projects/ }).fill('fastapi');
     await expect(panel.locator('.result-title').first()).toHaveText('FastAPI');
     await panel.getByRole('button', { name: 'Close' }).click();
