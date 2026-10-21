@@ -60,6 +60,10 @@ import GithubLogoRegular from '@phosphor-icons/core/regular/github-logo.svg';
 import GithubLogoFill from '@phosphor-icons/core/fill/github-logo-fill.svg';
 import LinkedinLogoRegular from '@phosphor-icons/core/regular/linkedin-logo.svg';
 import LinkedinLogoFill from '@phosphor-icons/core/fill/linkedin-logo-fill.svg';
+import MapPinRegular from '@phosphor-icons/core/regular/map-pin.svg';
+import MapPinFill from '@phosphor-icons/core/fill/map-pin-fill.svg';
+import CodeRegular from '@phosphor-icons/core/regular/code.svg';
+import CodeFill from '@phosphor-icons/core/fill/code-fill.svg';
 
 const ICONS = {
   home: [HouseRegular, HouseFill],
@@ -91,6 +95,8 @@ const ICONS = {
   pause: [PauseRegular, PauseFill],
   github: [GithubLogoRegular, GithubLogoFill],
   linkedin: [LinkedinLogoRegular, LinkedinLogoFill],
+  location: [MapPinRegular, MapPinFill],
+  code: [CodeRegular, CodeFill],
 } as const satisfies Record<IconName, readonly [unknown, unknown]>;
 
 interface Props {

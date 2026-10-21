@@ -9,18 +9,23 @@ const last = row[row.length - 1];
 const n = first.data.frames.length;
 
 const viewer = (page: Page) => page.locator('#story-viewer');
-const activeFrame = (page: Page) => viewer(page).locator('.frame.active');
+// During a cube turn a frozen copy of the outgoing card (.face-out) sits beside the live one.
+const live = (page: Page) => viewer(page).locator('.card:not(.face-out)');
+const activeFrame = (page: Page) => live(page).locator('.frame.active');
+const groupLabel = (page: Page) => live(page).locator('.group-label');
 
 async function openHighlight(page: Page, label: string) {
   await page.goto('/');
   await page.getByRole('link', { name: new RegExp(`^Highlight: ${label},`) }).click();
   await expect(viewer(page)).toBeVisible();
-  // The viewer fades in; measuring (or running axe) mid-fade reads half-transparent colours.
+  // The card grows out of the ring and the viewer fades in; measuring (or running axe) mid-way
+  // reads a half-sized card and half-transparent colours.
+  await expect(viewer(page)).not.toHaveClass(/zooming/);
   await expect(viewer(page)).toHaveCSS('opacity', '1');
 }
 
 async function cardBox(page: Page) {
-  const box = await viewer(page).locator('.card').boundingBox();
+  const box = await live(page).boundingBox();
   if (!box) throw new Error('story card is not visible');
   return box;
 }
@@ -41,7 +46,7 @@ test.describe('desktop viewer', () => {
     await expect(viewer(page)).toHaveAccessibleName(`${first.data.label} stories`);
     await expect(page).toHaveURL(new RegExp(`/stories/${first.id}/$`));
     await expect(page).toHaveTitle(pageTitle(`${first.data.label} highlights`));
-    await expect(viewer(page).locator('.progress .bar')).toHaveCount(n);
+    await expect(live(page).locator('.progress .bar')).toHaveCount(n);
     await expect(activeFrame(page)).toContainText(frameText(first, 0));
     await expect(viewer(page).getByRole('button', { name: 'Pause' })).toBeFocused();
     const box = await cardBox(page);
@@ -84,10 +89,10 @@ test.describe('desktop viewer', () => {
     await page.mouse.down();
     await page.waitForTimeout(450);
     await expect(viewer(page)).toHaveClass(/chrome-hidden/);
-    await expect(viewer(page).locator('.pause')).toHaveAttribute('aria-label', 'Play');
+    await expect(live(page).locator('.pause')).toHaveAttribute('aria-label', 'Play');
     await page.mouse.up();
     await expect(viewer(page)).not.toHaveClass(/chrome-hidden/);
-    await expect(viewer(page).locator('.pause')).toHaveAttribute('aria-label', 'Pause');
+    await expect(live(page).locator('.pause')).toHaveAttribute('aria-label', 'Pause');
     // A hold is not a tap: still on the first story.
     await expect(activeFrame(page)).toContainText(frameText(first, 0));
   });
@@ -99,7 +104,7 @@ test.describe('desktop viewer', () => {
     await page.keyboard.press('ArrowLeft');
     await expect(activeFrame(page)).toContainText(frameText(first, 0));
     await page.keyboard.press('Space');
-    await expect(viewer(page).locator('.pause')).toHaveAttribute('aria-label', 'Play');
+    await expect(live(page).locator('.pause')).toHaveAttribute('aria-label', 'Play');
     const fill = viewer(page).locator('.fill').first();
     const before = await fill.evaluate((el) => getComputedStyle(el).transform);
     await page.waitForTimeout(600);
@@ -117,9 +122,9 @@ test.describe('desktop viewer', () => {
     for (let i = 0; i < n - 1; i++) await page.keyboard.press('ArrowRight');
     await expect(activeFrame(page)).toContainText(frameText(first, n - 1));
     await page.keyboard.press('ArrowRight');
-    await expect(viewer(page).locator('.group-label')).toHaveText(second.data.label);
+    await expect(groupLabel(page)).toHaveText(second.data.label);
     await expect(page).toHaveURL(new RegExp(`/stories/${second.id}/$`));
-    await expect(viewer(page).locator('.progress .bar')).toHaveCount(second.data.frames.length);
+    await expect(live(page).locator('.progress .bar')).toHaveCount(second.data.frames.length);
   });
 
   test('moving past the very last story closes the viewer', async ({ page }) => {
@@ -138,15 +143,15 @@ test.describe('desktop viewer', () => {
     await page.mouse.down();
     await page.mouse.move(cx - 100, cy, { steps: 5 });
     await page.mouse.up();
-    await expect(viewer(page).locator('.group-label')).toHaveText(second.data.label);
-    await expect(viewer(page).locator('.card')).toHaveAttribute('data-transition', 'cube');
+    await expect(groupLabel(page)).toHaveText(second.data.label);
+    await expect(live(page)).toHaveAttribute('data-transition', 'cube');
 
     await page.waitForTimeout(400);
     await page.mouse.move(cx - 100, cy);
     await page.mouse.down();
     await page.mouse.move(cx + 100, cy, { steps: 5 });
     await page.mouse.up();
-    await expect(viewer(page).locator('.group-label')).toHaveText(first.data.label);
+    await expect(groupLabel(page)).toHaveText(first.data.label);
 
     await page.waitForTimeout(400);
     await page.mouse.move(cx, cy - 100);
@@ -162,8 +167,8 @@ test.describe('desktop viewer', () => {
     await viewer(page)
       .getByRole('button', { name: `Next highlight: ${second.data.label}` })
       .click();
-    await expect(viewer(page).locator('.group-label')).toHaveText(second.data.label);
-    await expect(viewer(page).locator('.card')).toHaveAttribute('data-transition', 'fade');
+    await expect(groupLabel(page)).toHaveText(second.data.label);
+    await expect(live(page)).toHaveAttribute('data-transition', 'fade');
   });
 
   test('neighbour previews and chevrons', async ({ page }) => {
@@ -179,7 +184,7 @@ test.describe('desktop viewer', () => {
     await viewer(page)
       .getByRole('button', { name: `Previous highlight: ${first.data.label}` })
       .click();
-    await expect(viewer(page).locator('.group-label')).toHaveText(first.data.label);
+    await expect(groupLabel(page)).toHaveText(first.data.label);
   });
 
   test('browser Back closes the viewer and Forward reopens it', async ({ page }) => {
@@ -189,7 +194,7 @@ test.describe('desktop viewer', () => {
     await expect(page).toHaveURL(/\/$/);
     await page.goForward();
     await expect(viewer(page)).toBeVisible();
-    await expect(viewer(page).locator('.group-label')).toHaveText(third.data.label);
+    await expect(groupLabel(page)).toHaveText(third.data.label);
   });
 
   test('the open viewer has no serious accessibility issues', async ({ page }) => {
@@ -203,13 +208,20 @@ test.describe('desktop viewer', () => {
 test.describe('phone viewer', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('fills the screen, without chevrons or previews', async ({ page }) => {
+  test('fills the screen; the chevrons and previews stay out of sight until focused', async ({
+    page,
+  }) => {
     await openHighlight(page, first.data.label);
     const box = await cardBox(page);
     expect(Math.round(box.width)).toBe(390);
     expect(Math.round(box.height)).toBe(844);
-    await expect(viewer(page).getByRole('button', { name: 'Next story' })).toBeHidden();
-    await expect(viewer(page).locator('.peek-next')).toBeHidden();
+    for (const button of [
+      viewer(page).getByRole('button', { name: 'Next story' }),
+      viewer(page).locator('.peek-next'),
+    ]) {
+      const size = await button.boundingBox();
+      expect(size?.width ?? 0).toBeLessThanOrEqual(1);
+    }
   });
 
   test("touches at the left edge are left to iOS's back-swipe", async ({ page }, testInfo) => {

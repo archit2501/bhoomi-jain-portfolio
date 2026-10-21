@@ -44,6 +44,16 @@ describe('design tokens', () => {
     expect(contrastRatio(light['on-story'], light.accent)).toBeGreaterThanOrEqual(4.5);
   });
 
+  it('story stickers are readable: link and location text 4.5:1, the mention (large) 3:1', () => {
+    expect(contrastRatio(light['sticker-ink'], light['sticker-bg'])).toBeGreaterThanOrEqual(4.5);
+    for (const stop of [light['sticker-mention-1'], light['sticker-mention-2']]) {
+      expect(contrastRatio(stop, light['sticker-bg'])).toBeGreaterThanOrEqual(3);
+    }
+    expect(
+      contrastRatio(light['sticker-code-ink'], light['sticker-code-bg']),
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+
   it('the two-tone media focus ring shows on every tile colour and on black or white', () => {
     const tiles = [light.accent, light['tile-slate'], light['story-start'], light['story-end']];
     for (const colour of [...tiles, '#000000', '#ffffff', '#808080']) {

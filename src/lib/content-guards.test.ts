@@ -180,6 +180,38 @@ describe('checkContent', () => {
     expect(checkContent(content, { requireVerified: false }).errors).toEqual([]);
   });
 
+  it('counts figures shown on stickers, and a mention sticker must open a post', () => {
+    const base = site();
+    const withStickers = (stickers: unknown[]) => [
+      {
+        id: 'h',
+        data: highlightSchema.parse({
+          ...base.highlights[0].data,
+          frames: [{ type: 'text', body: 'Workflow', stickers }],
+        }),
+      },
+    ];
+    const fine = site({
+      highlights: withStickers([
+        { type: 'code', code: 'gain = "65%"' },
+        { type: 'mention', name: 'Revenue', href: `/p/${base.posts[0].id}/` },
+      ]),
+    });
+    expect(checkContent(fine, { requireVerified: false }).errors).toEqual([]);
+
+    const broken = site({
+      highlights: withStickers([
+        { type: 'mention', name: 'Ghost', href: '/p/ghost/' },
+        { type: 'mention', name: 'Home', href: '/' },
+      ]),
+    });
+    expect(checkContent(broken, { requireVerified: false }).errors).toEqual([
+      'highlight h: figure "workflow" (65%) is listed but never shown',
+      'highlight h: the @Ghost sticker opens /p/ghost/, not a post',
+      'highlight h: the @Home sticker opens /, not a post',
+    ]);
+  });
+
   it('enforces caption length, empty captions, unique order and the pinned limit', () => {
     const content = site({
       posts: [

@@ -190,19 +190,61 @@ export const postSchema = z.object({
   testimonials: z.array(testimonialSchema).default([]),
 });
 
-const frameTiming = { durationMs: z.number().int().min(1000).max(15000).optional() };
+/**
+ * Instagram's story stickers, static: where each sits (its centre, as a percentage of the frame)
+ * and a slight tilt. A sticker only restates what the frame or the résumé already says.
+ */
+const stickerPlacement = {
+  x: z.number().min(10).max(90).default(50),
+  y: z.number().min(15).max(90).default(80),
+  rotate: z.number().min(-12).max(12).default(0),
+};
+export const stickerSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('link'),
+    href: z.url(),
+    /** Instagram shows the domain unless the sticker has its own text. */
+    label: text.max(40).optional(),
+    ...stickerPlacement,
+  }),
+  z.object({
+    type: z.literal('mention'),
+    /** Shown after the @. */
+    name: text.max(30),
+    /** A page on this site (a post, usually) that the mention opens. */
+    href: z.string().regex(/^\/[a-z0-9/-]*$/, 'Use a path on this site, e.g. /p/themobiadz/'),
+    ...stickerPlacement,
+  }),
+  z.object({ type: z.literal('location'), name: text.max(40), ...stickerPlacement }),
+  z.object({
+    type: z.literal('code'),
+    /** One short line, set in Geist Mono. */
+    code: z
+      .string()
+      .trim()
+      .min(1)
+      .max(60)
+      .regex(/^[^\n]*$/, 'One line only'),
+    ...stickerPlacement,
+  }),
+]);
+
+const frameExtras = {
+  durationMs: z.number().int().min(1000).max(15000).optional(),
+  stickers: z.array(stickerSchema).max(3).default([]),
+};
 const textFrame = z.object({
   type: z.literal('text'),
   heading: text.optional(),
   body: text,
-  ...frameTiming,
+  ...frameExtras,
 });
 const imageFrame = z.object({
   type: z.literal('image'),
   src: text,
   alt: altText,
   caption: text.optional(),
-  ...frameTiming,
+  ...frameExtras,
 });
 export const frameSchema = z.discriminatedUnion('type', [textFrame, imageFrame]);
 
@@ -273,4 +315,5 @@ export type DmThread = z.infer<typeof dmThreadSchema>;
 export type Profile = z.infer<typeof profileSchema>;
 export type Post = z.infer<typeof postSchema>;
 export type Highlight = z.infer<typeof highlightSchema>;
+export type Sticker = z.infer<typeof stickerSchema>;
 export type Reel = z.infer<typeof reelSchema>;

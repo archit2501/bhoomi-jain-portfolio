@@ -64,6 +64,15 @@
   --on-story: #ffffff;
   --tile-slate: #2b3036;
 
+  /* Story stickers sit on story frames, which are dark in both themes, so these never change.
+     The mention's gradient uses the darker ring stops: its large bold text keeps 3:1 on white. */
+  --sticker-bg: #ffffff;
+  --sticker-ink: #0369a1;
+  --sticker-mention-1: #059669;
+  --sticker-mention-2: #0369a1;
+  --sticker-code-bg: #0c1014;
+  --sticker-code-ink: #e6edf3;
+
   /* Type. UI chrome uses the system stack, as instagram.com does. Her content (story text,
      slides, reel captions, Notes) uses Plus Jakarta Sans, the closest open stand-in for
      Instagram's proprietary typeface, and code uses Geist Mono. Both are self-hosted (Fontsource). */
