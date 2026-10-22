@@ -12,6 +12,9 @@ import type { Profile, Reel } from '../../lib/content-schema';
 import { feedOrder } from '../../lib/reels';
 import { pageTitle } from '../../lib/site';
 import TypeTile from '../post/TypeTile.astro';
+import Ambient from '../Ambient.astro';
+import { TONE_AMBIENT } from '../../lib/ambient';
+import { ambientOf } from '../../lib/ambient-image';
 
 interface Props {
   reels: { id: string; data: Reel }[];
@@ -22,6 +25,17 @@ interface Props {
 
 const { reels, profile, start } = Astro.props;
 const ordered = feedOrder(reels, start);
+// Each reel's glow on desktop: its poster's two dominant colours, or its tile's.
+const ambients = new Map(
+  await Promise.all(
+    reels.map(async ({ id, data }, i) => {
+      const colours =
+        (data.poster ? await ambientOf(data.poster) : null) ??
+        TONE_AMBIENT[((i % 3) + 1) as 1 | 2 | 3];
+      return [id, colours.join(' ')] as const;
+    }),
+  ),
+);
 const initials = profile.displayName
   .split(/\s+/)
   .map((part) => part[0])
@@ -40,12 +54,15 @@ const initials = profile.displayName
 </nav>
 
 <div class="reels-feed" role="feed" aria-label="Reels" aria-busy="false">
+  <Ambient mode="page" initial={ambients.get(ordered[0]?.id ?? '')} />
   {ordered.map(({ id, data }, i) => (
     <article
       class="reel-item"
       id={`reel-${id}`}
       data-reel={id}
       data-page-title={pageTitle(`${data.title} · Reels`)}
+      data-ambient={ambients.get(id)}
+      data-sound={data.captions ? '' : undefined}
       aria-labelledby={`reel-title-${id}`}
       aria-posinset={i + 1}
       aria-setsize={ordered.length}
@@ -140,6 +157,16 @@ const initials = profile.displayName
           >
             <Icon name="link" size={28} />
           </button>
+          <button
+            class="save rail-button"
+            type="button"
+            aria-pressed="false"
+            aria-label="Save"
+            data-save={`reel-${id}`}
+          >
+            <Icon name="save" class="save-off" size={28} />
+            <Icon name="save" filled class="save-on" size={28} />
+          </button>
         </div>
         <p class="likes visually-hidden" hidden />
         <p class="status visually-hidden" role="status" />
@@ -170,7 +197,9 @@ const initials = profile.displayName
     scroll-snap-align: end;
   }
 
+  /* isolate: the ambient glow (z-index -1) sits over this background and under the reels. */
   .reels-feed {
+    isolation: isolate;
     color: #ffffff;
     background: var(--media-stage);
   }
@@ -371,6 +400,15 @@ const initials = profile.displayName
   }
 
   .like[aria-pressed='true'] :global(.heart-on) {
+    display: block;
+  }
+
+  .save :global(.save-on),
+  .save[aria-pressed='true'] :global(.save-off) {
+    display: none;
+  }
+
+  .save[aria-pressed='true'] :global(.save-on) {
     display: block;
   }
 

@@ -1,3 +1,5 @@
+import { shortcutsOn } from './shortcuts';
+
 /**
  * Opens the shell's drawers and sheets from links marked `data-opens="<dialog id>"`. The link's
  * href stays a real page, so without JavaScript (or on a phone, for the drawers) it navigates.
@@ -48,9 +50,11 @@ for (const dialog of document.querySelectorAll<HTMLDialogElement>(
   });
 }
 
-// "/" focuses search, as on instagram.com, unless the visitor is typing somewhere.
+// "/" focuses search, as on instagram.com, unless the visitor is typing somewhere or has
+// switched single-key shortcuts off (the "?" sheet, src/scripts/shortcuts.ts).
 document.addEventListener('keydown', (event) => {
   if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (!shortcutsOn()) return;
   const target = event.target as HTMLElement;
   if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
   const trigger = document.querySelector<HTMLElement>('.side-nav [data-opens="panel-search"]');

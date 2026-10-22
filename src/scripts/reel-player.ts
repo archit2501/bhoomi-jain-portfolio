@@ -1,6 +1,8 @@
 import { DOUBLE_TAP_MS } from '../lib/post-nav';
 import { PLAY_VISIBLE, postersToLoad } from '../lib/reels';
+import { setAmbient } from './ambient';
 import { initLike } from './like';
+import { initSave } from './save';
 import { initShare } from './share';
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -58,6 +60,7 @@ export function initReelsFeed(): void {
       history.replaceState(history.state, '', `/reels/${id}/`);
     }
     if (items[i].dataset.pageTitle) document.title = items[i].dataset.pageTitle;
+    setAmbient(feed.querySelector('[data-ambient-layers]'), items[i].dataset.ambient);
   };
 
   const observer = new IntersectionObserver(
@@ -112,6 +115,7 @@ export function initReelsFeed(): void {
 
   for (const item of items) {
     initLike(item);
+    initSave(item);
     initShare(item);
 
     // "more" appears only when the caption doesn't fit on its line.

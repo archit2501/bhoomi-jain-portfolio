@@ -8,6 +8,7 @@ import {
 import { classify, dragTransform, HOLD_MS } from '../lib/story/gestures';
 import { framesToLoad, park, unpark } from '../lib/story/preload';
 import { asCard, asRing, isOnScreen } from '../lib/story/zoom';
+import { setAmbient } from './ambient';
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const storySlugFromPath = (pathname: string) =>
@@ -240,6 +241,7 @@ export function initStoryViewer(): void {
     progress.onfinish = () => dispatch({ type: 'next' });
     if (state.paused || document.hidden) progress.pause();
     syncPause();
+    setAmbient(dialog.querySelector('[data-ambient-layers]'), frames[state.frame]?.dataset.ambient);
     if (announce) {
       status.textContent = `${groupLabel.textContent}, story ${state.frame + 1} of ${shape[state.group]}`;
     }

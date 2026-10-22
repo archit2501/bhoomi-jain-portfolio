@@ -1,6 +1,7 @@
 import { slideIndex } from '../lib/post-nav';
 import { initComments } from './comments';
 import { initLike } from './like';
+import { initSave } from './save';
 import { initShare } from './share';
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -59,6 +60,7 @@ export function enhancePostView(root: HTMLElement): void {
   });
 
   initLike(root);
+  initSave(root);
   initShare(root);
   initComments(root);
 }

@@ -1,0 +1,153 @@
+---
+/**
+ * Keyboard shortcuts (task 5.1.2): the list "?" opens (also under More), and the switch that
+ * turns single-key shortcuts off, as WCAG 2.1.4 asks, for anyone whose speech input or screen
+ * reader they'd get in the way of. src/scripts/shortcuts.ts does the work.
+ */
+import { SHORTCUTS } from '../lib/shortcuts';
+import Icon from './Icon.astro';
+---
+
+<dialog id="shortcuts-sheet" class="sheet" aria-labelledby="shortcuts-title">
+  <div class="panel">
+    <div class="head">
+      <h2 id="shortcuts-title">Keyboard shortcuts</h2>
+      <button class="close" type="button" data-close aria-label="Close">
+        <Icon name="close" size={24} />
+      </button>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" data-shortcuts-toggle checked />
+      <span>Single-key shortcuts</span>
+    </label>
+    <table>
+      <caption class="visually-hidden">Keys and what they do</caption>
+      <tbody>
+        {SHORTCUTS.map(({ keys, label }) => (
+          <tr>
+            <th scope="row">
+              {keys.map((key, i) => (
+                <>
+                  {i > 0 && <span class="then">{label.startsWith('Go') ? 'then' : 'or'}</span>}
+                  <kbd>{key}</kbd>
+                </>
+              ))}
+            </th>
+            <td>{label}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</dialog>
+<p class="visually-hidden" role="status" data-shortcut-status></p>
+
+<script>
+  import { initShortcuts } from '../scripts/shortcuts';
+
+  initShortcuts();
+</script>
+
+<style>
+  .sheet {
+    width: min(440px, calc(100vw - 2 * var(--space-4)));
+    max-height: calc(100dvh - 2 * var(--space-8));
+    padding: 0;
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 0;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-strong);
+  }
+
+  .sheet::backdrop {
+    background: rgb(0 0 0 / 65%);
+  }
+
+  .panel {
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    border-bottom: 1px solid var(--separator);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-semibold);
+  }
+
+  .close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: calc(-1 * var(--space-2));
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+  }
+
+  .toggle input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  th,
+  td {
+    padding: var(--space-2) 0;
+    text-align: left;
+    border-top: 1px solid var(--separator);
+  }
+
+  th {
+    width: 45%;
+    font-weight: var(--weight-regular);
+    white-space: nowrap;
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 24px;
+    padding: 2px var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    text-align: center;
+    background: var(--bg-secondary);
+    border: 1px solid var(--stroke);
+    border-radius: 6px;
+  }
+
+  .then {
+    margin: 0 var(--space-1);
+    font-size: var(--fs-12);
+    color: var(--text-secondary);
+  }
+</style>
