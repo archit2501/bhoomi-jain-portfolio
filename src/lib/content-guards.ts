@@ -39,12 +39,19 @@ function resumeRefs(resume: Resume): Set<string> {
 export interface GuardOptions {
   /** Set by the deploy build: unverified figures become errors. */
   requireVerified: boolean;
+  /**
+   * Set while her photos are still coming (repository variable ALLOW_TEXT_POSTS): a deploy build
+   * lists the posts without a photo or screen instead of refusing them.
+   */
+  allowTextPosts?: boolean;
 }
 
 export interface GuardResult {
   errors: string[];
   /** "id: value label" for every figure not yet marked verified. */
   unverified: string[];
+  /** The posts with no photo or screen, by id. */
+  textOnly: string[];
 }
 
 /**
@@ -149,11 +156,12 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
   for (const phone of phones) errors.push(`a phone number is in the content: "${phone}"`);
 
   // Real photos and screens are what make it look like Instagram. Until they arrive the grid uses
-  // text tiles; a production build allows one text post (a deliberate quote), not a grid of them.
-  const textOnly = content.posts.filter((p) => !hasPhoto(p));
-  if (options.requireVerified && textOnly.length > 1) {
+  // text tiles; a production build allows one text post (a deliberate quote), not a grid of them,
+  // unless the owner chose to go live before her photos arrive (allowTextPosts).
+  const textOnly = content.posts.filter((p) => !hasPhoto(p)).map((p) => p.id);
+  if (options.requireVerified && !options.allowTextPosts && textOnly.length > 1) {
     errors.push(
-      `${textOnly.length} posts have no photo or screen (one text post is allowed): ${textOnly.map((p) => p.id).join(', ')}`,
+      `${textOnly.length} posts have no photo or screen (one text post is allowed): ${textOnly.join(', ')}`,
     );
   }
 
@@ -164,7 +172,7 @@ export function checkContent(content: SiteContent, options: GuardOptions): Guard
     errors.push(`Unconfirmed figures block this build:\n  - ${unverified.join('\n  - ')}`);
   }
 
-  return { errors, unverified };
+  return { errors, unverified, textOnly };
 }
 
 /** Throws on any error so the build fails; reports unverified figures either way. */
@@ -180,6 +188,11 @@ export function assertContent(
   if (result.unverified.length) {
     log(
       `[content] ${result.unverified.length} figures not yet confirmed (the deploy build will refuse them):\n  - ${result.unverified.join('\n  - ')}`,
+    );
+  }
+  if (options.requireVerified && options.allowTextPosts && result.textOnly.length > 1) {
+    log(
+      `[content] ALLOW_TEXT_POSTS: ${result.textOnly.length} posts still have no photo or screen: ${result.textOnly.join(', ')}`,
     );
   }
   return result;

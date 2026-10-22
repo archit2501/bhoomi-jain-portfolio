@@ -22,11 +22,15 @@ Every write goes through one pipeline (`src/lib/server/guard.ts`), in this order
 
 ## Connect Cloudflare (once, by the account owner)
 
-1. Create a free Cloudflare account, or use an existing one.
-2. Create an API token from the **Edit Cloudflare Workers** template. Copy it, and copy the account ID from the dashboard sidebar.
+1. Create a free Cloudflare account, or use an existing one. Open **Workers & Pages** once: it shows the account's workers.dev subdomain, and asks for one if there isn't one yet. A deploy from CI can't choose it. The site's address is then `https://bhoomi-jain-portfolio.<subdomain>.workers.dev`. The brand guard refuses a `SITE_URL` containing "insta" or "gram", so pick a subdomain without them.
+2. Create an API token from the **Edit Cloudflare Workers** template, and add one row to it: **Account, D1, Edit**. The template covers Workers, KV and Durable Objects but not D1, and the deploy creates and migrates the database. Copy the token, and copy the account ID from the dashboard sidebar.
 3. In GitHub, go to the repository, then Settings, Secrets and variables, Actions:
    - Secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
-   - Variables: `SITE_URL` (the workers.dev URL until her domain is connected, then `https://<her domain>`), and `DEPLOY_ENABLED` = `true`.
+   - Variables: `SITE_URL` (the workers.dev address from step 1 until her domain is connected, then `https://<her domain>`), and `DEPLOY_ENABLED` = `true`.
+   - Variable `ALLOW_TEXT_POSTS` = `true`, while her posts are still text tiles. A production build refuses more than one post without a photo or screen; this lets it through and lists them in the build log. Delete the variable once her screenshots and photos are in.
+
+   Secrets in the steps below can also be set without a terminal, once the first deploy has created the Worker: dashboard, Workers & Pages, `bhoomi-jain-portfolio`, Settings, Variables and Secrets, Add, type **Secret**. Deploys keep them.
+
 4. Create a Turnstile widget (dashboard, Turnstile, Add widget) for her domain and the workers.dev host, in **Managed** mode. Add its site key as the repository variable `TURNSTILE_SITE_KEY` (it's public). Then set its secret on both Workers. Previews keep Cloudflare's test keys: the always-pass test secret, `1x0000000000000000000000000000000AA`, accepts the test site key the preview build uses:
 
    ```bash

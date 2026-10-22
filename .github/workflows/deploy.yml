@@ -111,6 +111,9 @@ jobs:
         run: npm run build
         env:
           REQUIRE_VERIFIED: '1'
+          # "true" while her posts are still text tiles: the build lists them instead of refusing
+          # them. Unconfirmed figures are refused either way. Delete the variable once photos are in.
+          ALLOW_TEXT_POSTS: ${{ vars.ALLOW_TEXT_POSTS }}
           SITE_URL: ${{ vars.SITE_URL }}
           # Turnstile's public site key; without it the build falls back to the test key, which
           # the production secret rejects (every write would fail).

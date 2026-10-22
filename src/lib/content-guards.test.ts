@@ -106,7 +106,12 @@ const post = (
 
 describe('checkContent', () => {
   it('passes valid, fully verified content', () => {
-    expect(checkContent(site(), { requireVerified: true })).toEqual({ errors: [], unverified: [] });
+    // One text post (a quote) is allowed.
+    expect(checkContent(site(), { requireVerified: true })).toEqual({
+      errors: [],
+      unverified: [],
+      textOnly: ['revenue-100k'],
+    });
   });
 
   it('lists unverified figures without failing a normal build', () => {
@@ -125,6 +130,25 @@ describe('checkContent', () => {
       '2 posts have no photo or screen (one text post is allowed): a, b',
     ]);
     expect(checkContent(two, { requireVerified: false }).errors).toEqual([]);
+    expect(checkContent(two, { requireVerified: true }).textOnly).toEqual(['a', 'b']);
+  });
+
+  it('lets text posts through a production build while the owner allows them, and says so', () => {
+    const two = site({ posts: [post('a', 1), post('b', 2)] });
+    expect(checkContent(two, { requireVerified: true, allowTextPosts: true }).errors).toEqual([]);
+    const log = vi.fn();
+    assertContent(two, { requireVerified: true, allowTextPosts: true }, log);
+    expect(log).toHaveBeenCalledWith(
+      '[content] ALLOW_TEXT_POSTS: 2 posts still have no photo or screen: a, b',
+    );
+    // Figures are another matter: allowing text posts never lets an unconfirmed number through.
+    const unconfirmed = site({
+      posts: [post('a', 1), post('b', 2)],
+      figures: { ...site().figures, revenue: figure('$100K+', 'revenue', false) },
+    });
+    expect(
+      checkContent(unconfirmed, { requireVerified: true, allowTextPosts: true }).errors,
+    ).toHaveLength(1);
   });
 
   it('fails the deploy build on unverified figures', () => {
