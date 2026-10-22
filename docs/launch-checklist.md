@@ -31,7 +31,7 @@ only the owner can do. Tick the owner's items as they're done.
 ## Only the owner can do
 
 - [x] **Bhoomi signed off on every caption and figure** (confirmed by the owner, 22 Oct 2026): `docs/content-review.md`, including the lines marked _(new wording)_. Anything changed in `src/content/` after this needs her look again (`npm run content:review` shows the new sheet).
-- [ ] **The AI eval passes** (PR for task 3.2.3 waits on it): `AI_EVAL=1 ANTHROPIC_API_KEY=<key> npm run eval:ai`. It calls the paid API, about half a US cent a run.
+- [x] **"Ask my AI" is not part of launch** (the owner's call, 22 Oct 2026: no Claude API key yet). It's hidden from Messages; the finished assistant waits in draft PR #22. The day there's a key: run its eval (`AI_EVAL=1 ANTHROPIC_API_KEY=<key> npm run eval:ai`, about half a US cent), set the key (`npx wrangler secret put ANTHROPIC_API_KEY -c wrangler.jsonc`), merge #22.
 - [ ] **Kill-switch drill on production**, once secrets are set (runbook, Off switches): switch everything off, check the site says so, switch it back on.
 
   ```bash
@@ -48,4 +48,4 @@ only the owner can do. Tick the owner's items as they're done.
   npx wrangler rollback <latest-version-id> -m "rollback drill: forward again"
   ```
 
-- [ ] **Secrets and settings** (runbook, Connect Cloudflare): Cloudflare token and account, Turnstile keys, `APPROVAL_SECRET`, Telegram or webhook, `ANTHROPIC_API_KEY`, `GITHUB_TOKEN` and her GitHub link.
+- [ ] **Secrets and settings** (runbook, Connect Cloudflare): Cloudflare token and account, Turnstile keys, `APPROVAL_SECRET`, Telegram or webhook, and `GITHUB_TOKEN` (her GitHub link, Bhoomi177, is in the profile).
