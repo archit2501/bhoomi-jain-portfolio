@@ -2,6 +2,7 @@
 import Icon from '../Icon.astro';
 import type { Reel } from '../../lib/content-schema';
 import TypeTile from '../post/TypeTile.astro';
+import { posterSources } from '../../lib/reels';
 
 interface Props {
   reels: { id: string; data: Reel }[];
@@ -25,6 +26,7 @@ const { reels, eager = false } = Astro.props;
         {data.poster ? (
           <img
             src={data.poster}
+            {...posterSources(data.poster, 540)}
             alt=""
             width="540"
             height="960"

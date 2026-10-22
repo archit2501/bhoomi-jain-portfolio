@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
+import { posterSources } from '../../lib/reels';
 import PostModal from '../post/PostModal.astro';
 import ShareSheet from '../share/ShareSheet.astro';
 import StoryViewer from '../story/StoryViewer.astro';
@@ -22,7 +23,11 @@ const intro = highlights.find((h) => h.data.inRow === false);
 <BaseLayout
   title={tab === 'reels' ? 'Reels' : tab === 'tagged' ? 'Tagged' : undefined}
   current={tab === 'reels' ? 'reels' : 'profile'}
-  preload={tab === 'reels' ? reels[0]?.data.poster : undefined}
+  preload={
+    tab === 'reels' && reels[0]?.data.poster
+      ? { href: reels[0].data.poster, ...posterSources(reels[0].data.poster, 540) }
+      : undefined
+  }
 >
   <ProfileHeader profile={profile} figures={figures} intro={intro} />
   <Highlights highlights={highlights.filter((h) => h.data.inRow !== false)} />
