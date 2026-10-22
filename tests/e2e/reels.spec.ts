@@ -125,7 +125,13 @@ test.describe('the feed', () => {
     await expect(like()).toHaveAttribute('aria-pressed', 'true');
     expect((await saved).ok()).toBe(true);
     await page.evaluate(() => localStorage.clear());
+    // Only the database, through the visitor cookie, knows it now. Waiting for its answer (not a
+    // fixed few seconds) keeps a slow CI machine from failing this, and says which side is wrong.
+    const read = page.waitForResponse(
+      (r) => r.url().endsWith(`/api/likes/reel-${first.id}`) && r.request().method() === 'GET',
+    );
     await page.reload();
+    expect(await (await read).json()).toMatchObject({ liked: true });
     await expect(like()).toHaveAttribute('aria-pressed', 'true');
   });
 
