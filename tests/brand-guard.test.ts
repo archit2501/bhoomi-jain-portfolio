@@ -84,7 +84,9 @@ describe('brand guard', () => {
   });
 
   // Instagram's own glyphs can't be kept here to compare against, so instead every icon must come
-  // through Icon.astro (Phosphor), and brand-logo glyphs from any icon set are off limits.
+  // through Icon.astro (Phosphor), and brand-logo glyphs from any icon set are off limits. The
+  // share-card renderer reads the same Phosphor files at build time, for a handful of named glyphs.
+  const ICON_SOURCES = ['src/components/Icon.astro', 'src/lib/og-card.ts'];
   it('draws every icon through Icon.astro, and never a brand logo', () => {
     const LOGOS = /(instagram|threads|meta|facebook|messenger|whatsapp)-logo/;
     const found: string[] = [];
@@ -92,7 +94,7 @@ describe('brand guard', () => {
       const text = readFileSync(path, 'utf8');
       const where = relative(ROOT, path);
       if (LOGOS.test(text)) found.push(`${where}: brand-logo icon`);
-      if (/@phosphor-icons\/core|@lucide\/|lucide-/.test(text) && !where.endsWith('Icon.astro')) {
+      if (/@phosphor-icons\/core|@lucide\/|lucide-/.test(text) && !ICON_SOURCES.includes(where)) {
         found.push(`${where}: icon imported outside Icon.astro`);
       }
     }

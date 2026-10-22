@@ -1,10 +1,8 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
-import sharp from 'sharp';
-import wordmarkSvg from '../../../assets/wordmark.svg?raw';
 import { loadSiteContent } from '../../../lib/content';
-import { ogSvg, svgInner } from '../../../lib/og';
+import { cardResponse, photoUri, renderCard } from '../../../lib/og-card';
 
-/** Share cards for the app's own pages. */
+/** Share cards for the app's own pages (task 6.3.5). */
 const PAGES = {
   feed: { headline: 'Home', detail: 'Projects, experience and wins, newest first' },
   explore: { headline: 'Explore', detail: 'Every project, role and certification' },
@@ -19,13 +17,14 @@ export const getStaticPaths: GetStaticPaths = () =>
 export const GET: APIRoute = async ({ params }) => {
   const { profile } = await loadSiteContent();
   const { headline, detail } = PAGES[params.page as keyof typeof PAGES];
-  const svg = ogSvg({
-    headline,
-    detail,
+  const photo = profile.avatar.src ? await photoUri(profile.avatar.src, 300, 300) : undefined;
+  const png = await renderCard({
+    field: 'paper',
+    head: [profile.username, profile.category],
+    big: headline,
+    label: detail,
+    art: photo ? { kind: 'portrait', src: photo } : undefined,
     footer: `${profile.displayName} · ${profile.category}`,
-    tone: 1,
-    wordmark: svgInner(wordmarkSvg),
   });
-  const png = await sharp(Buffer.from(svg)).png().toBuffer();
-  return new Response(new Uint8Array(png), { headers: { 'Content-Type': 'image/png' } });
+  return cardResponse(png);
 };
