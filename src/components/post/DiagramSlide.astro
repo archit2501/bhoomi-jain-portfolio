@@ -39,12 +39,22 @@ const LINE = 18;
       </marker>
     </defs>
     {arrows.map((a) => (
-      <g class="edge">
+      <g class:list={['edge', `layer-${a.layer % 4}`]}>
         <line x1={a.x1} y1={a.y1 + 4} x2={a.x2} y2={a.y2 - 6} marker-end={`url(#${marker})`} />
+        <circle class="packet" cx={(a.x1 + a.x2) / 2} cy={(a.y1 + a.y2) / 2} r="4.5" />
         {a.label && (
-          <text x={a.labelX} y={a.labelY} class="edge-label">
-            {a.label}
-          </text>
+          <g class="edge-tag">
+            <rect
+              x={a.labelX - 6}
+              y={a.labelY - 12}
+              width={a.label.length * 6.7 + 12}
+              height="17"
+              rx="8.5"
+            />
+            <text x={a.labelX} y={a.labelY} class="edge-label">
+              {a.label}
+            </text>
+          </g>
         )}
       </g>
     ))}
@@ -52,8 +62,9 @@ const LINE = 18;
       const lines = b.label.length + b.detail.length;
       const top = b.y + b.height / 2 - ((lines - 1) * LINE) / 2 + 5;
       return (
-        <g class="node">
+        <g class:list={['node', `layer-${b.layer % 4}`]}>
           <rect x={b.x} y={b.y} width={b.width} height={b.height} rx="14" />
+          <rect class="bar" x={b.x} y={b.y + 14} width="5" height={b.height - 28} rx="2.5" />
           {b.label.map((line, i) => (
             <text x={b.x + b.width / 2} y={top + i * LINE} class="node-label">
               {line}
@@ -71,6 +82,8 @@ const LINE = 18;
 </figure>
 
 <style>
+  /* A blueprint on the deep field (the slide sets data-field="deep"): a dot grid, each layer
+     marked in her ring's order (lime, emerald, cyan, sky) as data flows down. */
   .diagram-slide {
     display: flex;
     flex-direction: column;
@@ -78,19 +91,19 @@ const LINE = 18;
     height: 100%;
     margin: 0;
     padding: 7% 6% 4%;
-    color: var(--on-story);
-    background:
-      radial-gradient(circle at 20% 0%, rgb(101 163 13 / 18%), transparent 45%),
-      radial-gradient(circle at 100% 100%, rgb(3 105 161 / 35%), transparent 50%), var(--story-end);
+    background: radial-gradient(circle, rgb(255 255 255 / 11%) 0 1px, transparent 1.6px) 0 0 / 22px
+      22px;
     font-family: var(--font-display);
     container-type: inline-size;
   }
 
   .diagram-title {
-    font-size: clamp(14px, 6cqi, 24px);
-    line-height: 1.15;
-    font-weight: var(--weight-bold);
-    letter-spacing: -0.01em;
+    padding-bottom: 2.4cqi;
+    border-bottom: max(1px, 0.4cqi) solid rgb(255 255 255 / 22%);
+    font-size: clamp(15px, 6.4cqi, 30px);
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.025em;
   }
 
   svg {
@@ -99,10 +112,43 @@ const LINE = 18;
     min-height: 0;
   }
 
+  .node {
+    --layer: var(--field-lime);
+  }
+
+  .layer-1 {
+    --layer: var(--field-emerald);
+  }
+
+  .layer-2 {
+    --layer: var(--field-cyan);
+  }
+
+  .layer-3 {
+    --layer: var(--field-sky);
+  }
+
+  .edge {
+    --layer: var(--field-emerald);
+  }
+
+  .edge.layer-2 {
+    --layer: var(--field-cyan);
+  }
+
+  .edge.layer-3 {
+    --layer: var(--field-sky);
+  }
+
   .node rect {
-    fill: rgb(255 255 255 / 7%);
-    stroke: rgb(255 255 255 / 28%);
+    fill: rgb(255 255 255 / 5%);
+    stroke: rgb(255 255 255 / 20%);
     stroke-width: 1.2;
+  }
+
+  .node .bar {
+    fill: var(--layer);
+    stroke: none;
   }
 
   .node-label,
@@ -115,27 +161,38 @@ const LINE = 18;
 
   .node-label {
     font-size: 15px;
-    font-weight: var(--weight-semibold);
+    font-weight: 700;
   }
 
   .node-detail {
-    font-size: 12px;
-    opacity: 0.75;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    fill: var(--field-deep-meta);
   }
 
   .edge line {
-    stroke: #22d3ee;
+    stroke: var(--layer);
     stroke-width: 2;
   }
 
+  .packet {
+    fill: var(--layer);
+  }
+
   .arrowhead {
-    fill: #22d3ee;
+    fill: var(--field-deep-meta);
+  }
+
+  .edge-tag rect {
+    fill: var(--field-deep);
+    stroke: var(--layer);
+    stroke-width: 1.2;
   }
 
   .edge-label {
     font-family: var(--font-mono);
     font-size: 11px;
     text-anchor: start;
-    fill: #a5f3fc;
+    fill: var(--field-deep-fg);
   }
 </style>

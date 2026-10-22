@@ -98,13 +98,21 @@ describe('fieldMap', () => {
 });
 
 describe('slideFields', () => {
-  it('changes field on every slide and keeps the cover field first', () => {
-    for (const first of ['paper', 'ink', 'lime', 'ocean'] as const) {
-      const fields = slideFields(first, 6);
+  it('keeps the cover field, puts diagrams on deep, and never repeats a field back to back', () => {
+    const kinds = ['text', 'diagram', 'text', 'text', 'diagram', 'text', 'text', 'text'];
+    for (const first of ['paper', 'ink', 'lime', 'ocean', 'cyan'] as const) {
+      const fields = slideFields(first, kinds);
       expect(fields[0]).toBe(first);
-      expect(fields).toHaveLength(6);
-      fields.slice(1).forEach((f, i) => expect(f).not.toBe(fields[i]));
+      expect(fields).toHaveLength(kinds.length);
+      kinds.forEach((kind, i) => {
+        if (kind === 'diagram') expect(fields[i]).toBe('deep');
+        if (i > 0) expect(fields[i], `${first} slide ${i}`).not.toBe(fields[i - 1]);
+      });
     }
+  });
+
+  it("follows on from the cover's field: a paper cover is followed by ink, then lime", () => {
+    expect(slideFields('paper', ['text', 'text', 'text'])).toEqual(['paper', 'ink', 'lime']);
   });
 });
 

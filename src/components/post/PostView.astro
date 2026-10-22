@@ -4,12 +4,14 @@ import EmptyState from '../EmptyState.astro';
 import Icon from '../Icon.astro';
 import type { Post, Profile } from '../../lib/content-schema';
 import { postDate } from '../../lib/post-date';
-import { tileTone } from '../../lib/site';
 import Avatar from '../Avatar.astro';
 import Media from '../Media.astro';
 import CodeSlide from './CodeSlide.astro';
 import DiagramSlide from './DiagramSlide.astro';
-import TypeTile from './TypeTile.astro';
+import Cover from '../covers/Cover.astro';
+import { loadPostArt } from '../../lib/content';
+import { coverFor, slideArt } from '../../lib/covers';
+import { fieldMap } from '../../lib/fields';
 import ActionRow from './ActionRow.astro';
 import CommentForm from './CommentForm.astro';
 
@@ -22,12 +24,19 @@ interface Props {
 
 const { post, profile, variant } = Astro.props;
 const { id } = post;
-const { title, media, location, org, date, dateLabel, order, testimonials, tldr } = post.data;
+const { title, media, location, org, date, dateLabel, testimonials, tldr } = post.data;
 // The caption is markdown (lists, emphasis, links), rendered by Astro like any content page.
 const entry = await getEntry('posts', id);
 const Caption = entry ? (await render(entry)).Content : undefined;
 const when = postDate(date, dateLabel);
-const tone = tileTone(order);
+// Each slide's field and layout (task 6.2.2): the cover first, then a run of printed pages.
+const art = (await loadPostArt()).get(id);
+// A post outside her content (a test fixture) still gets a cover from its own words.
+const slides = slideArt(
+  post,
+  art?.field ?? fieldMap([post]).get(id) ?? 'paper',
+  art?.cover ?? coverFor(post, {}, { projects: {} }),
+);
 const initialsOf = (name: string) =>
   name
     .split(/\s+/)
@@ -67,6 +76,7 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
           role="group"
           aria-roledescription="slide"
           aria-label={`${i + 1} of ${media.length}`}
+          data-field={item.type === 'image' ? undefined : slides[i]?.field}
         >
           {item.type === 'image' && (
             <>
@@ -97,8 +107,8 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
               )}
             </>
           )}
-          {item.type === 'text' && (
-            <TypeTile headline={item.headline} detail={item.detail} tone={tone} />
+          {item.type === 'text' && slides[i]?.cover && (
+            <Cover cover={slides[i].cover} mark={i === 0 ? art?.mark : undefined} />
           )}
           {item.type === 'diagram' && (
             <DiagramSlide
@@ -362,6 +372,14 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     cursor: pointer;
   }
 
+  /* With a pointer, the chevrons sit at the slide's sides: printed slides keep their content
+     clear of them (touch has no chevrons to dodge). */
+  @media (hover: hover) {
+    .post-view:has(.slide-nav) .slide :global(.c) {
+      padding-inline: max(7cqi, 52px);
+    }
+  }
+
   .slide :global(img) {
     width: 100%;
     height: 100%;
@@ -393,12 +411,16 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     right: var(--space-3);
   }
 
+  /* On a small dark pill, so the dots read on paper and bright fields as well as on photos. */
   .dots {
     position: absolute;
-    bottom: var(--space-4);
+    bottom: var(--space-3);
     left: 50%;
     display: flex;
     gap: var(--space-1);
+    padding: 5px 7px;
+    background: rgb(12 16 20 / 45%);
+    border-radius: var(--radius-pill, 999px);
     transform: translateX(-50%);
   }
 

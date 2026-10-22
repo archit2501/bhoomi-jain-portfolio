@@ -38,14 +38,14 @@ const dots =
   style={reserve ? `--reserve: ${reserve}px` : undefined}
 >
   <div class="c">
-    <p class="head">
+    <p class="run-head">
       <span>{cover.head[0]}</span>
       {cover.head[1] && <span>{cover.head[1]}</span>}
     </p>
 
     {cover.layout === 'project' && (
       <>
-        <p class="title" style={`--longest: ${longest(cover.title)}`}>
+        <p class="cover-title" style={`--longest: ${longest(cover.title)}`}>
           <span data-mark={mark}>{cover.title}</span>
         </p>
         {cover.deck && <p class="deck">{cover.deck}</p>}
@@ -69,7 +69,7 @@ const dots =
         </p>
         {picto?.type === 'dots' && dots && (
           <div
-            class="dots"
+            class="dot-field"
             aria-hidden="true"
             style={`--cols: ${dots.cols}; --rows: ${dots.rows}; --x: ${dots.x}; --y: ${dots.y}`}
           >
@@ -104,7 +104,7 @@ const dots =
 
     {cover.layout === 'title' && (
       <>
-        <p class="title big" style={`--longest: ${longest(cover.title)}`}>
+        <p class="cover-title big" style={`--longest: ${longest(cover.title)}`}>
           <span data-mark={mark}>{cover.title}</span>
         </p>
         <div class="foot">
@@ -149,7 +149,7 @@ const dots =
   }
 
   /* The running head: mono, quiet, over a hairline. */
-  .head {
+  .run-head {
     display: flex;
     justify-content: space-between;
     gap: 3cqi;
@@ -162,17 +162,17 @@ const dots =
     text-transform: uppercase;
   }
 
-  .head span {
+  .run-head span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .head span:last-child:not(:first-child) {
+  .run-head span:last-child:not(:first-child) {
     flex-shrink: 0;
   }
 
-  .title {
+  .cover-title {
     margin-top: 5cqi;
     font-weight: 800;
     /* The longest word must fit the width; short titles stop at 15cqi. */
@@ -182,7 +182,7 @@ const dots =
     text-wrap: balance;
   }
 
-  .title.big {
+  .cover-title.big {
     font-size: min(30cqi, calc(140cqi / var(--longest)));
     letter-spacing: -0.05em;
   }
@@ -280,7 +280,7 @@ const dots =
   }
 
   /* 160 dots for 160 teams, one lit for her place. */
-  .dots {
+  .dot-field {
     position: relative;
     width: 100%;
     aspect-ratio: var(--cols) / var(--rows);
@@ -290,7 +290,7 @@ const dots =
     opacity: 1;
   }
 
-  .dots::before {
+  .dot-field::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -298,7 +298,7 @@ const dots =
     opacity: 0.68;
   }
 
-  .dots i {
+  .dot-field i {
     position: absolute;
     left: calc(100% / var(--cols) * var(--x));
     top: calc(100% / var(--rows) * var(--y));
@@ -309,8 +309,8 @@ const dots =
     box-shadow: 0 0 0 max(1px, 0.5cqi) var(--lit, currentColor);
   }
 
-  [data-field='ink'] .dots,
-  [data-field='deep'] .dots {
+  [data-field='ink'] .dot-field,
+  [data-field='deep'] .dot-field {
     --lit: var(--field-lime);
   }
 
@@ -453,7 +453,7 @@ const dots =
 
   /* Small tiles (a phone's 3-column grid): the big type, one short label and the shapes. */
   @container (max-width: 200px) {
-    .head,
+    .run-head,
     .deck,
     .stack,
     .detail,
@@ -471,12 +471,12 @@ const dots =
       padding-top: 30px;
     }
 
-    .title {
+    .cover-title {
       margin-top: 0;
       font-size: min(17cqi, calc(158cqi / var(--longest)));
     }
 
-    .title.big {
+    .cover-title.big {
       font-size: min(34cqi, calc(150cqi / var(--longest)));
     }
 

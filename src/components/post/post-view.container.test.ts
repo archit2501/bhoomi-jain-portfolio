@@ -10,6 +10,8 @@ vi.mock('../../lib/media', () => ({
 }));
 // No content collection in the test: the caption falls back to the raw body.
 vi.mock('astro:content', () => ({ getEntry: async () => undefined, render: async () => ({}) }));
+// Nor her site's post art: the post's cover is worked out from its own words.
+vi.mock('../../lib/content', () => ({ loadPostArt: async () => new Map() }));
 
 const profile = profileSchema.parse({
   username: 'test.person',
@@ -51,5 +53,24 @@ describe('PostView', () => {
     expect(html).toMatch(/class="tags-toggle"[^>]*aria-pressed="false"/);
     expect(html).toContain('One line.');
     expect(html).toContain('--vt-name: post-dash');
+  });
+
+  it('prints a text slide as a page on its own field', async () => {
+    const data = postSchema.parse({
+      title: 'A win',
+      kind: 'achievement',
+      order: 1,
+      media: [
+        { type: 'text', headline: 'Launch' },
+        { type: 'text', headline: '40%', detail: 'lower latency' },
+      ],
+    });
+    const html = await container.renderToString(PostView, {
+      props: { post: { id: 'win', data, body: 'Caption' }, profile, variant: 'page' },
+    });
+    expect(html).toMatch(/class="slide"[^>]*data-field="lime"/);
+    expect(html).toMatch(/class="slide"[^>]*data-field="sky"/);
+    expect(html).toContain('lower latency');
+    expect(html).toContain('02 / 02');
   });
 });
