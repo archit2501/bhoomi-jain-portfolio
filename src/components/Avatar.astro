@@ -33,7 +33,7 @@ const outer = ring === 'story' ? size + 2 * (ringWidth + gap) : size;
       sizes={`${size}px`}
       width={size}
       height={size}
-      priority={size >= 77}
+      eager={size >= 77}
     />
   ) : (
     <span
