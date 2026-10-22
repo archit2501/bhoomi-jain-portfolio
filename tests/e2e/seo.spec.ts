@@ -90,7 +90,9 @@ test('an unknown address shows the 404 page in the site style', async ({ page })
   const res = await page.goto('/no-such-page/');
   expect(res?.status()).toBe(404);
   await expect(page).toHaveTitle(pageTitle('Page not found'));
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText("This page isn't here");
-  await page.getByRole('link', { name: `Go back to ${FIRST_NAME}'s profile` }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    "Sorry, this page isn't available.",
+  );
+  await page.getByRole('link', { name: `Go back to ${FIRST_NAME}'s profile.` }).click();
   await expect(page).toHaveURL(/\/$/);
 });

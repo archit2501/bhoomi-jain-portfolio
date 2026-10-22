@@ -1,10 +1,11 @@
 ---
-import PostGrid from '../components/profile/PostGrid.astro';
+import ExploreGrid from '../components/explore/ExploreGrid.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../lib/content';
 
-const { posts } = await loadSiteContent();
+const { posts, reels, highlights } = await loadSiteContent();
 const ordered = [...posts].sort((a, b) => a.data.order - b.data.order);
+const row = highlights.filter((h) => h.data.inRow);
 ---
 
 <BaseLayout title="Explore" current="explore" image="/og/pages/explore.png">
@@ -16,7 +17,7 @@ const ordered = [...posts].sort((a, b) => a.data.order - b.data.order);
     <button class="search" type="button" data-opens="panel-search" data-anywhere>
       <span>Search</span>
     </button>
-    <PostGrid posts={ordered} />
+    <ExploreGrid posts={ordered} reels={reels} highlights={row} eager />
   </section>
 </BaseLayout>
 
