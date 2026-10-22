@@ -9,6 +9,7 @@ import { classify, dragTransform, HOLD_MS } from '../lib/story/gestures';
 import { framesToLoad, park, unpark } from '../lib/story/preload';
 import { asCard, asRing, isOnScreen } from '../lib/story/zoom';
 import { setAmbient } from './ambient';
+import { setThemeColor } from './theme-color';
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const storySlugFromPath = (pathname: string) =>
@@ -32,6 +33,11 @@ export function initStoryViewer(): void {
   const found = document.getElementById('story-viewer') as HTMLDialogElement | null;
   if (!found) return;
   const dialog: HTMLDialogElement = found;
+  // Black browser bar while the viewer is open, the page's own once it closes.
+  new MutationObserver(() => setThemeColor(dialog.open ? '#000000' : null)).observe(dialog, {
+    attributes: true,
+    attributeFilter: ['open'],
+  });
   const templates = [
     ...document.querySelectorAll<HTMLTemplateElement>('template[data-story-group]'),
   ];

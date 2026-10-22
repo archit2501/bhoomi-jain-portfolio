@@ -81,6 +81,10 @@ export function initComments(root: HTMLElement): void {
   const sheet = root.querySelector<HTMLDialogElement>('.comments-sheet');
   const opener = root.querySelector<HTMLButtonElement>('.open-comments');
   const commentButton = root.querySelector<HTMLButtonElement>('.action-row .comment');
+  // "Add a comment" in the empty state goes straight to the box below it.
+  root.querySelector('[data-focus-comment]')?.addEventListener('click', () => {
+    sheet?.querySelector<HTMLTextAreaElement>('textarea')?.focus();
+  });
   const endpoint = `/api/comments/${encodeURIComponent(post)}`;
   let approved = 0;
 

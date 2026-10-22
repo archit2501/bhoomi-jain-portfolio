@@ -1,0 +1,43 @@
+---
+import EmptyState from '../components/EmptyState.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// What the service worker (public/sw.js) shows when a page can't be reached.
+---
+
+<BaseLayout title="Offline" description="You're offline." noindex>
+  <section class="offline">
+    <EmptyState icon="offline" title="You're offline" level={1}>
+      Check your connection, then try again.
+      <a slot="action" class="retry" href="/" data-retry>
+        Try again
+      </a>
+    </EmptyState>
+  </section>
+</BaseLayout>
+
+<script>
+  document.querySelector('[data-retry]')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    location.reload();
+  });
+</script>
+
+<style>
+  .offline {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .retry {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 var(--space-4);
+    font-weight: var(--weight-semibold);
+    color: var(--on-accent);
+    text-decoration: none;
+    background: var(--accent);
+    border-radius: var(--radius-button);
+  }
+</style>

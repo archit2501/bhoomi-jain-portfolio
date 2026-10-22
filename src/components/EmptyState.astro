@@ -6,17 +6,19 @@ interface Props {
   icon: IconName;
   title: string;
   /** Heading level, so the empty state fits the page's outline. */
-  level?: 2 | 3;
+  level?: 1 | 2 | 3;
+  /** Smaller, for inside a sheet or a panel. */
+  compact?: boolean;
 }
 
-const { icon, title, level = 2 } = Astro.props;
+const { icon, title, level = 2, compact = false } = Astro.props;
 const Heading = `h${level}` as const;
 ---
 
 <!-- Instagram's empty state: an outlined circle with a glyph, a title, a line of text, one action. -->
-<div class="empty-state">
+<div class:list={['empty-state', { compact }]}>
   <span class="glyph" aria-hidden="true">
-    <Icon name={icon} size={34} />
+    <Icon name={icon} size={compact ? 26 : 34} />
   </span>
   <Heading class="title">{title}</Heading>
   <p class="body">
@@ -48,6 +50,21 @@ const Heading = `h${level}` as const;
     font-size: var(--fs-28);
     line-height: var(--lh-28);
     font-weight: var(--weight-bold);
+  }
+
+  .compact {
+    gap: var(--space-2);
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .compact .glyph {
+    width: 52px;
+    height: 52px;
+  }
+
+  .compact .title {
+    font-size: var(--fs-20);
+    line-height: var(--lh-20);
   }
 
   .body {

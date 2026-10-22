@@ -100,7 +100,7 @@ test('no results says so, and what to try', async ({ page }) => {
   await page.keyboard.type('zqxwv');
   const empty = panel(page).locator('[data-search-empty]');
   await expect(empty).toBeVisible();
-  await expect(empty.locator('.empty-title')).toHaveText('No results for "zqxwv"');
+  await expect(empty.getByRole('heading', { level: 3 })).toHaveText('No results for "zqxwv"');
   await expect(empty).toContainText('Typos are fine.');
   await expect(empty.getByRole('link', { name: 'Browse Explore' })).toHaveAttribute(
     'href',

@@ -7,7 +7,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
-  use: { baseURL: `http://localhost:${PORT}`, trace: 'on-first-retry' },
+  // Service workers stay off in tests: one would answer requests that tests route themselves.
+  // tests/e2e/pwa.spec.ts turns them on to test the worker.
+  use: { baseURL: `http://localhost:${PORT}`, trace: 'on-first-retry', serviceWorkers: 'block' },
   // Launch QA matrix (task 2.3.1): Safari's engine on iPhone and iPad, Chrome on Android and two
   // laptop widths, with two of the five in dark mode.
   projects: [
