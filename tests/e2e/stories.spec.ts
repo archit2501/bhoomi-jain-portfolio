@@ -146,14 +146,15 @@ test.describe('desktop viewer', () => {
     await expect(groupLabel(page)).toHaveText(second.data.label);
     await expect(live(page)).toHaveAttribute('data-transition', 'cube');
 
-    await page.waitForTimeout(400);
+    // The turn is over when its outgoing copy is gone (a fixed wait lost the race under load).
+    await expect(viewer(page).locator('.card.face-out')).toHaveCount(0);
     await page.mouse.move(cx - 100, cy);
     await page.mouse.down();
     await page.mouse.move(cx + 100, cy, { steps: 5 });
     await page.mouse.up();
     await expect(groupLabel(page)).toHaveText(first.data.label);
 
-    await page.waitForTimeout(400);
+    await expect(viewer(page).locator('.card.face-out')).toHaveCount(0);
     await page.mouse.move(cx, cy - 100);
     await page.mouse.down();
     await page.mouse.move(cx, cy + 150, { steps: 5 });
