@@ -1,0 +1,33 @@
+---
+/** Insights: this site's real totals, from its database (GET /api/stats), with when. */
+---
+
+<section class="panel" aria-labelledby="totals-title" data-totals>
+  <h2 id="totals-title">On this site</h2>
+  <p class="state" data-totals-state>
+    The totals need JavaScript to show.
+  </p>
+  <ul class="tiles" role="list" data-totals-body hidden>
+    <li class="tile">
+      <p class="value" data-total="likes"></p>
+      <p class="label">Likes on her posts and reels</p>
+    </li>
+    <li class="tile">
+      <p class="value" data-total="comments"></p>
+      <p class="label">Comments she approved</p>
+    </li>
+    <li class="tile">
+      <p class="value" data-total="answered"></p>
+      <p class="label" data-answered-label>
+        Conversations she answered
+      </p>
+    </li>
+    <li class="tile">
+      <p class="value" data-total="votes"></p>
+      <p class="label">Votes in her story polls</p>
+    </li>
+  </ul>
+  <p class="source" data-totals-source hidden>
+    From this site's database, <span data-totals-asof></span>
+  </p>
+</section>

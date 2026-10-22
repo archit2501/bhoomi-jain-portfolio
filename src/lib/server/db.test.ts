@@ -147,6 +147,51 @@ describe('polls and questions', () => {
   });
 });
 
+describe('site totals', () => {
+  it('counts likes, approved comments, conversations, the ones she answered, and votes', async () => {
+    const before = await repo.totals.site();
+    await repo.likes.add('totals-post', 'tv1');
+    await repo.likes.add('totals-post', 'tv2');
+    const pending = await repo.comments.create({
+      post: 'totals-post',
+      visitor: 'tv1',
+      name: 'A',
+      body: 'Hi',
+    });
+    const approved = await repo.comments.create({
+      post: 'totals-post',
+      visitor: 'tv2',
+      name: 'B',
+      body: 'Yo',
+    });
+    await repo.comments.decide(approved, 'approved');
+    const quiet = await repo.dms.start({
+      topic: 'hello',
+      visitor: 'tv1',
+      name: 'A',
+      body: 'Hello',
+    });
+    const answered = await repo.dms.start({
+      topic: 'hire',
+      visitor: 'tv2',
+      name: 'B',
+      body: 'Role?',
+    });
+    await repo.dms.reply(answered.id, 'bhoomi', 'Thanks!');
+    await repo.dms.reply(answered.id, 'bhoomi', 'Also…');
+    await repo.polls.vote('totals-poll', 'tv1', '0');
+    expect(pending).toBeTruthy();
+    expect(quiet).toBeTruthy();
+    expect(await repo.totals.site()).toEqual({
+      likes: before.likes + 2,
+      comments: before.comments + 1,
+      conversations: before.conversations + 2,
+      answered: before.answered + 1,
+      votes: before.votes + 1,
+    });
+  });
+});
+
 describe('the schema', () => {
   it('rejects a status or sender the app never writes', async () => {
     await expect(

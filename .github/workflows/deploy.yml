@@ -121,6 +121,13 @@ jobs:
         env:
           SITE_URL: ${{ vars.SITE_URL }}
 
+      # The build that ships is the one measured: its scores go into the site as /lighthouse.json,
+      # with this run's link, for Insights. A score under the bar (lighthouserc.json) stops here.
+      - name: Measure the build with Lighthouse and publish the scores on Insights
+        run: |
+          npm run lighthouse
+          node scripts/lighthouse-summary.mjs .lighthouseci dist/client/lighthouse.json
+
       # Migrations are additive, so the database moves ahead of the code that needs it. On the very
       # first deploy there is no database yet: the deploy creates it and the step after migrates.
       - name: Migrate the database (before the code that needs it)
