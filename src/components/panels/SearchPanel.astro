@@ -1,4 +1,5 @@
 ---
+import EmptyState from '../EmptyState.astro';
 import Icon from '../Icon.astro';
 import { loadSiteContent } from '../../lib/content';
 import { buildSearchIndex, SEARCH_TABS } from '../../lib/search';
@@ -73,19 +74,13 @@ const marks = ['grid', 'code', 'reels', 'play', 'resume'] as const;
     data-search-panel
   >
     <ul class="results" role="list" data-search-results></ul>
-    <div class="empty" data-search-empty hidden>
-      <span class="empty-mark" aria-hidden="true">
-        <Icon name="search" size={28} />
-      </span>
-      <p class="empty-title" data-empty-title>
-        No results
-      </p>
-      <p class="empty-text">
+    <div data-search-empty hidden>
+      <EmptyState icon="search" title="No results" level={3} compact>
         Try a skill like React, a project, or a place she's worked. Typos are fine.
-      </p>
-      <a class="empty-link" href="/explore/">
-        Browse Explore
-      </a>
+        <a slot="action" class="empty-link" href="/explore/">
+          Browse Explore
+        </a>
+      </EmptyState>
     </div>
   </div>
 
@@ -296,42 +291,8 @@ const marks = ['grid', 'code', 'reels', 'play', 'resume'] as const;
     padding-right: 56px;
   }
 
-  .empty {
-    display: grid;
-    justify-items: center;
-    gap: var(--space-2);
-    padding: var(--space-11) var(--space-6);
-    text-align: center;
-  }
-
-  .empty[hidden] {
+  [data-search-empty][hidden] {
     display: none;
-  }
-
-  .empty-mark {
-    display: grid;
-    place-items: center;
-    width: 64px;
-    height: 64px;
-    margin-bottom: var(--space-2);
-    border: 2px solid var(--text);
-    border-radius: 50%;
-  }
-
-  .empty-title {
-    margin: 0;
-    font-size: var(--fs-16);
-    line-height: var(--lh-16);
-    font-weight: var(--weight-semibold);
-    overflow-wrap: anywhere;
-  }
-
-  .empty-text {
-    margin: 0;
-    max-width: 28ch;
-    font-size: var(--fs-14);
-    line-height: var(--lh-14);
-    color: var(--text-secondary);
   }
 
   .empty-link {

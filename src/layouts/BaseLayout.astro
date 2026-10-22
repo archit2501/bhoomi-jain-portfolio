@@ -32,6 +32,9 @@ interface Props {
   noindex?: boolean;
 }
 
+// Full-screen media (reels) is black, and so is the browser's bar around it, as in the app.
+const BLACK = '#000000';
+
 const { profile } = await loadSiteContent();
 const {
   title,
@@ -55,8 +58,17 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0c1014" media="(prefers-color-scheme: dark)" />
+    {immersive ? (
+      <meta name="theme-color" content={BLACK} />
+    ) : (
+      <>
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0c1014" media="(prefers-color-scheme: dark)" />
+      </>
+    )}
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content={profile.displayName.split(/\s+/)[0]} />
     <title>{fullTitle}</title>
     <meta property="og:site_name" content={profile.displayName} />
     <meta property="og:title" content={fullTitle} />
@@ -97,6 +109,14 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
       import { initLive } from '../scripts/live';
 
       initLive();
+
+      // Installable, and an offline page when the network is gone (public/sw.js).
+      if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+        addEventListener(
+          'load',
+          () => void navigator.serviceWorker.register('/sw.js').catch(() => {}),
+        );
+      }
     </script>
   </body>
 </html>

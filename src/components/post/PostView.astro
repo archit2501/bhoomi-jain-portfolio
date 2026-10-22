@@ -1,5 +1,6 @@
 ---
 import { getEntry, render } from 'astro:content';
+import EmptyState from '../EmptyState.astro';
 import Icon from '../Icon.astro';
 import type { Post, Profile } from '../../lib/content-schema';
 import { postDate } from '../../lib/post-date';
@@ -210,7 +211,14 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
           </div>
         )}
         <ul class="comment-list" role="list" data-comment-list />
-        <p class="comments-empty">No comments yet. Start the conversation.</p>
+        <div class="comments-empty">
+          <EmptyState icon="comment" title="No comments yet" level={3} compact>
+            Start the conversation.
+            <button slot="action" type="button" class="empty-action" data-focus-comment>
+              Add a comment
+            </button>
+          </EmptyState>
+        </div>
       </div>
       <CommentForm post={id} place="sheet" />
     </dialog>
@@ -559,9 +567,17 @@ const Heading = variant === 'page' ? 'h1' : 'h2';
     overscroll-behavior: contain;
   }
 
-  .comments-empty {
-    margin: 0;
-    color: var(--text-secondary);
+  .empty-action {
+    min-height: 32px;
+    padding: 0 var(--space-4);
+    font: inherit;
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    color: var(--on-accent);
+    background: var(--accent);
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
   }
 
   .sheet-body .comment-list:not(:empty) + .comments-empty {

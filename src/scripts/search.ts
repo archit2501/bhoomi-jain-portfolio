@@ -52,7 +52,7 @@ export function initSearch(): void {
   const status = panel.querySelector<HTMLElement>('[data-search-status]')!;
   const hint = panel.querySelector<HTMLElement>('[data-search-hint]')!;
   const empty = panel.querySelector<HTMLElement>('[data-search-empty]')!;
-  const emptyTitle = empty.querySelector<HTMLElement>('[data-empty-title]')!;
+  const emptyTitle = empty.querySelector<HTMLElement>('.title')!;
   const recent = panel.querySelector<HTMLElement>('[data-search-recent]')!;
   const recentList = recent.querySelector<HTMLUListElement>('[data-recent-list]')!;
   const marks = new Map(
