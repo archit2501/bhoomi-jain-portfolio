@@ -1,1 +1,14 @@
-{}
+{
+  "bhoomi/avatar.webp": {
+    "color": "#98a8b8",
+    "preview": "data:image/webp;base64,UklGRooAAABXRUJQVlA4IH4AAABwAgCdASoQABAAA4BaJbACdAYsFmo6XYDBSGGAAP6Me1ZzD/j/8TUwpaC/G2ImfpaJYtnVVW/lgp1MAodOXDlujtWgUmzm9HKTRUSR/L4KHSGasz16dLheuclF38b3SOVuZ1HLihZy5FX1gfBG2PQRLGA+OBWm0bi7Njg4AAA="
+  },
+  "bhoomi/bca.webp": {
+    "color": "#c8b898",
+    "preview": "data:image/webp;base64,UklGRqQAAABXRUJQVlA4IJgAAABQBACdASoQABUAPu1iqU2ppaOiMAgBMB2JQBOmUGZjCQl3D+hOf+Av0a+gAP3MKadmz3JTlyfNHE71PZFHDgp9Lx228wKQ7CBgwEnogGqsYToTpv+r/dD6itFTLk3VQE+nR/sq8WuHb5rxsjL9/+EC05QvolD434DRPg//aMgil1FtOrae6k5K0KNQRu1w+YKW3wvjwvhAAA=="
+  },
+  "bhoomi/degree.webp": {
+    "color": "#f8e8a8",
+    "preview": "data:image/webp;base64,UklGRogAAABXRUJQVlA4IHwAAACQAgCdASoQABAAA4BaJbACdAYsFwEbC87T+6fQAAD+mSM58aX5OL9HzbuNMWaz2z7XiRq4fxJVdbMwuwpO1VCKupR5OJRHtnRxiwDdw7gaa/W8nKIzn8DGxW7aurhGzaAylGtbMEr2QdHI3n2eTSN4p8u0sPk9jiYJIWAA"
+  }
+}

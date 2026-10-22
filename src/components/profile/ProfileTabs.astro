@@ -45,7 +45,7 @@ const tabs = [
     <PostGrid posts={posts} />
   </div>
   <div role="tabpanel" id="panel-reels" aria-labelledby="tab-reels" hidden={selected !== 'reels'}>
-    <ReelsGrid reels={reels} />
+    <ReelsGrid reels={reels} eager={selected === 'reels'} />
   </div>
   <div
     role="tabpanel"

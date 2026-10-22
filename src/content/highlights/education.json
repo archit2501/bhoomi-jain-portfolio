@@ -2,8 +2,9 @@
   "label": "Education",
   "order": 4,
   "cover": {
-    "type": "text",
-    "text": "Edu"
+    "type": "image",
+    "src": "bhoomi/degree.webp",
+    "alt": "Her framed Amity University degree"
   },
   "frames": [
     {

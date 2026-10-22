@@ -23,3 +23,14 @@ export function postersToLoad(count: number, current: number): number[] {
   if (current < 0 || current >= count) return [];
   return current + 1 < count ? [current, current + 1] : [current];
 }
+
+/**
+ * A reel poster's grid size: "/reels/x.webp" has "/reels/x-sm.webp" at half the width for the
+ * small tiles (a phone's 3-column grid is ~136 px wide), as a srcset with the full one.
+ */
+export function posterSources(poster: string, width: number): { srcset: string; sizes: string } {
+  return {
+    srcset: `${poster.replace(/\.webp$/, '-sm.webp')} ${width / 2}w, ${poster} ${width}w`,
+    sizes: '(min-width: 768px) 296px, 33vw',
+  };
+}

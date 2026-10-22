@@ -15,6 +15,8 @@ interface Props {
   fit?: 'cover' | 'contain';
   /** The first row and the largest paint load eagerly; everything else waits for scroll. */
   priority?: boolean;
+  /** Load now but at normal priority: above the fold, yet not the page's largest paint. */
+  eager?: boolean;
   /** "fill" stretches the box over its parent (tiles, slides, story frames). */
   fill?: boolean;
   class?: string;
@@ -31,6 +33,7 @@ const {
   height,
   fit = 'cover',
   priority = false,
+  eager = false,
   fill = false,
   class: className,
   ...attributes
@@ -56,7 +59,7 @@ const style = placeholder
     width={width}
     height={height}
     fit={fit}
-    loading={priority ? 'eager' : 'lazy'}
+    loading={priority || eager ? 'eager' : 'lazy'}
     fetchpriority={priority ? 'high' : 'auto'}
     decoding="async"
   />
