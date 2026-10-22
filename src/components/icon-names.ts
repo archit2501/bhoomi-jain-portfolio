@@ -36,5 +36,12 @@ export const ICON_NAMES = [
   'down',
   'check',
   'offline',
+  // Highlight covers (task 6.2.3).
+  'architecture',
+  'work',
+  'stack',
+  'certificate',
+  'trophy',
+  'wave',
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

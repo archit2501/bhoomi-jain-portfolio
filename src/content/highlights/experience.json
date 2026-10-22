@@ -2,8 +2,8 @@
   "label": "Experience",
   "order": 2,
   "cover": {
-    "type": "text",
-    "text": "Work"
+    "type": "icon",
+    "icon": "work"
   },
   "figures": ["interaction-time", "engagement", "dashboards"],
   "frames": [

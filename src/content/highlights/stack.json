@@ -2,8 +2,8 @@
   "label": "Stack",
   "order": 3,
   "cover": {
-    "type": "text",
-    "text": "{ }"
+    "type": "icon",
+    "icon": "stack"
   },
   "frames": [
     {

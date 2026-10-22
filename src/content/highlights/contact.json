@@ -2,8 +2,8 @@
   "label": "Contact",
   "order": 7,
   "cover": {
-    "type": "text",
-    "text": "Hi"
+    "type": "icon",
+    "icon": "wave"
   },
   "frames": [
     {

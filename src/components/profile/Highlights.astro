@@ -1,5 +1,6 @@
 ---
 import type { Highlight } from '../../lib/content-schema';
+import Icon from '../Icon.astro';
 import Media from '../Media.astro';
 
 interface Props {
@@ -12,7 +13,7 @@ const count = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
 
 <section class="highlights" aria-label="Highlights">
   <ul role="list">
-    {highlights.map(({ id, data }) => (
+    {highlights.map(({ id, data }, i) => (
       <li>
         <a
           class="highlight"
@@ -31,6 +32,14 @@ const count = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
                 width={154}
                 height={154}
               />
+            ) : data.cover.type === 'icon' ? (
+              <span
+                class="cover glyph"
+                aria-hidden="true"
+                style={`--i: ${i}; --n: ${highlights.length}`}
+              >
+                <Icon name={data.cover.icon} size={30} />
+              </span>
             ) : (
               <span class="cover" aria-hidden="true">
                 {data.cover.text}
@@ -144,5 +153,20 @@ const count = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
       height: 77px;
       font-size: var(--fs-24);
     }
+  }
+
+  /* Her ring, unrolled along the row (task 6.2.3): each cover shows its own slice of the ring's
+     colours, left to right, with an ink glyph; the photo cover breaks the run on purpose. */
+  .cover.glyph {
+    color: var(--field-lime-fg);
+    background-image: linear-gradient(
+      90deg,
+      var(--field-lime),
+      var(--field-emerald),
+      var(--field-cyan),
+      var(--field-sky)
+    );
+    background-size: calc(var(--n) * 100%) 100%;
+    background-position: calc(var(--i) / max(var(--n) - 1, 1) * 100%) 0;
   }
 </style>

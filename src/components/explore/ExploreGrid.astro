@@ -7,6 +7,8 @@
 import Icon from '../Icon.astro';
 import type { Highlight, Post, Reel } from '../../lib/content-schema';
 import { exploreLayout, interleave } from '../../lib/explore';
+import type { Field } from '../../lib/fields';
+import Media from '../Media.astro';
 import TypeTile from '../post/TypeTile.astro';
 import PostTile from '../profile/PostTile.astro';
 
@@ -36,6 +38,10 @@ const tall: Tile[] = reels.map((reel, i) => ({
 }));
 const tiles = exploreLayout(tall, regular);
 const stories = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
+// A highlight's tile takes its stop on her ring, as its cover does in the row (task 6.2.3).
+const RING: readonly Field[] = ['lime', 'emerald', 'cyan', 'sky'];
+const ringField = (story: Props['highlights'][number]) =>
+  RING[highlights.indexOf(story) % RING.length];
 ---
 
 <ul class="explore-grid" role="list">
@@ -49,11 +55,32 @@ const stories = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
           data-story={item.story.id}
           aria-label={`Highlight: ${item.story.data.label}, ${stories(item.story.data.frames.length)}`}
         >
-          <TypeTile
-            headline={item.story.data.label}
-            detail={stories(item.story.data.frames.length)}
-            tone={item.tone}
-          />
+          {item.story.data.cover.type === 'image' ? (
+            <>
+              <Media
+                src={item.story.data.cover.src}
+                alt=""
+                widths={[240, 360, 480]}
+                sizes="(min-width: 768px) 296px, 33vw"
+                width={360}
+                height={480}
+                fill
+              />
+              <span class="story-name on-photo">{item.story.data.label}</span>
+            </>
+          ) : item.story.data.cover.type === 'icon' ? (
+            <span class="story-art" data-field={ringField(item.story)}>
+              <Icon name={item.story.data.cover.icon} size={64} />
+              <span class="story-name">{item.story.data.label}</span>
+              <span class="story-count">{stories(item.story.data.frames.length)}</span>
+            </span>
+          ) : (
+            <TypeTile
+              headline={item.story.data.label}
+              detail={stories(item.story.data.frames.length)}
+              tone={item.tone}
+            />
+          )}
           <span class="badge story-badge" aria-hidden="true" />
         </a>
       </li>
@@ -185,6 +212,55 @@ const stories = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
     z-index: 1;
     color: #ffffff;
     filter: drop-shadow(0 0 2px rgb(0 0 0 / 50%));
+  }
+
+  /* A highlight on her ring's colours: its glyph large, its name and how many stories. */
+  .story-art {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 2%;
+    /* % of the tile's width: the tile is its own size container, so cqi here would mean the
+       viewport. Its children size in cqi. */
+    padding: 8%;
+    container-type: inline-size;
+    font-family: var(--font-display);
+  }
+
+  .story-art :global(.icon) {
+    width: 38cqi;
+    height: auto;
+    margin-bottom: auto;
+  }
+
+  .story-name {
+    font-weight: 800;
+    font-size: clamp(13px, 11cqi, 30px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .story-count {
+    color: var(--f-meta);
+    font: 500 clamp(9px, 4cqi, 13px) / 1.2 var(--font-mono);
+  }
+
+  .story-name.on-photo {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 24px 12px 12px;
+    color: #ffffff;
+    background: linear-gradient(transparent, rgb(12 16 20 / 75%));
+  }
+
+  /* Every ring colour takes ink, so the story mark does too. */
+  .story a:has(.story-art) .story-badge {
+    color: var(--field-lime-fg);
+    filter: none;
   }
 
   /* A story's mark: a ring, as on her highlights. */

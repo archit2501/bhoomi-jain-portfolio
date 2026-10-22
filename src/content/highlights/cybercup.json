@@ -2,8 +2,8 @@
   "label": "CyberCup",
   "order": 6,
   "cover": {
-    "type": "text",
-    "text": "1st"
+    "type": "icon",
+    "icon": "trophy"
   },
   "figures": ["cybercup"],
   "frames": [
