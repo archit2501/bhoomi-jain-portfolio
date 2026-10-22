@@ -6,6 +6,7 @@
  * figures or her résumé (covers.test.ts checks); the only other words are structural labels.
  */
 import type { Figure, Post, Resume } from './content-schema';
+import { slideFields, type Field, type TileField } from './fields';
 
 /** A shape that depicts one stated number, never an invented one. */
 export type Picto =
@@ -178,4 +179,44 @@ export function coverFor(
     detail: figure && detail !== label ? detail : undefined,
     picto: pictoFor(hero, `${label ?? ''} ${detail ?? ''}`, data.kind),
   };
+}
+
+/** A slide as printed (task 6.2.2): its field, and for a text slide, its layout. */
+export interface SlideArt {
+  field: Field;
+  cover?: Exclude<Cover, { layout: 'photo' }>;
+}
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * Every slide of a post: the first is the cover (or the photo), a diagram sits on deep, and each
+ * text slide becomes a number with its pictogram or a title, on its own field, under a running
+ * head of the post's kind (or company) and its place in the carousel ("02 / 04"). O(slides).
+ */
+export function slideArt({ data }: CoverPost, first: TileField, cover: Cover): SlideArt[] {
+  const fields = slideFields(
+    first === 'photo' ? 'ink' : first,
+    data.media.map((m) => m.type),
+  );
+  const n = data.media.length;
+  const who = data.kind === 'experience' && data.org ? data.org : KIND_LABEL[data.kind];
+  return data.media.map((item, i) => {
+    if (i === 0 && cover.layout !== 'photo') return { field: fields[0], cover };
+    if (item.type !== 'text') return { field: fields[i] };
+    const head: Head = [who, `${pad(i + 1)} / ${pad(n)}`];
+    const isNumber = /\d/.test(item.headline) && item.headline.length <= 10;
+    return {
+      field: fields[i],
+      cover: isNumber
+        ? {
+            layout: 'stat',
+            head,
+            hero: item.headline,
+            label: item.detail,
+            picto: pictoFor(item.headline, item.detail ?? '', data.kind),
+          }
+        : { layout: 'title', head, title: item.headline, label: item.detail },
+    };
+  });
 }

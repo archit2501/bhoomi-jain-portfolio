@@ -27,7 +27,7 @@ describe('DiagramSlide', () => {
         edges: [{ from: 'a', to: 'b', label: 'REST' }],
       },
     });
-    expect(html.match(/<rect /g)).toHaveLength(2);
+    expect(html.match(/class="node layer-\d+"/g)).toHaveLength(2);
     expect(html.match(/<line /g)).toHaveLength(1);
     expect(html).toContain('aria-label="How it fits: React SPA to Express API (REST)"');
     expect(html).toContain('marker-end="url(#arrow-t)"');

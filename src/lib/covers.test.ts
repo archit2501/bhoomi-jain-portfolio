@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import type { Post, Resume } from './content-schema';
-import { coverFor, parseSpan, pictoFor, type Cover } from './covers';
+import { coverFor, parseSpan, pictoFor, slideArt, type Cover } from './covers';
 import { resolveFigures } from './resume';
 
 const resume = JSON.parse(readFileSync('src/content/resume.json', 'utf8')).bhoomi as Resume;
@@ -137,5 +137,52 @@ describe('parseSpan', () => {
       note: 'expected',
     });
     expect(parseSpan('2024')).toBeUndefined();
+  });
+});
+
+describe('slideArt', () => {
+  const art = (id: string, first: Parameters<typeof slideArt>[1]) => {
+    const post = posts.find((p) => p.id === id)!;
+    return slideArt(post, first, covers.get(id)!);
+  };
+
+  it('opens on the cover, puts the diagram on deep, and turns numbers into stat pages', () => {
+    const slides = art('smartblog-ai', 'paper');
+    expect(slides.map((s) => s.field)).toEqual(['paper', 'deep', 'ink', 'lime']);
+    expect(slides[0].cover).toBe(covers.get('smartblog-ai'));
+    expect(slides[1].cover).toBeUndefined();
+    expect(slides[2].cover).toMatchObject({
+      layout: 'stat',
+      head: ['Project', '03 / 04'],
+      hero: '~45%',
+      picto: { type: 'change', direction: 'down', percent: 45 },
+    });
+    expect(slides[3].cover).toMatchObject({ layout: 'title', title: 'JWT + bcrypt' });
+  });
+
+  it("names the company on a job's pages and draws 12+ modules as twelve marks and a plus", () => {
+    const slides = art('themobiadz', 'paper');
+    expect(slides[1].cover).toMatchObject({
+      head: ['TheMobiAdz', '02 / 03'],
+      picto: { type: 'units', count: 12, plus: true },
+    });
+  });
+
+  it('leaves a photo slide to the photo, and still prints the slides after it', () => {
+    const slides = art('amity-bca', 'photo');
+    expect(slides[0].cover).toBeUndefined();
+    expect(slides[1].cover).toMatchObject({ layout: 'title', title: 'BCA' });
+  });
+
+  it('prints only words from the post on every page', () => {
+    for (const post of posts) {
+      const source = JSON.stringify(post.data);
+      for (const slide of slideArt(post, 'paper', covers.get(post.id)!).slice(1)) {
+        if (!slide.cover) continue;
+        for (const words of printed(slide.cover).slice(1)) {
+          if (words) expect(source, `${post.id}: "${words}"`).toContain(words);
+        }
+      }
+    }
   });
 });

@@ -66,18 +66,26 @@ export function fieldMap(posts: readonly FieldPost[], columns = 3): Map<string, 
 }
 
 /**
- * The fields of a post's slides after the first: each slide changes field, never repeating the
- * one before it, so a carousel reads as a sequence of printed pages. O(n) for n slides.
+ * The fields of a post's slides (task 6.2.2): the cover keeps its own, a diagram always sits on
+ * deep (its blueprint), and every other slide takes the next field in turn, never the same as
+ * the slide before it, so a carousel reads as a run of printed pages. O(n) for n slides.
  */
-export function slideFields(first: Field, count: number): Field[] {
-  const order: readonly Field[] = ['paper', 'deep', 'ink', 'lime', 'sky', 'emerald', 'cyan'];
-  const fields = [first];
+export function slideFields(first: Field, kinds: readonly string[]): Field[] {
+  const order: readonly Field[] = ['paper', 'ink', 'lime', 'sky', 'emerald', 'cyan', 'ocean'];
+  const fields: Field[] = [];
   let next = (order.indexOf(first) + 1) % order.length;
-  while (fields.length < count) {
-    const candidate = order[next];
-    next = (next + 1) % order.length;
-    if (candidate !== fields[fields.length - 1]) fields.push(candidate);
-  }
+  kinds.forEach((kind, i) => {
+    if (i === 0) {
+      fields.push(first);
+    } else if (kind === 'diagram') {
+      fields.push('deep');
+    } else {
+      let field = order[next];
+      if (field === fields[i - 1]) field = order[(next = (next + 1) % order.length)];
+      next = (next + 1) % order.length;
+      fields.push(field);
+    }
+  });
   return fields;
 }
 

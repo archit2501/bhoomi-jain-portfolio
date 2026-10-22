@@ -20,6 +20,8 @@ export interface Box {
   height: number;
   label: string[];
   detail: string[];
+  /** Its row, top to bottom: the slide colours its layers in her ring's order. */
+  layer: number;
 }
 
 export interface Arrow {
@@ -28,6 +30,8 @@ export interface Arrow {
   x2: number;
   y2: number;
   label?: string;
+  /** The layer the arrow leads into, for its colour. */
+  layer: number;
   /** Where the label sits: beside the arrow's midpoint. */
   labelX: number;
   labelY: number;
@@ -67,6 +71,31 @@ export function layers(nodes: DiagramNode[], edges: DiagramEdge[]): Map<string, 
   return layer;
 }
 
+/**
+ * Wraps a "·"-separated list without breaking inside a term ("React Router · Tailwind · React
+ * Query" never splits "React Query"); a term too long for a line on its own wraps by words.
+ */
+export function wrapTerms(text: string, maxChars: number, maxLines: number): string[] {
+  const terms = text.split(/\s+·\s+/);
+  if (terms.length < 2) return wrapText(text, maxChars, maxLines);
+  const lines: string[] = [];
+  let line = '';
+  for (const term of terms) {
+    const candidate = line ? `${line} · ${term}` : term;
+    if (candidate.length <= maxChars || !line) {
+      line = candidate;
+      continue;
+    }
+    lines.push(line);
+    line = term;
+  }
+  if (line) lines.push(line);
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines);
+  kept[maxLines - 1] = `${kept[maxLines - 1]} …`;
+  return kept;
+}
+
 /** Positions every box and arrow for an SVG of DIAGRAM_W × DIAGRAM_H. */
 export function layoutDiagram(nodes: DiagramNode[], edges: DiagramEdge[]): DiagramLayout {
   const layer = layers(nodes, edges);
@@ -87,7 +116,8 @@ export function layoutDiagram(nodes: DiagramNode[], edges: DiagramEdge[]): Diagr
         width,
         height: boxH,
         label: wrapText(node.label, chars, 2),
-        detail: node.detail ? wrapText(node.detail, Math.floor(chars * 1.25), 2) : [],
+        detail: node.detail ? wrapTerms(node.detail, Math.floor(chars * 1.25), 2) : [],
+        layer: row,
       });
     });
   }
@@ -100,7 +130,18 @@ export function layoutDiagram(nodes: DiagramNode[], edges: DiagramEdge[]): Diagr
     const y1 = a.y + a.height;
     const x2 = b.x + b.width / 2;
     const y2 = b.y;
-    return [{ x1, y1, x2, y2, label, labelX: (x1 + x2) / 2 + 10, labelY: (y1 + y2) / 2 + 4 }];
+    return [
+      {
+        x1,
+        y1,
+        x2,
+        y2,
+        label,
+        layer: b.layer,
+        labelX: (x1 + x2) / 2 + 10,
+        labelY: (y1 + y2) / 2 + 4,
+      },
+    ];
   });
   return { width: DIAGRAM_W, height: DIAGRAM_H, boxes, arrows };
 }
