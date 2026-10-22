@@ -13,6 +13,7 @@ box when it reads right; note any change beside it. Generated from `src/content`
 - [ ] Location: Delhi, India
 - [ ] Link (linkedin): https://www.linkedin.com/in/bhoomi21
 - [ ] Link (email): bhoomijain10@gmail.com
+- [ ] Link (github): https://github.com/Bhoomi177
 
 ## Figures
 
@@ -192,7 +193,6 @@ Each number, and the line of her résumé it comes from.
 - [ ] **Hire me** (`/direct/hire/`): Hi! Thanks for stopping by. Tell me about the role and your team, and I'll reply from my inbox.
 - [ ] **Collaborate** (`/direct/collaborate/`): Hey! Building something? Tell me what it is and where you'd like a hand.
 - [ ] **Just say hi** (`/direct/hello/`): Hi there! Say anything: feedback on this site, a question, or just hello.
-- [ ] **Ask my AI** (`/direct/ask-ai/`): I'm an AI assistant that answers from Bhoomi's résumé and projects. Ask me about her work.
 
 ## Career milestones (Notifications)
 
