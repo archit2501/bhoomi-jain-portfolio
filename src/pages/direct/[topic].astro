@@ -5,7 +5,8 @@ import ThreadView from '../../components/dm/ThreadView.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
 
-// One page per topic she invites messages about: Hire me, Collaborate, Just say hi, Ask my AI.
+// One page per topic she invites messages about: Hire me, Collaborate, Just say hi. ("Ask my AI"
+// waits for a Claude API key: task 3.2.3, PR #22.)
 export async function getStaticPaths() {
   const { dmThreads } = await loadSiteContent();
   return dmThreads.map((thread) => ({ params: { topic: thread.id }, props: { thread } }));
