@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { contrastRatio, parseHex, relativeLuminance } from '../src/lib/color';
+import { FIELDS as FIELD_NAMES } from '../src/lib/fields';
 
 const css = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
 
@@ -65,6 +66,40 @@ describe('design tokens', () => {
     }
     // The two rings stand out from each other too, so the pair reads as one outline.
     expect(contrastRatio(light['focus-ring-light'], light['focus-ring-dark'])).toBeGreaterThan(15);
+  });
+
+  // Fields are print (src/lib/fields.ts): checked in both themes, since dark mode dims the
+  // bright ones. Text and the quieter running-head colour both pass 4.5:1, and the two-tone
+  // focus ring shows on every field.
+  for (const [name, t] of [
+    ['light', light],
+    ['dark', darkMedia],
+  ] as const) {
+    it(`every field's text and labels pass 4.5:1 (${name})`, () => {
+      for (const field of FIELD_NAMES) {
+        const bg = t[`field-${field}`];
+        expect(contrastRatio(t[`field-${field}-fg`], bg), `${field} text`).toBeGreaterThanOrEqual(
+          4.5,
+        );
+        expect(
+          contrastRatio(t[`field-${field}-meta`], bg),
+          `${field} label`,
+        ).toBeGreaterThanOrEqual(4.5);
+        const focus = Math.max(
+          contrastRatio(t['focus-ring-light'], bg),
+          contrastRatio(t['focus-ring-dark'], bg),
+        );
+        expect(focus, `${field} focus`).toBeGreaterThanOrEqual(3);
+      }
+    });
+  }
+
+  it('ink text passes 4.5:1 on every highlighter stroke', () => {
+    for (const mark of ['lime', 'cyan', 'sky', 'emerald']) {
+      expect(contrastRatio(light['field-paper-fg'], light[`mark-${mark}`]), mark).toBeGreaterThan(
+        4.5,
+      );
+    }
   });
 
   it('defines the same dark values for the system setting and the toggle', () => {

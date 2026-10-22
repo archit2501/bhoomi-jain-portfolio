@@ -293,6 +293,115 @@ picture {
   }
 }
 
+/* A printed field (src/lib/fields.ts, task 6.1.1): `data-field="paper"` and so on. Sets the
+   background, the text colour and a quieter --f-meta for running heads, and lays fine paper grain
+   between the background and the text, so the grain never sits on top of letters. */
+[data-field] {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--f-bg);
+  color: var(--f-fg);
+}
+
+[data-field]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: var(--grain);
+  opacity: var(--f-grain, 0);
+  mix-blend-mode: var(--f-blend, multiply);
+  pointer-events: none;
+}
+
+[data-field='paper'] {
+  --f-bg: var(--field-paper);
+  --f-fg: var(--field-paper-fg);
+  --f-meta: var(--field-paper-meta);
+  --f-grain: 0.28;
+}
+
+[data-field='ink'] {
+  --f-bg: var(--field-ink);
+  --f-fg: var(--field-ink-fg);
+  --f-meta: var(--field-ink-meta);
+  --f-grain: 0.3;
+  --f-blend: overlay;
+}
+
+[data-field='deep'] {
+  --f-bg: var(--field-deep);
+  --f-fg: var(--field-deep-fg);
+  --f-meta: var(--field-deep-meta);
+  --f-grain: 0.3;
+  --f-blend: overlay;
+}
+
+[data-field='ocean'] {
+  --f-bg: var(--field-ocean);
+  --f-fg: var(--field-ocean-fg);
+  --f-meta: var(--field-ocean-meta);
+  --f-grain: 0.22;
+  --f-blend: overlay;
+}
+
+[data-field='lime'] {
+  --f-bg: var(--field-lime);
+  --f-fg: var(--field-lime-fg);
+  --f-meta: var(--field-lime-meta);
+  --f-grain: 0.12;
+}
+
+[data-field='emerald'] {
+  --f-bg: var(--field-emerald);
+  --f-fg: var(--field-emerald-fg);
+  --f-meta: var(--field-emerald-meta);
+  --f-grain: 0.12;
+}
+
+[data-field='cyan'] {
+  --f-bg: var(--field-cyan);
+  --f-fg: var(--field-cyan-fg);
+  --f-meta: var(--field-cyan-meta);
+  --f-grain: 0.12;
+}
+
+[data-field='sky'] {
+  --f-bg: var(--field-sky);
+  --f-fg: var(--field-sky-fg);
+  --f-meta: var(--field-sky-meta);
+  --f-grain: 0.12;
+}
+
+/* A highlighter stroke behind ink words on paper: `data-mark="lime"` and so on. */
+[data-mark] {
+  background-image: linear-gradient(transparent 56%, var(--m) 56%, var(--m) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+[data-mark='lime'] {
+  --m: var(--mark-lime);
+}
+
+[data-mark='cyan'] {
+  --m: var(--mark-cyan);
+}
+
+[data-mark='sky'] {
+  --m: var(--mark-sky);
+}
+
+[data-mark='emerald'] {
+  --m: var(--mark-emerald);
+}
+
+@media (forced-colors: active) {
+  [data-field]::before {
+    display: none;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

@@ -73,6 +73,42 @@
   --on-story: #ffffff;
   --tile-slate: #2b3036;
 
+  /* Fields that posts and reels are printed on (src/lib/fields.ts): paper and ink for the
+     editorial look, her ring colours and ocean to break the grid up. Each has its text colour
+     (-fg) and a quieter one for running heads and labels (-meta). They're print: they don't
+     invert with the theme, but dark mode dims the bright ones so they don't glare. */
+  --field-paper: #f4f1ea;
+  --field-paper-fg: #0c1014;
+  --field-paper-meta: #3a4049;
+  --field-ink: #0c1014;
+  --field-ink-fg: #ffffff;
+  --field-ink-meta: #a2aab4;
+  --field-deep: #0b1a26;
+  --field-deep-fg: #ffffff;
+  --field-deep-meta: #b6c2cf;
+  --field-ocean: #0369a1;
+  --field-ocean-fg: #ffffff;
+  --field-ocean-meta: #e0f2fe;
+  --field-lime: #a3e635;
+  --field-lime-fg: #0c1014;
+  --field-lime-meta: #1f2730;
+  --field-emerald: #34d399;
+  --field-emerald-fg: #0c1014;
+  --field-emerald-meta: #1f2730;
+  --field-cyan: #22d3ee;
+  --field-cyan-fg: #0c1014;
+  --field-cyan-meta: #1f2730;
+  --field-sky: #38bdf8;
+  --field-sky-fg: #0c1014;
+  --field-sky-meta: #1f2730;
+  /* Highlighter strokes behind ink text on paper, one per post (markFor in fields.ts). */
+  --mark-lime: #bef264;
+  --mark-cyan: #67e8f9;
+  --mark-sky: #7dd3fc;
+  --mark-emerald: #6ee7b7;
+  /* Fine paper grain, laid over fields as a background (no image request, no bytes in tiles). */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
   /* Story stickers sit on story frames, which are dark in both themes, so these never change.
      The mention's gradient uses the darker ring stops: its large bold text keeps 3:1 on white. */
   --sticker-bg: #ffffff;
@@ -216,6 +252,11 @@
     --score-good: #34d399;
     --score-average: #fbbf24;
     --score-poor: #f87171;
+    --field-paper: #e9e4d8;
+    --field-lime: #84cc16;
+    --field-emerald: #10b981;
+    --field-cyan: #06b6d4;
+    --field-sky: #0ea5e9;
     --media-edge: inset 0 0 0 1px rgb(255 255 255 / 6%);
     --shadow-1: 0 0 0 1px rgb(255 255 255 / 6%);
     --shadow-strong: 0 4px 32px 0 rgb(0 0 0 / 50%), inset 0 1px 0 rgb(255 255 255 / 6%);
@@ -248,6 +289,11 @@
   --score-good: #34d399;
   --score-average: #fbbf24;
   --score-poor: #f87171;
+  --field-paper: #e9e4d8;
+  --field-lime: #84cc16;
+  --field-emerald: #10b981;
+  --field-cyan: #06b6d4;
+  --field-sky: #0ea5e9;
   --media-edge: inset 0 0 0 1px rgb(255 255 255 / 6%);
   --shadow-1: 0 0 0 1px rgb(255 255 255 / 6%);
   --shadow-strong: 0 4px 32px 0 rgb(0 0 0 / 50%), inset 0 1px 0 rgb(255 255 255 / 6%);
