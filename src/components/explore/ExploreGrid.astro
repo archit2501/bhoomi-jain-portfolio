@@ -9,6 +9,7 @@ import type { Highlight, Post, Reel } from '../../lib/content-schema';
 import { exploreLayout, interleave } from '../../lib/explore';
 import type { Field } from '../../lib/fields';
 import Media from '../Media.astro';
+import { ambientOf } from '../../lib/ambient-image';
 import TypeTile from '../post/TypeTile.astro';
 import PostTile from '../profile/PostTile.astro';
 
@@ -38,6 +39,16 @@ const tall: Tile[] = reels.map((reel, i) => ({
 }));
 const tiles = exploreLayout(tall, regular);
 const stories = (n: number) => `${n} ${n === 1 ? 'story' : 'stories'}`;
+// A reel's poster sits whole in the tall tile, on its own field colour (each poster is printed
+// on a flat field), sampled from the poster at build time.
+const fields = new Map(
+  await Promise.all(
+    reels.map(async (r) => {
+      const colours = r.data.poster ? await ambientOf(r.data.poster) : null;
+      return [r.id, colours?.[0]] as const;
+    }),
+  ),
+);
 // A highlight's tile takes its stop on her ring, as its cover does in the row (task 6.2.3).
 const RING: readonly Field[] = ['lime', 'emerald', 'cyan', 'sky'];
 const ringField = (story: Props['highlights'][number]) =>
@@ -93,27 +104,20 @@ const ringField = (story: Props['highlights'][number]) =>
           href={`/reels/${item.reel.id}/`}
           data-reel={item.reel.id}
           aria-label={`Reel: ${item.reel.data.title}`}
+          style={
+            fields.get(item.reel.id) ? `--poster-field: ${fields.get(item.reel.id)}` : undefined
+          }
         >
           {item.reel.data.poster ? (
-            <>
-              <img
-                class="backdrop"
-                src={item.reel.data.poster}
-                alt=""
-                aria-hidden="true"
-                loading="lazy"
-                decoding="async"
-              />
-              <img
-                class="poster"
-                src={item.reel.data.poster}
-                alt=""
-                width="540"
-                height="960"
-                loading={eager && i < 3 ? 'eager' : 'lazy'}
-                decoding="async"
-              />
-            </>
+            <img
+              class="poster"
+              src={item.reel.data.poster}
+              alt=""
+              width="720"
+              height="1280"
+              loading={eager && i < 3 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
           ) : (
             <TypeTile headline={item.reel.data.title} tone={item.tone} />
           )}
@@ -160,8 +164,8 @@ const ringField = (story: Props['highlights'][number]) =>
   }
 
   /*
-   * A tile is narrower than a reel's 9:16 poster, and cropping would cut its title: the poster
-   * shows whole, centred over a blurred copy of itself.
+   * A tall tile is narrower than a reel's 9:16 poster, and cropping would cut its words: the
+   * poster shows whole, on its own field colour.
    */
   .reel img {
     position: absolute;
@@ -170,14 +174,12 @@ const ringField = (story: Props['highlights'][number]) =>
     height: 100%;
   }
 
-  .reel .backdrop {
-    object-fit: cover;
-    filter: blur(20px) brightness(0.7);
-    transform: scale(1.2);
-  }
-
   .reel .poster {
     object-fit: contain;
+  }
+
+  .reel a[style] {
+    background: var(--poster-field);
   }
 
   .story a::after,

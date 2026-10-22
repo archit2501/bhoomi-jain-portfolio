@@ -25,7 +25,7 @@ const intro = highlights.find((h) => h.data.inRow === false);
   current={tab === 'reels' ? 'reels' : 'profile'}
   preload={
     tab === 'reels' && reels[0]?.data.poster
-      ? { href: reels[0].data.poster, ...posterSources(reels[0].data.poster, 540) }
+      ? { href: reels[0].data.poster, ...posterSources(reels[0].data.poster, 720) }
       : undefined
   }
 >
