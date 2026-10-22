@@ -122,6 +122,19 @@ export function createRepo(db: D1Like, now: () => number = Date.now) {
           .all<Comment>();
         return results;
       },
+      /**
+       * The latest approved comments across her posts, newest first, timed by when they became
+       * public (approved), for Notifications.
+       */
+      async recent(limit = 20): Promise<(Comment & { publishedAt: number })[]> {
+        const { results } = await db
+          .prepare(
+            "SELECT id, post, name, body, status, created_at AS createdAt, COALESCE(decided_at, created_at) AS publishedAt FROM comments WHERE status = 'approved' ORDER BY publishedAt DESC LIMIT ?",
+          )
+          .bind(limit)
+          .all<Comment & { publishedAt: number }>();
+        return results;
+      },
       async get(id: string): Promise<Comment | null> {
         return db
           .prepare(

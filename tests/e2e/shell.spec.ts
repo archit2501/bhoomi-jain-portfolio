@@ -194,7 +194,7 @@ test.describe('wide desktop', () => {
     await page.locator('nav.side-nav').getByRole('link', { name: 'Notifications' }).click();
     const panel = page.getByRole('dialog', { name: 'Notifications' });
     await expect(panel).toBeVisible();
-    await expect(panel.locator('.event').first()).toBeVisible();
+    await expect(panel.locator('.row').first()).toBeVisible();
     expect(await serious(page, '#panel-notifications')).toEqual([]);
     await page.mouse.click(1200, 450);
     await expect(panel).toBeHidden();
