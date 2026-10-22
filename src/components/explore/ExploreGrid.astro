@@ -10,6 +10,7 @@ import { exploreLayout, interleave } from '../../lib/explore';
 import type { Field } from '../../lib/fields';
 import Media from '../Media.astro';
 import { ambientOf } from '../../lib/ambient-image';
+import { posterSources } from '../../lib/reels';
 import TypeTile from '../post/TypeTile.astro';
 import PostTile from '../profile/PostTile.astro';
 
@@ -112,6 +113,7 @@ const ringField = (story: Props['highlights'][number]) =>
             <img
               class="poster"
               src={item.reel.data.poster}
+              {...posterSources(item.reel.data.poster, 720)}
               alt=""
               width="720"
               height="1280"
