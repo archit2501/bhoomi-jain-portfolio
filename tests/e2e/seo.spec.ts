@@ -44,7 +44,7 @@ test('the profile describes her for search engines with resume facts', async ({ 
   expect(person).toMatchObject({
     '@type': 'Person',
     name: NAME,
-    sameAs: [profile.links.linkedin],
+    sameAs: [profile.links.linkedin, profile.links.github].filter(Boolean),
     ...(profile.jobTitle && { jobTitle: profile.jobTitle }),
     ...(profile.organization && { worksFor: { name: profile.organization.name } }),
     ...(profile.education && { alumniOf: { name: profile.education } }),

@@ -34,6 +34,17 @@ describe('personJsonLd', () => {
     });
   });
 
+  it('lists her GitHub beside LinkedIn when she has one', () => {
+    const withGithub = profileSchema.parse({
+      ...base,
+      links: { ...base.links, github: 'https://github.com/example' },
+    });
+    expect(personJsonLd(withGithub, 'https://example.com/').sameAs).toEqual([
+      base.links.linkedin,
+      'https://github.com/example',
+    ]);
+  });
+
   it('leaves out fields the profile does not have', () => {
     const data = personJsonLd(profileSchema.parse(base), 'https://example.com/');
     expect(data).not.toHaveProperty('jobTitle');

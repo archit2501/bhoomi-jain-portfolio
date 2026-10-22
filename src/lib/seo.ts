@@ -15,7 +15,9 @@ export function personJsonLd(profile: Profile, siteUrl: string): Record<string, 
       alumniOf: { '@type': 'CollegeOrUniversity', name: profile.education },
     }),
     address: { '@type': 'PostalAddress', addressLocality: profile.location },
-    sameAs: [profile.links.linkedin],
+    sameAs: [profile.links.linkedin, profile.links.github].filter((url): url is string =>
+      Boolean(url),
+    ),
   };
 }
 
