@@ -1,0 +1,1077 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+{"id":"scenes","type":"string","label":"Scenes (JSON: see README.md)","default":""}
+]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      paper-reel: every reel on Bhoomi's site, 1080x1920, 18 s, 30 fps (task 6.3.1).
+
+      Paper and ink (research/visual-overhaul): flat fields from her palette, Plus Jakarta Sans and
+      Geist Mono, her ring colours as lines and arcs. One scene list per reel, in
+      variables/<reel>.json, read once at init; this file draws and times them all.
+
+      Motion language: something moves from frame 0, the payoff lands by 0.6 s, every scene change
+      is a cut on colour (a wipe), the camera pushes slowly the whole time, nothing holds still for
+      more than about a second, and the last half second returns to the first frame so the loop is
+      seamless. One paused root timeline at window.__timelines["paper-reel"], built after the fonts
+      load (layout depends on them).
+
+      Every word on screen comes from the scene list, and the scene lists only use words from her
+      posts, figures and résumé (README.md).
+    -->
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Paper reel</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: 'Jakarta';
+        src: url('assets/fonts/jakarta.woff2') format('woff2');
+        font-weight: 200 800;
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: 'Geist Mono';
+        src: url('assets/fonts/geist-mono.woff2') format('woff2');
+        font-weight: 100 900;
+        font-display: block;
+      }
+
+      :root {
+        --paper: #f4f1ea;
+        --ink: #0c1014;
+        --deep: #0b1a26;
+        --ocean: #0369a1;
+        --lime: #a3e635;
+        --emerald: #34d399;
+        --cyan: #22d3ee;
+        --sky: #38bdf8;
+        --ring: linear-gradient(90deg, #a3e635, #34d399, #22d3ee, #38bdf8);
+      }
+
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--ink);
+      }
+
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Jakarta', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #reel {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      /* A scene: one field, full bleed. Later scenes sit above earlier ones and wipe in. */
+      .scene {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0;
+      }
+
+      .scene[data-field='paper'] { background: var(--paper); color: var(--ink); --meta: #3a4049; }
+      .scene[data-field='ink'] { background: var(--ink); color: #ffffff; --meta: #a2aab4; }
+      .scene[data-field='deep'] { background: var(--deep); color: #ffffff; --meta: #b6c2cf; }
+      .scene[data-field='ocean'] { background: var(--ocean); color: #ffffff; --meta: #e0f2fe; }
+      .scene[data-field='lime'] { background: var(--lime); color: var(--ink); --meta: #1f2730; }
+      .scene[data-field='emerald'] { background: var(--emerald); color: var(--ink); --meta: #1f2730; }
+      .scene[data-field='cyan'] { background: var(--cyan); color: var(--ink); --meta: #1f2730; }
+      .scene[data-field='sky'] { background: var(--sky); color: var(--ink); --meta: #1f2730; }
+
+      /* The blueprint dot grid on deep and ink. */
+      .scene[data-field='deep'] .cam::before,
+      .scene[data-field='ink'] .cam::before {
+        content: '';
+        position: absolute;
+        inset: -60px;
+        background: radial-gradient(circle, rgb(255 255 255 / 9%) 0 1.6px, transparent 2.4px) 0 0 /
+          36px 36px;
+      }
+
+      /* The camera: everything in a scene, pushed slowly in or out. */
+      .cam {
+        position: absolute;
+        inset: 0;
+        transform-origin: 50% 42%;
+      }
+
+      .arc {
+        position: absolute;
+        left: 360px;
+        top: 880px;
+        width: 1200px;
+        height: 1200px;
+      }
+
+      /* Text lives in the title-safe area: x 72-1008, y 240-1400. Below is the site's caption. */
+      .safe {
+        position: absolute;
+        left: 72px;
+        right: 72px;
+        top: 240px;
+        height: 1160px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .kicker {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        padding-bottom: 18px;
+        border-bottom: 3px solid currentColor;
+        color: var(--meta);
+        font: 500 38px/1.2 'Geist Mono', monospace;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+
+      .kicker span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .hero {
+        margin-top: 70px;
+        font-weight: 800;
+        line-height: 0.86;
+        letter-spacing: -0.06em;
+        font-variant-numeric: tabular-nums;
+        transform-origin: 0% 100%;
+      }
+
+      .title {
+        font-weight: 800;
+        line-height: 0.95;
+        letter-spacing: -0.045em;
+      }
+
+      .label {
+        margin-top: 44px;
+        font-weight: 700;
+        font-size: 64px;
+        line-height: 1.1;
+        letter-spacing: -0.015em;
+      }
+
+      .mono {
+        font-family: 'Geist Mono', monospace;
+        font-weight: 500;
+      }
+
+      /* Unitless marks: each one a share of the whole; struck ones drop away. */
+      .marks {
+        display: flex;
+        gap: 14px;
+        margin-top: 70px;
+        height: 150px;
+        align-items: flex-end;
+      }
+
+      .marks i {
+        display: block;
+        flex: 1;
+        height: 100%;
+        border-radius: 8px;
+        background: currentColor;
+        transform-origin: 50% 100%;
+      }
+
+      .change {
+        display: flex;
+        margin-top: 80px;
+        height: 44px;
+      }
+
+      .change i {
+        display: block;
+        height: 100%;
+      }
+
+      .dots {
+        display: grid;
+        gap: 26px;
+        margin-top: 60px;
+      }
+
+      .dots i {
+        display: block;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .ring-wrap {
+        position: relative;
+        width: 760px;
+        height: 760px;
+        margin: 60px auto 0;
+      }
+
+      .ring-wrap svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .ring-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 300px;
+        letter-spacing: -0.06em;
+      }
+
+      .words {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 0.26em;
+        row-gap: 6px;
+        font-weight: 800;
+        font-size: 92px;
+        line-height: 1.06;
+        letter-spacing: -0.035em;
+      }
+
+      .words span {
+        display: block;
+      }
+
+      .rule {
+        height: 14px;
+        margin-top: 60px;
+        border-radius: 7px;
+        background: var(--ring);
+        transform-origin: 0% 50%;
+      }
+
+      /* Architecture: layers top to bottom, each marked in her ring's order. */
+      .arch {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-top: 56px;
+      }
+
+      .node {
+        position: relative;
+        padding: 30px 36px 30px 56px;
+        border: 2px solid rgb(255 255 255 / 20%);
+        border-radius: 28px;
+        background: rgb(255 255 255 / 5%);
+        transform-origin: 50% 0%;
+      }
+
+      .node b {
+        position: absolute;
+        left: 22px;
+        top: 26px;
+        bottom: 26px;
+        width: 10px;
+        border-radius: 5px;
+      }
+
+      .node .name {
+        font-weight: 700;
+        font-size: 56px;
+        line-height: 1.1;
+      }
+
+      .node .detail {
+        margin-top: 10px;
+        color: var(--meta);
+        font: 500 32px/1.3 'Geist Mono', monospace;
+      }
+
+      .edge {
+        position: relative;
+        height: 120px;
+      }
+
+      .edge .line {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 6px;
+        margin-left: -3px;
+        border-radius: 3px;
+        transform-origin: 50% 0%;
+      }
+
+      .edge .packet {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 26px;
+        height: 26px;
+        margin-left: -13px;
+        border-radius: 50%;
+      }
+
+      .edge .tag {
+        position: absolute;
+        left: calc(50% + 34px);
+        top: 50%;
+        margin-top: -27px;
+        padding: 8px 22px;
+        border: 2px solid;
+        border-radius: 40px;
+        background: var(--deep);
+        color: #ffffff;
+        font: 500 32px/1.2 'Geist Mono', monospace;
+        white-space: nowrap;
+      }
+
+      .chips {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+        margin-top: 64px;
+      }
+
+      .chips span {
+        display: block;
+        padding: 24px 30px;
+        border: 4px solid currentColor;
+        border-radius: 60px;
+        font: 500 42px/1.1 'Geist Mono', monospace;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .lines {
+        display: flex;
+        flex-direction: column;
+        gap: 52px;
+        margin-top: 70px;
+      }
+
+      .lines div {
+        display: flex;
+        gap: 34px;
+        align-items: flex-start;
+        font-weight: 700;
+        font-size: 60px;
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+      }
+
+      .lines i {
+        flex: none;
+        width: 14px;
+        height: 76px;
+        margin-top: 4px;
+        border-radius: 7px;
+        background: var(--ring);
+        transform-origin: 50% 0%;
+      }
+
+      /* Explainers: a client and a server, and what travels between them. */
+      .flow {
+        position: relative;
+        height: 720px;
+        margin-top: 70px;
+      }
+
+      .box {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid currentColor;
+        border-radius: 34px;
+        font: 500 36px/1.2 'Geist Mono', monospace;
+        text-align: center;
+      }
+
+      .pk {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .card {
+        position: absolute;
+        border: 4px solid currentColor;
+        border-radius: 22px;
+      }
+
+      .card::after {
+        content: '';
+        position: absolute;
+        left: 28px;
+        right: 40%;
+        top: 30px;
+        height: 16px;
+        border-radius: 8px;
+        background: currentColor;
+        box-shadow: 0 36px 0 currentColor;
+      }
+
+      /* The end card: her photo in her ring, closing as it draws. */
+      .end {
+        align-items: center;
+        text-align: center;
+      }
+
+      .portrait {
+        position: relative;
+        width: 460px;
+        height: 460px;
+        margin-top: 110px;
+      }
+
+      .portrait img {
+        position: absolute;
+        left: 40px;
+        top: 40px;
+        width: 380px;
+        height: 380px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .portrait svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .name {
+        margin-top: 64px;
+        font-weight: 800;
+        font-size: 104px;
+        letter-spacing: -0.04em;
+      }
+
+      .role {
+        margin-top: 16px;
+        font-weight: 600;
+        font-size: 52px;
+      }
+
+      .handle {
+        margin-top: 30px;
+        color: var(--meta);
+        font: 500 42px/1.2 'Geist Mono', monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-v56v"
+      id="root"
+      data-composition-id="paper-reel"
+      data-start="0"
+      data-duration="18"
+      data-fps="30"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div data-hf-id="hf-82hz" id="reel" class="clip" data-start="0" data-duration="18" data-track-index="0"></div>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        var DURATION = 18;
+        var WIPE = 0.36;
+        var FIELD_FG = {
+          paper: '#0c1014', ink: '#ffffff', deep: '#ffffff', ocean: '#ffffff',
+          lime: '#0c1014', emerald: '#0c1014', cyan: '#0c1014', sky: '#0c1014',
+        };
+        var LAYERS = ['#a3e635', '#34d399', '#22d3ee', '#38bdf8'];
+
+        // A default scene list (the CyberCup reel), so the file previews on its own.
+        var DEFAULT_SCENES = [
+          { type: 'hook', field: 'lime', duration: 1.5, kicker: ['CyberCup 4.0', 'National-level hackathon'], hero: '1st', label: 'of 160 teams' },
+          { type: 'dots', field: 'ink', duration: 3.6, total: 160, lit: 1, label: 'of 160 teams' },
+          { type: 'ring', field: 'emerald', duration: 3.2, segments: 36, label: '36-hour build window' },
+          { type: 'quote', field: 'paper', duration: 5.0, kicker: ['CyberCup 4.0'], chunks: ['I led a team to 1st place', 'out of 160 competing teams,', 'delivering a working prototype end to end'] },
+          { type: 'end', field: 'ink', duration: 4.2 },
+        ];
+
+        var hf = window.__hyperframes || {};
+        var vars = hf.getVariables ? hf.getVariables() || {} : {};
+        var scenes = DEFAULT_SCENES;
+        if (vars.scenes) {
+          try {
+            scenes = JSON.parse(String(vars.scenes));
+          } catch (e) {
+            scenes = DEFAULT_SCENES;
+          }
+        }
+
+        var reel = document.getElementById('reel');
+
+        function el(tag, cls, text) {
+          var node = document.createElement(tag);
+          if (cls) node.className = cls;
+          if (text != null) node.textContent = text;
+          return node;
+        }
+
+        function kicker(parts) {
+          var k = el('div', 'kicker');
+          (parts || []).forEach(function (p) {
+            k.appendChild(el('span', null, p));
+          });
+          return k;
+        }
+
+        /** Her ring as an arc entering from the lower right: ink on bright fields, her colours on dark. */
+        function arc(cam, field) {
+          var ns = 'http://www.w3.org/2000/svg';
+          var svg = document.createElementNS(ns, 'svg');
+          svg.setAttribute('viewBox', '0 0 1200 1200');
+          svg.setAttribute('class', 'arc');
+          var dark = field === 'ink' || field === 'deep' || field === 'ocean';
+          if (dark) {
+            var defs = document.createElementNS(ns, 'defs');
+            defs.innerHTML =
+              '<linearGradient id="arcRing" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a3e635"/><stop offset=".34" stop-color="#34d399"/><stop offset=".66" stop-color="#22d3ee"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>';
+            svg.appendChild(defs);
+          }
+          var c = document.createElementNS(ns, 'circle');
+          var r = 520;
+          c.setAttribute('cx', '600');
+          c.setAttribute('cy', '600');
+          c.setAttribute('r', String(r));
+          c.setAttribute('fill', 'none');
+          c.setAttribute('stroke', dark ? 'url(#arcRing)' : FIELD_FG[field]);
+          c.setAttribute('stroke-width', '34');
+          c.setAttribute('stroke-linecap', 'round');
+          var len = 2 * Math.PI * r;
+          c.setAttribute('stroke-dasharray', len * 0.62 + ' ' + len);
+          c.setAttribute('transform', 'rotate(150 600 600)');
+          svg.appendChild(c);
+          cam.appendChild(svg);
+          return svg;
+        }
+
+        /** Big type sized so its longest word fits the 936px column. */
+        function fit(text, max, perChar) {
+          var longest = Math.max.apply(
+            null,
+            String(text)
+              .split(/\s+/)
+              .map(function (w) {
+                return w.length;
+              }),
+          );
+          return Math.min(max, Math.floor(936 / (longest * perChar)));
+        }
+
+        // ---- builders: each returns the scene's elements, animated by its timing function ----
+        var builders = {
+          hook: function (s, safe, cam) {
+            var ring = arc(cam, s.field);
+            safe.appendChild(kicker(s.kicker));
+            var hero = el('div', 'hero', s.hero);
+            // Numerals and % in an 800 weight run wide: about 0.8em a character.
+            hero.style.fontSize = fit(s.hero, 600, 0.8) + 'px';
+            safe.appendChild(hero);
+            var label = s.label ? el('div', 'label', s.label) : null;
+            if (label) safe.appendChild(label);
+            var extra = null;
+            if (s.marks) {
+              extra = el('div', 'marks');
+              for (var i = 0; i < s.marks.total; i += 1) extra.appendChild(el('i'));
+              safe.appendChild(extra);
+            }
+            if (s.change) {
+              extra = el('div', 'change');
+              var base = el('i');
+              var delta = el('i');
+              var share = s.change.percent / 100;
+              var baseShare = s.change.direction === 'up' ? 1 / (1 + share) : 1 - share;
+              base.style.width = baseShare * 100 + '%';
+              base.style.background = 'currentColor';
+              base.style.borderRadius = '22px 0 0 22px';
+              delta.style.flex = '1';
+              delta.style.borderRadius = '0 22px 22px 0';
+              if (s.change.direction === 'up') delta.style.background = 'var(--ring)';
+              else delta.style.border = '6px dashed currentColor';
+              extra.appendChild(base);
+              extra.appendChild(delta);
+              safe.appendChild(extra);
+            }
+            return { hero: hero, label: label, extra: extra, marks: s.marks, arc: ring };
+          },
+          dots: function (s, safe) {
+            var cols = Math.min(16, Math.ceil(Math.sqrt(s.total * 1.6)));
+            var head = el('div', 'kicker');
+            var counter = el('span', null, '000');
+            head.appendChild(counter);
+            head.appendChild(el('span', null, s.unit || 'teams'));
+            safe.appendChild(head);
+            var grid = el('div', 'dots');
+            grid.style.gridTemplateColumns = 'repeat(' + cols + ', 34px)';
+            var dots = [];
+            for (var i = 0; i < s.total; i += 1) {
+              var d = el('i');
+              grid.appendChild(d);
+              dots.push(d);
+            }
+            safe.appendChild(grid);
+            var label = el('div', 'label', s.label);
+            safe.appendChild(label);
+            return { dots: dots, cols: cols, counter: counter, label: label };
+          },
+          ring: function (s, safe) {
+            if (s.kicker) safe.appendChild(kicker(s.kicker));
+            var wrap = el('div', 'ring-wrap');
+            var ns = 'http://www.w3.org/2000/svg';
+            var svg = document.createElementNS(ns, 'svg');
+            svg.setAttribute('viewBox', '0 0 760 760');
+            var segs = [];
+            var n = s.segments;
+            for (var i = 0; i < n; i += 1) {
+              var a0 = (i / n) * Math.PI * 2 - Math.PI / 2 + 0.03;
+              var a1 = ((i + 1) / n) * Math.PI * 2 - Math.PI / 2 - 0.03;
+              var r = 340;
+              var p = document.createElementNS(ns, 'path');
+              p.setAttribute(
+                'd',
+                'M' + (380 + r * Math.cos(a0)) + ' ' + (380 + r * Math.sin(a0)) +
+                  ' A' + r + ' ' + r + ' 0 0 1 ' + (380 + r * Math.cos(a1)) + ' ' + (380 + r * Math.sin(a1)),
+              );
+              p.setAttribute('fill', 'none');
+              p.setAttribute('stroke', 'currentColor');
+              p.setAttribute('stroke-width', '44');
+              p.setAttribute('opacity', '0.18');
+              svg.appendChild(p);
+              segs.push(p);
+            }
+            wrap.appendChild(svg);
+            var center = el('div', 'ring-center', '0');
+            wrap.appendChild(center);
+            safe.appendChild(wrap);
+            var label = el('div', 'label', s.label);
+            label.style.textAlign = 'center';
+            safe.appendChild(label);
+            return { segs: segs, center: center, label: label };
+          },
+          quote: function (s, safe) {
+            safe.appendChild(kicker(s.kicker));
+            var box = el('div', 'words');
+            box.style.marginTop = '90px';
+            var words = [];
+            s.chunks.forEach(function (chunk, c) {
+              chunk.split(/\s+/).forEach(function (w) {
+                var span = el('span', null, w);
+                span.dataset.chunk = String(c);
+                box.appendChild(span);
+                words.push(span);
+              });
+            });
+            safe.appendChild(box);
+            var rule = el('div', 'rule');
+            safe.appendChild(rule);
+            return { words: words, chunks: s.chunks.length, rule: rule };
+          },
+          arch: function (s, safe) {
+            var title = el('div', 'title', s.title);
+            title.style.fontSize = '64px';
+            safe.appendChild(title);
+            var arch = el('div', 'arch');
+            var nodes = [];
+            var edges = [];
+            s.nodes.forEach(function (n, i) {
+              if (i > 0) {
+                var edge = el('div', 'edge');
+                var color = LAYERS[i % LAYERS.length];
+                var line = el('div', 'line');
+                line.style.background = color;
+                var packet = el('div', 'packet');
+                packet.style.background = color;
+                edge.appendChild(line);
+                edge.appendChild(packet);
+                var tagText = (s.edges || [])[i - 1];
+                var tag = tagText ? el('div', 'tag', tagText) : null;
+                if (tag) {
+                  tag.style.borderColor = color;
+                  edge.appendChild(tag);
+                }
+                arch.appendChild(edge);
+                edges.push({ line: line, packet: packet, tag: tag });
+              }
+              var node = el('div', 'node');
+              var bar = el('b');
+              bar.style.background = LAYERS[i % LAYERS.length];
+              node.appendChild(bar);
+              node.appendChild(el('div', 'name', n.label));
+              if (n.detail) node.appendChild(el('div', 'detail', n.detail));
+              arch.appendChild(node);
+              nodes.push(node);
+            });
+            safe.appendChild(arch);
+            return { title: title, nodes: nodes, edges: edges };
+          },
+          chips: function (s, safe) {
+            safe.appendChild(kicker(s.kicker));
+            var grid = el('div', 'chips');
+            var chips = s.chips.map(function (c) {
+              var chip = el('span', null, c);
+              grid.appendChild(chip);
+              return chip;
+            });
+            safe.appendChild(grid);
+            return { chips: chips };
+          },
+          lines: function (s, safe) {
+            safe.appendChild(kicker(s.kicker));
+            var box = el('div', 'lines');
+            var rows = s.lines.map(function (text) {
+              var row = el('div');
+              var tick = el('i');
+              row.appendChild(tick);
+              row.appendChild(el('span', null, text));
+              box.appendChild(row);
+              return { row: row, tick: tick };
+            });
+            safe.appendChild(box);
+            return { rows: rows };
+          },
+          flow: function (s, safe) {
+            safe.appendChild(kicker(s.kicker));
+            var title = el('div', 'title', s.title);
+            title.style.fontSize = fit(s.title, 120, 0.6) + 'px';
+            title.style.marginTop = '60px';
+            safe.appendChild(title);
+            var flow = el('div', 'flow');
+            safe.appendChild(flow);
+            var parts = { title: title, flow: flow, mode: s.mode, packets: [], cards: [] };
+            function box(text, x, y, w, h) {
+              var b = el('div', 'box', text);
+              b.style.left = x + 'px';
+              b.style.top = y + 'px';
+              b.style.width = w + 'px';
+              b.style.height = h + 'px';
+              flow.appendChild(b);
+              return b;
+            }
+            if (s.mode === 'batch' || s.mode === 'cache') {
+              parts.from = box(s.from, 0, 250, 300, 200);
+              parts.to = box(s.to, 636, 250, 300, 200);
+              if (s.mode === 'cache') {
+                parts.cache = box(s.cache, 318, 40, 300, 150);
+                parts.cache.style.borderStyle = 'dashed';
+              }
+              var n = s.requests || 8;
+              for (var i = 0; i < n; i += 1) {
+                var p = el('div', 'pk');
+                flow.appendChild(p);
+                parts.packets.push(p);
+              }
+            }
+            if (s.mode === 'lazy') {
+              for (var j = 0; j < 7; j += 1) {
+                var c = el('div', 'card');
+                c.style.left = '120px';
+                c.style.width = '696px';
+                c.style.top = j * 150 + 'px';
+                c.style.height = '120px';
+                flow.appendChild(c);
+                parts.cards.push(c);
+              }
+              var view = el('div', 'box', '');
+              view.style.left = '80px';
+              view.style.width = '776px';
+              view.style.top = '-20px';
+              view.style.height = '330px';
+              view.style.borderWidth = '6px';
+              flow.appendChild(view);
+              parts.view = view;
+              flow.style.overflow = 'hidden';
+            }
+            if (s.mode === 'compress') {
+              var big = el('div', 'box', '');
+              big.style.left = '168px';
+              big.style.top = '60px';
+              big.style.width = '600px';
+              big.style.height = '600px';
+              big.style.background = 'currentColor';
+              big.style.opacity = '0.9';
+              flow.appendChild(big);
+              parts.block = big;
+            }
+            return parts;
+          },
+          end: function (s, safe) {
+            safe.classList.add('end');
+            var portrait = el('div', 'portrait');
+            var img = document.createElement('img');
+            img.src = 'assets/avatar.webp';
+            img.alt = '';
+            portrait.appendChild(img);
+            var ns = 'http://www.w3.org/2000/svg';
+            var svg = document.createElementNS(ns, 'svg');
+            svg.setAttribute('viewBox', '0 0 460 460');
+            var defs = document.createElementNS(ns, 'defs');
+            defs.innerHTML =
+              '<linearGradient id="endRing" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#a3e635"/><stop offset=".34" stop-color="#34d399"/><stop offset=".66" stop-color="#22d3ee"/><stop offset="1" stop-color="#38bdf8"/></linearGradient>';
+            svg.appendChild(defs);
+            var circle = document.createElementNS(ns, 'circle');
+            circle.setAttribute('cx', '230');
+            circle.setAttribute('cy', '230');
+            circle.setAttribute('r', '214');
+            circle.setAttribute('fill', 'none');
+            circle.setAttribute('stroke', 'url(#endRing)');
+            circle.setAttribute('stroke-width', '14');
+            circle.setAttribute('stroke-linecap', 'round');
+            circle.setAttribute('transform', 'rotate(-90 230 230)');
+            svg.appendChild(circle);
+            portrait.appendChild(svg);
+            safe.appendChild(portrait);
+            var name = el('div', 'name', s.name || 'Bhoomi Jain');
+            var role = el('div', 'role', s.role || 'Full Stack Developer');
+            var handle = el('div', 'handle', s.handle || 'bhoomi.jain');
+            safe.appendChild(name);
+            safe.appendChild(role);
+            safe.appendChild(handle);
+            return { portrait: portrait, img: img, circle: circle, svg: svg, name: name, role: role, handle: handle };
+          },
+        };
+
+        // ---- timing: each scene's motion, from its start t over its duration d ----
+        var motion = {
+          hook: function (tl, p, t, d, s) {
+            tl.fromTo(p.arc, { rotation: 0 }, { rotation: 28, duration: d + WIPE, ease: 'none', svgOrigin: '600 600' }, t);
+            // Payoff first: the number is already arriving on frame 0.
+            tl.fromTo(p.hero, { opacity: 0, scale: 1.14, y: 40 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'expo.out' }, t);
+            if (p.label) tl.fromTo(p.label, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out' }, t + 0.35);
+            if (p.extra && p.marks) {
+              var marks = Array.prototype.slice.call(p.extra.children);
+              tl.fromTo(marks, { scaleY: 0 }, { scaleY: 1, duration: 0.35, ease: 'back.out(1.6)', stagger: 0.03 }, t + 0.5);
+              var struck = marks.slice(marks.length - p.marks.struck);
+              tl.to(struck, { opacity: 0.18, scaleY: 0.25, duration: 0.4, ease: 'power3.inOut', stagger: 0.05 }, t + 0.5 + marks.length * 0.03 + 0.25);
+            } else if (p.extra) {
+              tl.fromTo(p.extra.children, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, duration: 0.6, ease: 'power3.out', stagger: 0.25 }, t + 0.55);
+            }
+          },
+          dots: function (tl, p, t, d, s) {
+            var cols = p.cols;
+            p.dots.forEach(function (dot, i) {
+              var diag = (i % cols) + Math.floor(i / cols);
+              tl.fromTo(dot, { scale: 0, opacity: 0.25 }, { scale: 1, opacity: 1, duration: 0.25, ease: 'back.out(2)' }, t + 0.15 + diag * 0.055);
+            });
+            var fillEnd = t + 0.15 + (cols + Math.ceil(p.dots.length / cols)) * 0.055 + 0.25;
+            // The counter ticks with the fill, one integer per frame (seek-safe sets).
+            var frames = Math.max(1, Math.round((fillEnd - t - 0.15) * 30));
+            for (var f = 0; f <= frames; f += 1) {
+              var v = Math.round(s.total * gsap.parseEase('power2.out')(f / frames));
+              tl.set(p.counter, { textContent: String(v).padStart(3, '0') }, t + 0.15 + f / 30);
+            }
+            var lit = p.dots[(s.lit || 1) - 1];
+            var others = p.dots.filter(function (dot) {
+              return dot !== lit;
+            });
+            tl.to(others, { opacity: 0.22, duration: 0.4, ease: 'power2.out' }, fillEnd + 0.1);
+            tl.to(lit, { scale: 1.9, backgroundColor: '#a3e635', duration: 0.4, ease: 'back.out(2.4)' }, fillEnd + 0.1);
+            tl.fromTo(lit, { boxShadow: '0 0 0 0px rgba(163,230,53,0.9)' }, { boxShadow: '0 0 0 22px rgba(163,230,53,0)', duration: 0.9, ease: 'power2.out', repeat: 1 }, fillEnd + 0.4);
+            tl.fromTo(p.label, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out' }, fillEnd);
+          },
+          ring: function (tl, p, t, d, s) {
+            var step = Math.min(0.06, (d - 1.2) / p.segs.length);
+            p.segs.forEach(function (seg, i) {
+              tl.to(seg, { opacity: 1, duration: 0.12, ease: 'power1.out' }, t + 0.2 + i * step);
+              tl.set(p.center, { textContent: String(i + 1) }, t + 0.2 + i * step);
+            });
+            tl.fromTo(p.label, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out' }, t + 0.3);
+          },
+          quote: function (tl, p, t, d) {
+            var per = Math.min(0.09, (d - 1.4) / p.words.length);
+            p.words.forEach(function (w, i) {
+              tl.fromTo(w, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.3, ease: 'expo.out' }, t + 0.2 + i * per + Number(w.dataset.chunk) * 0.22);
+            });
+            tl.fromTo(p.rule, { scaleX: 0 }, { scaleX: 1, duration: 0.7, ease: 'power2.inOut' }, t + 0.25 + p.words.length * per + p.chunks * 0.22);
+          },
+          arch: function (tl, p, t, d) {
+            tl.fromTo(p.title, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, ease: 'expo.out' }, t + 0.05);
+            var at = t + 0.3;
+            var step = Math.min(1.2, (d - 1.2) / Math.max(1, p.nodes.length));
+            p.nodes.forEach(function (node, i) {
+              if (i > 0) {
+                var e = p.edges[i - 1];
+                tl.fromTo(e.line, { scaleY: 0 }, { scaleY: 1, duration: 0.35, ease: 'power2.inOut' }, at - 0.4);
+                tl.fromTo(e.packet, { y: 0, opacity: 1 }, { y: 94, duration: 0.55, ease: 'sine.inOut', repeat: 3 }, at - 0.1);
+                if (e.tag) tl.fromTo(e.tag, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(1.6)' }, at - 0.25);
+              }
+              tl.fromTo(node, { opacity: 0, y: 40, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'expo.out' }, at);
+              at += step;
+            });
+          },
+          chips: function (tl, p, t, d) {
+            tl.fromTo(p.chips, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.6)', stagger: 0.12 }, t + 0.2);
+            tl.to(p.chips, { y: -8, duration: 0.6, ease: 'sine.inOut', stagger: { each: 0.08, yoyo: true, repeat: 1 } }, t + 0.4 + p.chips.length * 0.12);
+          },
+          lines: function (tl, p, t, d) {
+            var step = Math.min(1.1, (d - 0.8) / p.rows.length);
+            p.rows.forEach(function (r, i) {
+              tl.fromTo(r.tick, { scaleY: 0 }, { scaleY: 1, duration: 0.4, ease: 'power2.inOut' }, t + 0.2 + i * step);
+              tl.fromTo(r.row.lastChild, { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.45, ease: 'expo.out' }, t + 0.3 + i * step);
+            });
+          },
+          flow: function (tl, p, t, d, s) {
+            tl.fromTo(p.title, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out' }, t + 0.1);
+            if (p.mode === 'batch') {
+              // Many small requests, one at a time; then the same requests, batched, in one trip.
+              p.packets.forEach(function (pk, i) {
+                tl.set(pk, { x: 300, y: 333, opacity: 0 }, t);
+                tl.fromTo(pk, { x: 300, opacity: 1 }, { x: 600, duration: 0.4, ease: 'power1.inOut' }, t + 0.4 + i * 0.16);
+                tl.to(pk, { opacity: 0, duration: 0.1 }, t + 0.8 + i * 0.16);
+              });
+              var gather = t + 0.6 + p.packets.length * 0.16;
+              p.packets.forEach(function (pk, i) {
+                var gx = 330 + (i % 4) * 40;
+                var gy = 290 + Math.floor(i / 4) * 40;
+                tl.fromTo(pk, { x: 300, y: 330, opacity: 0 }, { x: gx, y: gy, opacity: 1, duration: 0.3, ease: 'back.out(1.6)' }, gather + i * 0.04);
+                tl.to(pk, { x: '+=180', duration: 0.55, ease: 'power2.in' }, gather + 0.6);
+                tl.to(pk, { opacity: 0, scale: 0.4, duration: 0.15, ease: 'power1.in' }, gather + 1.05);
+              });
+              // One trip: the backend takes the whole batch at once.
+              tl.fromTo(p.to, { scale: 1 }, { scale: 1.07, duration: 0.16, ease: 'power2.out', yoyo: true, repeat: 1 }, gather + 1.1);
+            }
+            if (p.mode === 'cache') {
+              // Requests leave the UI; repeats are answered by the cache, the rest reach the API.
+              var hits = s.hits || 0;
+              p.packets.forEach(function (pk, i) {
+                var at = t + 0.5 + i * ((d - 1.6) / p.packets.length);
+                // Exactly `hits` of the requests, spread evenly through the run.
+                var n = p.packets.length;
+                var cached = Math.floor(((i + 1) * hits) / n) > Math.floor((i * hits) / n);
+                tl.set(pk, { x: 300, y: 333, opacity: 0, scale: 1 }, t);
+                tl.set(pk, { opacity: 1 }, at);
+                if (cached) {
+                  tl.to(pk, { x: 451, y: 98, duration: 0.35, ease: 'power2.out' }, at);
+                  tl.to(pk, { scale: 0, opacity: 0, duration: 0.25, ease: 'power2.in' }, at + 0.35);
+                  tl.fromTo(p.cache, { backgroundColor: 'rgba(163,230,53,0)' }, { backgroundColor: 'rgba(163,230,53,0.55)', duration: 0.15, yoyo: true, repeat: 1 }, at + 0.32);
+                } else {
+                  tl.to(pk, { x: 619, duration: 0.5, ease: 'power1.inOut' }, at);
+                  tl.to(pk, { opacity: 0, duration: 0.12 }, at + 0.5);
+                }
+              });
+            }
+            if (p.mode === 'lazy') {
+              // Only what scrolls into view loads; the rest waits as an outline.
+              p.cards.forEach(function (c) {
+                tl.set(c, { backgroundColor: 'rgba(0,0,0,0)', opacity: 0.3 }, t);
+              });
+              tl.fromTo(p.view, { y: 0 }, { y: 760, duration: d - 1.0, ease: 'sine.inOut' }, t + 0.4);
+              p.cards.forEach(function (c, i) {
+                var at = t + 0.4 + ((i * 150) / 1060) * (d - 1.0);
+                tl.to(c, { opacity: 1, backgroundColor: 'rgba(12,16,20,0.08)', duration: 0.3, ease: 'power2.out' }, at);
+              });
+            }
+            if (p.mode === 'compress') {
+              // The same asset, smaller on the wire.
+              tl.fromTo(p.block, { scale: 1 }, { scale: 0.45, duration: 1.2, ease: 'power3.inOut' }, t + 0.8);
+              tl.to(p.block, { x: 220, duration: 0.8, ease: 'power2.inOut' }, t + 2.1);
+            }
+          },
+          end: function (tl, p, t, d) {
+            var len = 2 * Math.PI * 214;
+            tl.set(p.circle, { attr: { 'stroke-dasharray': len, 'stroke-dashoffset': len } }, t);
+            tl.fromTo(p.img, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.6, ease: 'expo.out' }, t + 0.1);
+            tl.to(p.circle, { attr: { 'stroke-dashoffset': 0 }, duration: 0.9, ease: 'power2.inOut' }, t + 0.2);
+            tl.fromTo(p.svg, { rotation: 0 }, { rotation: 40, duration: d, ease: 'none', transformOrigin: '50% 50%' }, t);
+            tl.fromTo([p.name, p.role, p.handle], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'expo.out', stagger: 0.15 }, t + 0.5);
+          },
+        };
+
+        function build() {
+          var tl = gsap.timeline({ paused: true });
+          var t = 0;
+          var origins = ['85% 15%', '15% 85%', '85% 85%', '15% 15%'];
+          var built = scenes.map(function (s, i) {
+            var scene = el('div', 'scene');
+            scene.dataset.field = s.field;
+            scene.style.zIndex = String(i + 1);
+            var cam = el('div', 'cam');
+            var safe = el('div', 'safe');
+            cam.appendChild(safe);
+            scene.appendChild(cam);
+            reel.appendChild(scene);
+            return { s: s, scene: scene, cam: cam, parts: builders[s.type](s, safe, cam) };
+          });
+
+          // The loop: the last half second wipes back to the first scene's opening frame.
+          var first = scenes[0];
+          var loop = el('div', 'scene');
+          loop.dataset.field = first.field;
+          loop.style.zIndex = String(scenes.length + 2);
+          var loopSafe = el('div', 'safe');
+          var loopCam = el('div', 'cam');
+          loopCam.appendChild(loopSafe);
+          loop.appendChild(loopCam);
+          if (first.type === 'hook') arc(loopCam, first.field);
+          if (first.kicker) loopSafe.appendChild(kicker(first.kicker));
+          reel.appendChild(loop);
+
+          built.forEach(function (b, i) {
+            var d = b.s.duration;
+            var origin = origins[i % origins.length];
+            if (i === 0) {
+              tl.set(b.scene, { opacity: 1 }, 0);
+            } else {
+              tl.set(b.scene, { opacity: 1, clipPath: 'circle(0% at ' + origin + ')' }, t);
+              tl.to(b.scene, { clipPath: 'circle(150% at ' + origin + ')', duration: WIPE, ease: 'power3.inOut' }, t);
+              tl.set(built[i - 1].scene, { opacity: 0 }, t + WIPE);
+            }
+            // The camera never rests: a slow push, in on even scenes and out on odd ones.
+            var push = i % 2 === 0 ? [1, 1.035] : [1.035, 1];
+            tl.fromTo(b.cam, { scale: push[0] }, { scale: push[1], duration: d + WIPE, ease: 'none' }, t);
+            motion[b.s.type](tl, b.parts, t, d, b.s);
+            t += d;
+          });
+
+          var loopAt = DURATION - 0.5;
+          tl.set(loop, { opacity: 1, clipPath: 'circle(0% at 50% 50%)' }, loopAt);
+          tl.to(loop, { clipPath: 'circle(150% at 50% 50%)', duration: 0.4, ease: 'power3.inOut' }, loopAt);
+          tl.fromTo(loopCam, { scale: 1.035 }, { scale: 1, duration: 0.5, ease: 'none' }, loopAt);
+          return tl;
+        }
+
+        document.fonts.ready.then(function () {
+          var tl = build();
+          window.__timelines['paper-reel'] = tl;
+          tl.seek(0);
+        });
+      })();
+    </script>
+  </body>
+</html>
