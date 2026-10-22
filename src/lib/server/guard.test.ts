@@ -75,6 +75,15 @@ const like = defineWrite({
   },
 });
 
+/**
+ * The local rate limiters count in windows aligned to the clock minute (as Miniflare does), so
+ * a burst that straddles a minute gets a fresh allowance halfway. Start one in a fresh window.
+ */
+async function freshMinute(): Promise<void> {
+  const left = 60_000 - (Date.now() % 60_000);
+  if (left < 15_000) await new Promise((resolve) => setTimeout(resolve, left + 50));
+}
+
 describe('the write pipeline', () => {
   it('a good write goes through and gets an anonymous visitor cookie', async () => {
     const res = await like(post({ slug: 'p-good', turnstile: 'tok' }), platform);
@@ -142,6 +151,7 @@ describe('the write pipeline', () => {
   });
 
   it('a visitor hits their limit (12 a minute) and gets told when to retry', async () => {
+    await freshMinute();
     const visitor = freshVisitor();
     const statuses: number[] = [];
     for (let i = 0; i < 14; i++) {
@@ -157,6 +167,7 @@ describe('the write pipeline', () => {
   }, 30_000);
 
   it('one IP hits its limit (30 a minute) even when it rotates visitor cookies', async () => {
+    await freshMinute();
     const ip = freshIp();
     const statuses: number[] = [];
     for (let i = 0; i < 32; i++) {
