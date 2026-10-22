@@ -87,6 +87,8 @@ test('without JavaScript, her milestones, each linking to the post that tells it
     .evaluateAll((els) => els.map((el) => el.getAttribute('datetime')!));
   expect(dates).toEqual([...dates].sort((a, b) => b.localeCompare(a)));
   await expect(group(page, 'Earlier')).toBeVisible();
+  // Under the page's h1 the groups are h2 (in the drawer, under its h2, they're h3).
+  await expect(list(page).getByRole('heading', { level: 2, name: 'Earlier' })).toBeVisible();
   await context.close();
 });
 

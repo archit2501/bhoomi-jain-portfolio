@@ -58,7 +58,7 @@ function render(root: HTMLElement, items: Activity[], seen: number | null): void
       section.className = 'group';
       const id = `${prefix}-${group.label.replace(/\s+/g, '-')}`;
       section.setAttribute('aria-labelledby', id);
-      const heading = document.createElement('h3');
+      const heading = document.createElement(`h${root.dataset.headingLevel ?? '3'}`);
       heading.id = id;
       heading.textContent = group.label;
       const list = document.createElement('ul');
