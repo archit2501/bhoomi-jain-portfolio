@@ -186,8 +186,8 @@ Each number, and the line of her résumé it comes from.
 - [ ] **Conversational AI Web App** (`/reels/conversational-ai-web-app/`): Conversational AI Web App, a full-stack project (2024): real-time chat in React on a FastAPI backend. How it fits together: a React chat UI (optimistic UI, streaming hooks) calls a FastAPI REST backend on AWS EC2, with batched requests. Built with ReactJS, JavaScript, CSS3, FastAPI, REST and AWS EC2. 40% lower end-to-end latency on AWS EC2.
 - [ ] **AI Resume Shortlisting Tool** (`/reels/ai-resume-shortlisting-tool/`): AI Resume Shortlisting Tool, a web UI project (2024): a recruiter-facing web interface. How it fits together: a recruiter web UI (Bootstrap, drag-and-drop upload) sends résumé uploads to a Flask backend. Built with JavaScript, HTML5, CSS3, Bootstrap and Flask. <1.5s perceived response time for skill-gap insights.
 - [ ] **1st of 160 teams** (`/reels/cybercup/`): CyberCup 4.0, a national-level hackathon: 160 teams competed, and Bhoomi led her team to 1st place with a working prototype built in 36 hours.
-- [ ] **40% lower latency** (`/reels/latency/`): Conversational AI Web App: a React client on a FastAPI backend, deployed to AWS EC2, with end-to-end latency cut by 40% through request batching, lazy loading and asset compression.
-- [ ] **~45% fewer network calls** (`/reels/network-calls/`): SmartBlog AI: client-side caching with React Query cut redundant network calls by about 45%.
+- [ ] **40% lower latency** (`/reels/latency/`): Conversational AI Web App: end-to-end latency cut by 40%, and the three ways it was cut, one by one: request batching (many small requests sent as one), lazy loading (content loads as it scrolls into view) and asset compression. A React client on a FastAPI backend, deployed to AWS EC2.
+- [ ] **~45% fewer network calls** (`/reels/network-calls/`): SmartBlog AI: ~45% fewer redundant network calls with client-side caching in React Query, shown as requests from the React SPA where repeats are answered by the cache instead of reaching the REST API. Built from composable UI primitives, with unit and integration tests.
 
 ## Messages: her opening lines
 

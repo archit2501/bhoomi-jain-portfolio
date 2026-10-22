@@ -38,7 +38,7 @@
     "title": "40% lower latency",
     "order": 5,
     "figure": "latency",
-    "description": "Conversational AI Web App: a React client on a FastAPI backend, deployed to AWS EC2, with end-to-end latency cut by 40% through request batching, lazy loading and asset compression.",
+    "description": "Conversational AI Web App: end-to-end latency cut by 40%, and the three ways it was cut, one by one: request batching (many small requests sent as one), lazy loading (content loads as it scrolls into view) and asset compression. A React client on a FastAPI backend, deployed to AWS EC2.",
     "video": "/reels/latency.mp4",
     "poster": "/reels/latency.webp"
   },
@@ -46,7 +46,7 @@
     "title": "~45% fewer network calls",
     "order": 6,
     "figure": "network-calls",
-    "description": "SmartBlog AI: client-side caching with React Query cut redundant network calls by about 45%.",
+    "description": "SmartBlog AI: ~45% fewer redundant network calls with client-side caching in React Query, shown as requests from the React SPA where repeats are answered by the cache instead of reaching the REST API. Built from composable UI primitives, with unit and integration tests.",
     "video": "/reels/network-calls.mp4",
     "poster": "/reels/network-calls.webp"
   }
