@@ -1,0 +1,3 @@
+{
+  "scenes": "[{\"type\": \"hook\", \"field\": \"lime\", \"duration\": 1.5, \"kicker\": [\"CyberCup 4.0\", \"National-level hackathon\"], \"hero\": \"1st\", \"label\": \"of 160 teams\"}, {\"type\": \"dots\", \"field\": \"ink\", \"duration\": 3.6, \"total\": 160, \"lit\": 1, \"label\": \"of 160 teams\"}, {\"type\": \"ring\", \"field\": \"emerald\", \"duration\": 3.2, \"segments\": 36, \"label\": \"36-hour build window\"}, {\"type\": \"quote\", \"field\": \"paper\", \"duration\": 5.0, \"kicker\": [\"CyberCup 4.0\"], \"chunks\": [\"I led a team to 1st place\", \"out of 160 competing teams,\", \"delivering a working prototype end to end\"]}, {\"type\": \"end\", \"field\": \"ink\", \"duration\": 4.2}]"
+}
