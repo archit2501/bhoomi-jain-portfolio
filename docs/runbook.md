@@ -116,6 +116,37 @@ Bhoomi gets each new message, the first and every one after, through the same ch
 
 The `dms` switch stops new messages. Reading a conversation and replying keep working.
 
+## GitHub sync
+
+Every hour, at seven past, a Cron Trigger runs `src/workers/github-sync.ts`. It reads from GitHub:
+
+- her contribution calendar for the past year;
+- her commits this year;
+- her own public repositories;
+- her latest public events.
+
+It stores all of that as one snapshot in the `SNAPSHOTS` KV namespace, with the time it was taken. Insights shows GitHub's numbers "as of" that time. If GitHub fails, the last good snapshot stays and the failure is recorded beside it. With no snapshot, the page says her GitHub activity is unavailable, and never shows a placeholder number.
+
+To turn it on:
+
+1. Add her GitHub link to `src/content/profile.json` (`links.github`, for example `https://github.com/<username>`). The username comes from there.
+2. Create a fine-grained personal access token (GitHub, Settings, Developer settings). Under repository access, choose **Public repositories (read-only)**, and add no other permissions. It can then only read what's already public. Set it on production:
+
+   ```bash
+   npx wrangler secret put GITHUB_TOKEN -c wrangler.jsonc
+   ```
+
+3. Deploy. The first snapshot arrives at the next seven-past-the-hour. To try the sync locally, build, run `npx wrangler dev -c dist/server/wrangler.json --test-scheduled`, then open `http://localhost:8787/cdn-cgi/handler/scheduled?cron=7+*+*+*+*`.
+
+To see what's stored:
+
+```bash
+npx wrangler kv key get --binding SNAPSHOTS --remote github:status     # the last sync: when, ok or why not
+npx wrangler kv key get --binding SNAPSHOTS --remote github:snapshot   # what screens show
+```
+
+`GET /api/github` serves the snapshot, cached for five minutes. A snapshot of a different username is never shown, which matters if the profile link changes.
+
 ## The live room
 
 Every page opens one WebSocket to `/api/live`, which goes to a single `Presence` Durable Object. It uses WebSocket hibernation, so it sleeps between messages and costs nothing while idle. Its socket count lights "Active now · N here" on her avatar. After each poll vote, the vote endpoint posts the new results to it, and it relays them to every open page.

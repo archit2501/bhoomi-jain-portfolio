@@ -19,6 +19,8 @@ declare namespace Cloudflare {
     PRESENCE: DurableObjectNamespace;
     /** Daily write counters (src/lib/server/guard.ts). */
     COUNTERS: KVNamespace;
+    /** Her GitHub snapshot (src/workers/github-sync.ts). */
+    SNAPSHOTS: KVNamespace;
     /** Likes, comments, DMs, votes and answers (migrations/, src/lib/server/db.ts). */
     DB: import('./lib/server/db').D1Like;
     WRITE_LIMIT_IP: import('./lib/server/guard').RateLimiter;
@@ -29,6 +31,8 @@ declare namespace Cloudflare {
     TELEGRAM_BOT_TOKEN?: string;
     TELEGRAM_CHAT_ID?: string;
     NOTIFY_WEBHOOK_URL?: string;
+    /** Read-only access to her public GitHub, for the hourly sync. */
+    GITHUB_TOKEN?: string;
   }
 }
 

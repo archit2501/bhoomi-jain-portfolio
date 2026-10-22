@@ -11,6 +11,36 @@ const stats = Object.entries(figures).filter(([, f]) => f.verified);
   <section class="insights" aria-labelledby="insights-title">
     <h1 id="insights-title">Insights</h1>
     <p class="lede">Every number on this site, with where it comes from.</p>
+    <section class="github" aria-labelledby="github-title" data-github>
+      <h2 id="github-title">GitHub</h2>
+      <!-- Filled by src/scripts/github.ts from /api/github: GitHub's own numbers, or nothing. -->
+      <p class="github-state" data-github-state>
+        Her GitHub activity needs JavaScript to show.
+      </p>
+      <ul class="tiles" role="list" data-github-figures hidden>
+        <li class="tile">
+          <p class="value" data-figure="contributionsLastYear"></p>
+          <p class="label">Contributions in the past year</p>
+        </li>
+        <li class="tile">
+          <p class="value" data-figure="commitsThisYear"></p>
+          <p class="label">Commits this year</p>
+        </li>
+        <li class="tile">
+          <p class="value" data-figure="publicRepos"></p>
+          <p class="label">Public repositories</p>
+        </li>
+      </ul>
+      <p class="source" data-github-source hidden>
+        From{' '}
+        <a data-github-link href="https://github.com/">
+          GitHub
+        </a>
+        , <span data-github-asof></span>
+      </p>
+    </section>
+
+    <h2 class="section-title">From her résumé</h2>
     <ul class="tiles" role="list">
       {stats.map(([id, figure]) => (
         <li class="tile" id={id}>
@@ -22,6 +52,12 @@ const stats = Object.entries(figures).filter(([, f]) => f.verified);
     </ul>
   </section>
 </BaseLayout>
+
+<script>
+  import { initGithub } from '../scripts/github';
+
+  initGithub();
+</script>
 
 <style>
   .insights {
@@ -49,6 +85,35 @@ const stats = Object.entries(figures).filter(([, f]) => f.verified);
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  .github {
+    margin-bottom: var(--space-8);
+  }
+
+  h2 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-semibold);
+  }
+
+  .github-state {
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  .github-state:empty,
+  [hidden] {
+    display: none;
+  }
+
+  .github .source {
+    margin-top: var(--space-3);
+  }
+
+  .source a {
+    color: var(--accent-text);
   }
 
   .tile {
