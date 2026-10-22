@@ -30,7 +30,7 @@ only the owner can do. Tick the owner's items as they're done.
 
 ## Only the owner can do
 
-- [ ] **Bhoomi signs off on every caption and figure:** `docs/content-review.md`, one box per line. Lines marked _(new wording)_ were written for the site, not taken from her résumé.
+- [x] **Bhoomi signed off on every caption and figure** (confirmed by the owner, 22 Oct 2026): `docs/content-review.md`, including the lines marked _(new wording)_. Anything changed in `src/content/` after this needs her look again (`npm run content:review` shows the new sheet).
 - [ ] **The AI eval passes** (PR for task 3.2.3 waits on it): `AI_EVAL=1 ANTHROPIC_API_KEY=<key> npm run eval:ai`. It calls the paid API, about half a US cent a run.
 - [ ] **Kill-switch drill on production**, once secrets are set (runbook, Off switches): switch everything off, check the site says so, switch it back on.
 
