@@ -62,4 +62,5 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx vitest run tests/brand-guard.test.ts
+      - run: npm run budget
       - run: npm run lighthouse

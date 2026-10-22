@@ -5,9 +5,14 @@
       "numberOfRuns": 3,
       "url": [
         "http://localhost/index.html",
+        "http://localhost/feed/index.html",
+        "http://localhost/explore/index.html",
         "http://localhost/reels/index.html",
         "http://localhost/p/smartblog-ai/index.html",
         "http://localhost/stories/projects/index.html",
+        "http://localhost/direct/index.html",
+        "http://localhost/insights/index.html",
+        "http://localhost/notifications/index.html",
         "http://localhost/404.html"
       ]
     },
@@ -16,7 +21,7 @@
         "largest-contentful-paint": [
           "error",
           {
-            "maxNumericValue": 2500
+            "maxNumericValue": 2000
           }
         ],
         "cumulative-layout-shift": [
@@ -28,7 +33,7 @@
         "categories:performance": [
           "error",
           {
-            "minScore": 0.9
+            "minScore": 0.95
           }
         ],
         "categories:accessibility": [

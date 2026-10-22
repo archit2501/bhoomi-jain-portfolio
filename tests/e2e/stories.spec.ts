@@ -106,6 +106,9 @@ test.describe('desktop viewer', () => {
     await page.keyboard.press('Space');
     await expect(live(page).locator('.pause')).toHaveAttribute('aria-label', 'Play');
     const fill = viewer(page).locator('.fill').first();
+    // A Web Animation's pause lands on its next frame ("pending"); under load that frame can
+    // be late, so wait for every animation to be ready, then the bar must not move at all.
+    await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.ready)));
     const before = await fill.evaluate((el) => getComputedStyle(el).transform);
     await page.waitForTimeout(600);
     expect(await fill.evaluate((el) => getComputedStyle(el).transform)).toBe(before);
@@ -146,14 +149,15 @@ test.describe('desktop viewer', () => {
     await expect(groupLabel(page)).toHaveText(second.data.label);
     await expect(live(page)).toHaveAttribute('data-transition', 'cube');
 
-    await page.waitForTimeout(400);
+    // The turn is over when its outgoing copy is gone (a fixed wait lost the race under load).
+    await expect(viewer(page).locator('.card.face-out')).toHaveCount(0);
     await page.mouse.move(cx - 100, cy);
     await page.mouse.down();
     await page.mouse.move(cx + 100, cy, { steps: 5 });
     await page.mouse.up();
     await expect(groupLabel(page)).toHaveText(first.data.label);
 
-    await page.waitForTimeout(400);
+    await expect(viewer(page).locator('.card.face-out')).toHaveCount(0);
     await page.mouse.move(cx, cy - 100);
     await page.mouse.down();
     await page.mouse.move(cx, cy + 150, { steps: 5 });

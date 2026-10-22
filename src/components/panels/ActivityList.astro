@@ -14,9 +14,12 @@ import type { IconName } from '../icon-names';
 interface Props {
   /** Prefixes heading ids: the page and the drawer can both be on one page. */
   idPrefix: string;
+  /** The groups' heading level: under the page's h1, or the drawer's h2. */
+  headingLevel?: 2 | 3;
 }
 
-const { idPrefix } = Astro.props;
+const { idPrefix, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as const;
 const { events, posts } = await loadSiteContent();
 const career = careerActivity(events, posts);
 const now = new Date();
@@ -34,11 +37,11 @@ const ICON: Record<ActivityKind, IconName> = {
 };
 ---
 
-<div class="activity" data-activity data-id-prefix={idPrefix}>
+<div class="activity" data-activity data-id-prefix={idPrefix} data-heading-level={headingLevel}>
   <div data-activity-groups>
     {groups.map((group) => (
       <section class="group" aria-labelledby={`${idPrefix}-${group.label}`}>
-        <h3 id={`${idPrefix}-${group.label}`}>{group.label}</h3>
+        <Heading id={`${idPrefix}-${group.label}`}>{group.label}</Heading>
         <ul role="list">
           {group.items.map((item) => (
             <li>
@@ -120,7 +123,7 @@ const ICON: Record<ActivityKind, IconName> = {
     color: var(--text-secondary);
   }
 
-  .activity :global(.group h3) {
+  .activity :global(.group :is(h2, h3)) {
     margin: 0;
     padding: var(--space-2) var(--space-6);
     font-size: var(--fs-16);

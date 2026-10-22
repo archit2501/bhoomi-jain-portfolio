@@ -15,6 +15,9 @@ const PAGES = [
   '/insights/',
   '/tagged/',
   '/404.html',
+  '/saved/',
+  '/offline/',
+  '/direct/hello/',
 ];
 
 for (const path of PAGES) {
