@@ -5,6 +5,7 @@
  * open conversation; on a phone it is the whole Messages page.
  */
 import Avatar from '../Avatar.astro';
+import Icon from '../Icon.astro';
 import type { DmThread, Profile } from '../../lib/content-schema';
 
 interface Props {
@@ -29,7 +30,9 @@ const firstName = profile.displayName.split(/\s+/)[0];
 <nav class="dm-list" aria-labelledby="dm-list-title">
   <header class="list-head">
     <Heading id="dm-list-title">Messages</Heading>
-    <p class="list-note">Message {firstName}. Every message goes straight to her.</p>
+    <p class="list-note">
+      Message {firstName}: messages go straight to her. Or ask her AI about her work.
+    </p>
   </header>
 
   <section class="mine" aria-labelledby="mine-title" data-my-threads hidden>
@@ -47,7 +50,14 @@ const firstName = profile.displayName.split(/\s+/)[0];
       {threads.map(({ id, data }) => (
         <li>
           <a class="row" href={`/direct/${id}/`} aria-current={active === id ? 'page' : undefined}>
-            <Avatar size={44} src={profile.avatar.src} alt="" initials={initials} />
+            <span class="row-avatar">
+              <Avatar size={44} src={profile.avatar.src} alt="" initials={initials} />
+              {data.ai && (
+                <span class="ai-badge" aria-hidden="true">
+                  <Icon name="ai" size={12} filled />
+                </span>
+              )}
+            </span>
             <span class="row-text">
               <span class="row-title">{data.label}</span>
               <span class="row-preview">{data.opener}</span>
@@ -134,6 +144,27 @@ const firstName = profile.displayName.split(/\s+/)[0];
     color: var(--text-secondary);
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .row-avatar {
+    position: relative;
+    display: flex;
+    flex: none;
+  }
+
+  /* The AI conversation's mark, as in its header. */
+  .ai-badge {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: var(--on-accent);
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    border-radius: 50%;
   }
 
   .rows :global(.row-initials) {

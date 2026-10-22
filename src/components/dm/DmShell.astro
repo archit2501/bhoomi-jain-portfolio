@@ -21,9 +21,11 @@ const { phone } = Astro.props;
 </div>
 
 <script>
+  import { initAiChat } from '../../scripts/ai-chat';
   import { initDm } from '../../scripts/dm';
 
   initDm();
+  initAiChat();
 </script>
 
 <style>

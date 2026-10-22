@@ -6,7 +6,7 @@ export default defineConfig({
       {
         test: {
           name: 'unit',
-          include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
+          include: ['src/**/*.test.ts', 'tests/**/*.test.ts', 'evals/**/*.test.ts'],
           exclude: ['src/**/*.container.test.ts'],
         },
       },

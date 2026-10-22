@@ -18,6 +18,11 @@
     "order": 4,
     "label": "Ask my AI",
     "opener": "I'm an AI assistant that answers from Bhoomi's résumé and projects. Ask me about her work.",
-    "ai": true
+    "ai": true,
+    "suggestions": [
+      "What has she built?",
+      "Which tech stack does she use?",
+      "How did her team win CyberCup 4.0?"
+    ]
   }
 }

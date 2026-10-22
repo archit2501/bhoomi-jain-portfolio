@@ -29,6 +29,10 @@ declare namespace Cloudflare {
     TELEGRAM_BOT_TOKEN?: string;
     TELEGRAM_CHAT_ID?: string;
     NOTIFY_WEBHOOK_URL?: string;
+    /** "Ask my AI" (src/lib/server/ai.ts): off until it's set. */
+    ANTHROPIC_API_KEY?: string;
+    /** Only for tests: the e2e inbox stands in for the Claude API. */
+    ANTHROPIC_BASE_URL?: string;
   }
 }
 

@@ -8,6 +8,10 @@
  *
  * Safeguards: it says who receives the message and how, that only she reads it, and that she
  * never asks for passwords or account details; the form asks for neither.
+ *
+ * The "Ask my AI" topic (task 3.2.3) is a conversation with her AI assistant instead: it says
+ * plainly that it's an AI, what it answers from, that it can be wrong and where questions go.
+ * src/scripts/ai-chat.ts streams the answers in, with the sources each one used.
  */
 import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
@@ -24,6 +28,7 @@ interface Props {
 
 const { profile, mode, topic, topics = [] } = Astro.props;
 const firstName = profile.displayName.split(/\s+/)[0];
+const ai = topic?.data.ai === true;
 const initials = profile.displayName
   .split(/\s+/)
   .map((part) => part[0])
@@ -48,25 +53,49 @@ const openers = Object.fromEntries(
     <a class="back" href="/direct/" aria-label="Back to messages">
       <Icon name="back" size={24} />
     </a>
-    <Avatar size={36} src={profile.avatar.src} alt="" initials={initials} />
+    <span class="head-avatar">
+      <Avatar size={36} src={profile.avatar.src} alt="" initials={initials} />
+      {ai && (
+        <span class="ai-badge" aria-hidden="true">
+          <Icon name="ai" size={12} filled />
+        </span>
+      )}
+    </span>
     <div class="who">
-      <h1 id="thread-title">Message {firstName}</h1>
+      <h1 id="thread-title">{ai ? `Ask ${firstName}'s AI` : `Message ${firstName}`}</h1>
       <p class="topic" data-topic-label>
-        {topic?.data.label ?? 'Your conversation'}
+        {ai ? 'AI · answers from her résumé and posts' : (topic?.data.label ?? 'Your conversation')}
       </p>
     </div>
+    {ai && (
+      <button type="button" class="new-chat" data-ai-reset hidden>
+        <Icon name="restart" size={20} />
+        <span>New chat</span>
+      </button>
+    )}
   </header>
 
-  <p class="safety">
-    <Icon name="mail" size={16} />
-    <span>
-      Goes straight to {firstName}: she's told by Telegram or email, and only she reads it. She'll
-      never ask for a password or account details.
-    </span>
-  </p>
+  {ai ? (
+    <p class="safety">
+      <Icon name="ai" size={16} />
+      <span>
+        An AI, not {firstName}: it answers only from her résumé and posts, and it can get things
+        wrong. Questions are answered by Claude, Anthropic's AI model, and aren't saved on this
+        site. Please don't share personal details.
+      </span>
+    </p>
+  ) : (
+    <p class="safety">
+      <Icon name="mail" size={16} />
+      <span>
+        Goes straight to {firstName}: she's told by Telegram or email, and only she reads it. She'll
+        never ask for a password or account details.
+      </span>
+    </p>
+  )}
 
   <ol class="messages" aria-label="Conversation" aria-live="polite" data-messages>
-    {topic && (
+    {topic && !ai && (
       <li class="msg from-her">
         <Avatar size={28} src={profile.avatar.src} alt="" initials={initials} />
         <p class="bubble">
@@ -75,7 +104,30 @@ const openers = Object.fromEntries(
         </p>
       </li>
     )}
+    {topic && ai && (
+      <li class="msg from-her from-ai" data-ai-opener>
+        <span class="ai-mark" aria-hidden="true">
+          <Icon name="ai" size={16} filled />
+        </span>
+        <div class="answer">
+          <p class="bubble">
+            <span class="visually-hidden">AI: </span>
+            {topic.data.opener}
+          </p>
+        </div>
+      </li>
+    )}
   </ol>
+
+  {ai && topic.data.suggestions.length > 0 && (
+    <div class="suggestions" data-ai-suggestions>
+      {topic.data.suggestions.map((question) => (
+        <button type="button" class="suggestion" data-question={question}>
+          {question}
+        </button>
+      ))}
+    </div>
+  )}
 
   <div class="private-link" data-private-link hidden>
     <p>
@@ -93,8 +145,30 @@ const openers = Object.fromEntries(
     </div>
   </div>
 
-  {topic?.data.ai ? (
-    <p class="soon">The AI assistant is coming soon. Until then, pick another conversation.</p>
+  {ai ? (
+    <form class="dm-form" data-ai-form novalidate>
+      <p class="ai-off" data-ai-off hidden>
+        The AI assistant is off right now. <a href="/direct/">Message {firstName}</a> in another
+        conversation instead.
+      </p>
+      <div class="compose-row">
+        <label class="visually-hidden" for="ai-question">
+          Question for the AI
+        </label>
+        <textarea
+          id="ai-question"
+          name="question"
+          rows="1"
+          maxlength="1000"
+          placeholder={`Ask about ${firstName}'s work…`}
+          required
+        />
+        <button type="submit" class="send">
+          Ask
+        </button>
+      </div>
+      <p class="dm-status" role="status" data-ai-status />
+    </form>
   ) : (
     <form class="dm-form" data-dm-form novalidate>
       {mode === 'starter' && (
@@ -127,7 +201,13 @@ const openers = Object.fromEntries(
     </form>
   )}
 
-  {mode === 'starter' && !topic?.data.ai && (
+  {ai && (
+    <p class="fallback ai-fallback">
+      The AI assistant needs JavaScript. You can reach {firstName} directly:
+    </p>
+  )}
+
+  {mode === 'starter' && (
     <p class="fallback">
       {mailto && (
         <a href={mailto}>
@@ -158,6 +238,51 @@ const openers = Object.fromEntries(
     gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
     border-bottom: 1px solid var(--separator);
+  }
+
+  .head-avatar {
+    position: relative;
+    display: flex;
+  }
+
+  /* The AI's mark: a sparkle on her photo in the header, and a sparkle disc beside its bubbles. */
+  .ai-badge {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: var(--on-accent);
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    border-radius: 50%;
+  }
+
+  .who {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .new-chat {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 32px;
+    padding: 0 var(--space-3);
+    font: inherit;
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    color: var(--button-secondary-text);
+    background: var(--button-secondary);
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .new-chat[hidden] {
+    display: none;
   }
 
   .back {
@@ -264,6 +389,145 @@ const openers = Object.fromEntries(
     width: 28px;
   }
 
+  .messages :global(.ai-mark) {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    color: var(--on-accent);
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  .answer,
+  .messages :global(.answer) {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  /* The sources an answer used, as links under its bubble. */
+  .messages :global(.sources) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+    list-style: none;
+  }
+
+  .messages :global(.sources a) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 2px var(--space-2);
+    color: var(--text);
+    text-decoration: none;
+    border: 1px solid var(--separator);
+    border-radius: 999px;
+  }
+
+  @media (hover: hover) {
+    .messages :global(.sources a:hover) {
+      background: var(--bg-secondary);
+    }
+  }
+
+  .messages :global(.ai-note) {
+    margin: 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+  }
+
+  /* Three dots while the answer is on its way. */
+  .messages :global(.typing) {
+    display: inline-flex;
+    gap: 4px;
+    padding: 14px var(--space-3);
+  }
+
+  .messages :global(.typing span) {
+    width: 6px;
+    height: 6px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    animation: typing 1.2s ease-in-out infinite;
+  }
+
+  .messages :global(.typing span:nth-child(2)) {
+    animation-delay: 0.15s;
+  }
+
+  .messages :global(.typing span:nth-child(3)) {
+    animation-delay: 0.3s;
+  }
+
+  @keyframes typing {
+    0%,
+    60%,
+    100% {
+      opacity: 0.35;
+      transform: none;
+    }
+
+    30% {
+      opacity: 1;
+      transform: translateY(-3px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .messages :global(.typing span) {
+      animation: none;
+    }
+  }
+
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding: 0 var(--space-4) var(--space-3);
+  }
+
+  .suggestions[hidden] {
+    display: none;
+  }
+
+  .suggestion {
+    padding: var(--space-2) var(--space-3);
+    font: inherit;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    color: var(--accent);
+    background: var(--bg);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-bubble);
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .suggestion:hover {
+      background: var(--bg-secondary);
+    }
+  }
+
+  .ai-off {
+    margin: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  .ai-off[hidden] {
+    display: none;
+  }
+
   .messages :global(.note) {
     align-self: center;
     font-size: var(--fs-12);
@@ -317,6 +581,7 @@ const openers = Object.fromEntries(
   }
 
   .dm-form {
+    scroll-margin-bottom: var(--bottom-bar-h, 0px);
     display: grid;
     gap: var(--space-2);
     padding: var(--space-3) var(--space-4) var(--space-4);
@@ -359,8 +624,7 @@ const openers = Object.fromEntries(
     field-sizing: content;
   }
 
-  .dm-status,
-  .soon {
+  .dm-status {
     margin: 0;
     font-size: var(--fs-12);
     line-height: var(--lh-12);
@@ -371,14 +635,15 @@ const openers = Object.fromEntries(
     display: none;
   }
 
-  .soon {
-    padding: var(--space-4);
-  }
-
   /* Without JavaScript there's no form: her email and LinkedIn take its place. */
   :global(html:not(.js)) .dm-form,
+  :global(html:not(.js)) .suggestions,
   :global(html.js) .fallback {
     display: none;
+  }
+
+  .ai-fallback {
+    padding-bottom: 0;
   }
 
   .fallback {

@@ -35,5 +35,7 @@ export const ICON_NAMES = [
   'up',
   'down',
   'check',
+  'ai',
+  'restart',
 ] as const;
 export type IconName = (typeof ICON_NAMES)[number];

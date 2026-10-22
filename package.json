@@ -13,11 +13,13 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "lighthouse": "lhci autorun",
+    "eval:ai": "vitest run --config vitest.eval.config.ts",
     "deploy": "astro build && wrangler deploy",
     "prebuild": "node scripts/placeholders.mjs",
     "predev": "node scripts/placeholders.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.0.0",
     "@astrojs/cloudflare": "^14.4.1",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
