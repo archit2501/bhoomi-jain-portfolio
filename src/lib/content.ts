@@ -1,5 +1,7 @@
 import { getCollection, getEntry } from 'astro:content';
 import { assertContent, type SiteContent } from './content-guards';
+import { coverFor, type Cover } from './covers';
+import { fieldMap, markFor, type Mark, type TileField } from './fields';
 import { resolveFigures } from './resume';
 import { PROFILE_ID } from './site';
 
@@ -51,4 +53,29 @@ export function loadSiteContent(): Promise<SiteContent> {
     return content;
   })();
   return cached;
+}
+
+/** How a post is printed (task 6.2.1): its field, its highlighter colour and its cover. */
+export interface PostArt {
+  field: TileField;
+  /** Only on paper; elsewhere the field itself carries the colour. */
+  mark?: Mark;
+  cover: Cover;
+}
+
+let art: Promise<Map<string, PostArt>> | undefined;
+
+/** Every post's art, from the grid order, once per build. A degree's progress is dated today. */
+export function loadPostArt(): Promise<Map<string, PostArt>> {
+  art ??= loadSiteContent().then(({ posts, figures, resume }) => {
+    const fields = fieldMap(posts);
+    return new Map(
+      posts.map((post, i) => {
+        const field = fields.get(post.id) ?? 'paper';
+        const mark = field === 'paper' ? markFor(i) : undefined;
+        return [post.id, { field, mark, cover: coverFor(post, figures, resume) }] as const;
+      }),
+    );
+  });
+  return art;
 }

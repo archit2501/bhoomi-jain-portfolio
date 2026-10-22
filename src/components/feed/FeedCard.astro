@@ -7,14 +7,13 @@
 import type { Lens } from '../../lib/feed';
 import type { Post, Profile } from '../../lib/content-schema';
 import { postDate } from '../../lib/post-date';
-import { tileTone } from '../../lib/site';
-import { slideFace } from '../../lib/slides';
 import { plainText } from '../../lib/markdown';
 import Avatar from '../Avatar.astro';
 import Icon from '../Icon.astro';
 import Media from '../Media.astro';
 import ActionRow from '../post/ActionRow.astro';
-import TypeTile from '../post/TypeTile.astro';
+import Cover from '../covers/Cover.astro';
+import { loadPostArt } from '../../lib/content';
 
 interface Props {
   post: { id: string; data: Post; body: string };
@@ -34,6 +33,8 @@ const initials = profile.displayName
   .join('')
   .slice(0, 2);
 const caption = plainText(body.trim());
+const art = (await loadPostArt()).get(id);
+const field = art && art.field !== 'photo' ? art.field : undefined;
 ---
 
 <article
@@ -63,7 +64,7 @@ const caption = plainText(body.trim());
   </header>
 
   <!-- Not a link: a double-tap likes, as on Instagram. The title and comments lead to the post. -->
-  <div class="card-media" data-like-media>
+  <div class="card-media" data-like-media data-field={first.type === 'image' ? undefined : field}>
     {first.type === 'image' ? (
       <Media
         src={first.src}
@@ -76,7 +77,10 @@ const caption = plainText(body.trim());
         fill
       />
     ) : (
-      <TypeTile {...slideFace(first)} tone={tileTone(data.order)} />
+      art &&
+      art.cover.layout !== 'photo' && (
+        <Cover cover={art.cover} mark={art.mark} reserve={data.media.length > 1 ? 28 : 0} />
+      )
     )}
     {data.media.length > 1 && (
       <span class="badge" aria-hidden="true">
@@ -158,7 +162,8 @@ const caption = plainText(body.trim());
     position: relative;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    background: var(--media-placeholder);
+    color: var(--f-fg, inherit);
+    background-color: var(--f-bg, var(--media-placeholder));
   }
 
   .badge {
@@ -167,6 +172,11 @@ const caption = plainText(body.trim());
     right: var(--space-3);
     color: #ffffff;
     filter: drop-shadow(0 0 2px rgb(0 0 0 / 50%));
+  }
+
+  .card-media[data-field] .badge {
+    color: var(--f-meta);
+    filter: none;
   }
 
   .burst {

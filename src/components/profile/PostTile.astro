@@ -1,10 +1,9 @@
 ---
 import Icon from '../Icon.astro';
 import type { Post } from '../../lib/content-schema';
-import { tileTone } from '../../lib/site';
+import { loadPostArt } from '../../lib/content';
 import Media from '../Media.astro';
-import { slideFace } from '../../lib/slides';
-import TypeTile from '../post/TypeTile.astro';
+import Cover from '../covers/Cover.astro';
 
 interface Props {
   post: { id: string; data: Post };
@@ -15,7 +14,7 @@ interface Props {
 }
 
 const { post, eager = false, savedId } = Astro.props;
-const { media, pinned, title, order } = post.data;
+const { media, pinned, title } = post.data;
 const first = media[0];
 const label = [
   pinned && 'Pinned post.',
@@ -24,7 +23,8 @@ const label = [
 ]
   .filter(Boolean)
   .join(' ');
-const tone = tileTone(order);
+const art = (await loadPostArt()).get(post.id);
+const field = art && art.field !== 'photo' ? art.field : undefined;
 ---
 
 <li class="tile" data-saved-id={savedId} hidden={savedId !== undefined}>
@@ -32,6 +32,7 @@ const tone = tileTone(order);
     href={`/p/${post.id}/`}
     aria-label={label}
     data-post={post.id}
+    data-field={field}
     style={`--vt-name: post-${post.id}`}
   >
     {first.type === 'image' ? (
@@ -46,7 +47,14 @@ const tone = tileTone(order);
         fill
       />
     ) : (
-      <TypeTile {...slideFace(first)} tone={tone} />
+      art &&
+      art.cover.layout !== 'photo' && (
+        <Cover
+          cover={art.cover}
+          mark={art.mark}
+          reserve={(Number(Boolean(pinned)) + Number(media.length > 1)) * 24}
+        />
+      )
     )}
     <span class="badges" aria-hidden="true">
       {pinned && <Icon name="pin" filled size={20} />}
@@ -61,9 +69,10 @@ const tone = tileTone(order);
     display: block;
     aspect-ratio: 3 / 4;
     overflow: hidden;
-    color: inherit;
+    /* A printed field (data-field) brings its own colours; a photo sits on the placeholder. */
+    color: var(--f-fg, inherit);
     text-decoration: none;
-    background: var(--bg-secondary);
+    background-color: var(--f-bg, var(--bg-secondary));
   }
 
   .tile :global(img) {
@@ -104,5 +113,11 @@ const tone = tileTone(order);
     gap: var(--space-1);
     color: #ffffff;
     filter: drop-shadow(0 0 2px rgb(0 0 0 / 50%));
+  }
+
+  /* On a printed field the badges take the field's ink, like the type. */
+  .tile a[data-field] .badges {
+    color: var(--f-meta);
+    filter: none;
   }
 </style>
