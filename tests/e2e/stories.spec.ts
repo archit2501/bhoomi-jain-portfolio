@@ -106,6 +106,9 @@ test.describe('desktop viewer', () => {
     await page.keyboard.press('Space');
     await expect(live(page).locator('.pause')).toHaveAttribute('aria-label', 'Play');
     const fill = viewer(page).locator('.fill').first();
+    // A Web Animation's pause lands on its next frame ("pending"); under load that frame can
+    // be late, so wait for every animation to be ready, then the bar must not move at all.
+    await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.ready)));
     const before = await fill.evaluate((el) => getComputedStyle(el).transform);
     await page.waitForTimeout(600);
     expect(await fill.evaluate((el) => getComputedStyle(el).transform)).toBe(before);
