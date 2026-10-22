@@ -1,0 +1,270 @@
+---
+/**
+ * Share her profile (task 5.1.1), as Instagram's share sheet: copy the link, share it through
+ * the device, save her contact card (/contact.vcf), or show a QR card. The QR code encodes only
+ * her site's address, is drawn at build time (uqr) in her colours, and prints the domain under
+ * itself so it can be typed too.
+ */
+import { encode } from 'uqr';
+import type { Profile } from '../../lib/content-schema';
+import { qrPath } from '../../lib/qr';
+import Icon from '../Icon.astro';
+
+interface Props {
+  profile: Profile;
+}
+
+const { profile } = Astro.props;
+const home = new URL('/', Astro.site);
+const domain = home.host;
+const qr = encode(home.href, { ecc: 'M', border: 0 });
+const quiet = 2;
+const size = qr.size + quiet * 2;
+---
+
+<dialog
+  id="share-sheet"
+  class="sheet"
+  aria-labelledby="share-title"
+  data-motion="sheet"
+  data-share-url={home.href}
+  data-share-title={`${profile.displayName} · ${profile.category}`}
+>
+  <div class="panel">
+    <div class="head">
+      <h2 id="share-title">Share</h2>
+      <button class="close" type="button" data-close aria-label="Close">
+        <Icon name="close" size={24} />
+      </button>
+    </div>
+
+    <figure class="qr-card" id="share-qr" data-share-qr hidden>
+      <svg
+        class="qr"
+        viewBox={`${-quiet} ${-quiet} ${size} ${size}`}
+        role="img"
+        aria-label={`QR code for ${domain}`}
+        shape-rendering="crispEdges"
+      >
+        <rect x={-quiet} y={-quiet} width={size} height={size} fill="#ffffff"></rect>
+        <path d={qrPath(qr.data)} fill="currentColor"></path>
+      </svg>
+      <figcaption>
+        <span class="qr-name">{profile.displayName}</span>
+        <span class="qr-domain">{domain}</span>
+      </figcaption>
+    </figure>
+
+    <ul class="actions" role="list">
+      <li>
+        <button type="button" data-share-copy>
+          <span class="disc">
+            <Icon name="link" size={24} />
+          </span>
+          Copy link
+        </button>
+      </li>
+      <li data-share-native hidden>
+        <button type="button">
+          <span class="disc">
+            <Icon name="share" size={24} />
+          </span>
+          Share to…
+        </button>
+      </li>
+      <li>
+        <a href="/contact.vcf" download={`${profile.displayName}.vcf`}>
+          <span class="disc">
+            <Icon name="profile" size={24} />
+          </span>
+          Contact card
+        </a>
+      </li>
+      <li>
+        <button type="button" aria-expanded="false" aria-controls="share-qr" data-share-qr-toggle>
+          <span class="disc">
+            <Icon name="grid" size={24} />
+          </span>
+          QR code
+        </button>
+      </li>
+    </ul>
+    <p class="status" role="status" aria-live="polite" data-share-status></p>
+  </div>
+</dialog>
+
+<script>
+  import { initShareSheet } from '../../scripts/share-sheet';
+
+  initShareSheet();
+</script>
+
+<style>
+  .sheet {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    padding: 0;
+    color: var(--text);
+    background: var(--bg-elevated);
+    border: 0;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+  }
+
+  .sheet::backdrop {
+    background: rgb(0 0 0 / 65%);
+  }
+
+  @media (min-width: 768px) {
+    .sheet {
+      width: 400px;
+      margin: auto;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-strong);
+    }
+  }
+
+  .panel {
+    padding: var(--space-2) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    border-bottom: 1px solid var(--separator);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-semibold);
+  }
+
+  .close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: calc(-1 * var(--space-2));
+    color: var(--text);
+    background: none;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  /* The QR card: her code in her accent on white, her name and the domain under it. */
+  .qr-card {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    margin: var(--space-4) auto 0;
+    padding: var(--space-6);
+    width: min(280px, 100%);
+    color: var(--accent);
+    background: #ffffff;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-1);
+  }
+
+  .qr-card[hidden] {
+    display: none;
+  }
+
+  .qr {
+    width: 100%;
+    height: auto;
+  }
+
+  figcaption {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-1);
+  }
+
+  .qr-name {
+    font-size: var(--fs-16);
+    line-height: var(--lh-16);
+    font-weight: var(--weight-semibold);
+    color: #0c1014;
+  }
+
+  .qr-domain {
+    font-family: var(--font-mono);
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    color: #0369a1;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: var(--space-2);
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .actions li[hidden] {
+    display: none;
+  }
+
+  .actions button,
+  .actions a {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-2) 0;
+    font: inherit;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text);
+    text-decoration: none;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .disc {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    background: var(--bg-secondary);
+    border-radius: 50%;
+  }
+
+  .actions [aria-expanded='true'] .disc {
+    color: var(--on-accent);
+    background: var(--accent);
+  }
+
+  .status {
+    margin: var(--space-2) 0 0;
+    min-height: var(--lh-14);
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    text-align: center;
+    color: var(--text-secondary);
+  }
+
+  /* Printing the card prints just the card. */
+  @media print {
+    :global(body > *:not(dialog)),
+    .head,
+    .actions,
+    .status {
+      display: none !important;
+    }
+
+    .sheet,
+    .qr-card {
+      box-shadow: none;
+    }
+  }
+</style>

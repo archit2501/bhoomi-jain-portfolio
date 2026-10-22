@@ -13,7 +13,7 @@ const { highlight } = Astro.props;
 const { label, frames } = highlight.data;
 ---
 
-<BaseLayout title={`${label} highlights`} current="profile">
+<BaseLayout title={`${label} highlights`} current="profile" image={`/og/s/${highlight.id}.png`}>
   <article class="story-page">
     <a class="back" href="/">
       <Icon name="back" size={20} />

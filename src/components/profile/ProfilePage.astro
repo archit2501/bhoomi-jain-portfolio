@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
 import PostModal from '../post/PostModal.astro';
+import ShareSheet from '../share/ShareSheet.astro';
 import StoryViewer from '../story/StoryViewer.astro';
 import Highlights from './Highlights.astro';
 import ProfileHeader from './ProfileHeader.astro';
@@ -32,4 +33,5 @@ const intro = highlights.find((h) => h.data.inRow === false);
   />
   <PostModal posts={posts} profile={profile} />
   <StoryViewer highlights={highlights} profile={profile} />
+  <ShareSheet profile={profile} />
 </BaseLayout>
