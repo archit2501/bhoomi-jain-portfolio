@@ -92,6 +92,15 @@ test.describe('on a phone', () => {
       const hidden: string[] = [];
       for (let i = 0; i < 40; i++) {
         await page.keyboard.press('Tab');
+        // Focus scrolls the control clear of the bars; under load that scroll can lag the key,
+        // so judge only once the page has stopped moving (the same position two frames running).
+        await page.waitForFunction(
+          () =>
+            new Promise<boolean>((done) => {
+              const y = scrollY;
+              requestAnimationFrame(() => requestAnimationFrame(() => done(scrollY === y)));
+            }),
+        );
         // 2.4.11: a focused control must not be entirely hidden. What's drawn at its centre,
         // and at its corners, must be the control itself, not the top bar or the tab bar.
         const covered = await page.evaluate(() => {
