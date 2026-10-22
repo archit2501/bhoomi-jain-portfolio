@@ -1,0 +1,190 @@
+---
+/**
+ * The home feed's right rail on wide screens, as on instagram.com: her mini profile, the lens
+ * switch that narrows the feed to Frontend, Backend or AI work (src/lib/feed.ts), and the
+ * footer links with the line that this isn't Instagram.
+ */
+import type { Profile } from '../../lib/content-schema';
+import { LENSES, type Lens } from '../../lib/feed';
+import Avatar from '../Avatar.astro';
+
+interface Props {
+  profile: Profile;
+  /** How many posts each lens shows, for its label. */
+  counts: Record<Lens | 'all', number>;
+}
+
+const { profile, counts } = Astro.props;
+const initials = profile.displayName
+  .split(/\s+/)
+  .map((part) => part[0])
+  .join('')
+  .slice(0, 2);
+const year = new Date().getFullYear();
+---
+
+<aside class="rail" aria-label="About this feed">
+  <a class="mini-profile" href="/">
+    <Avatar size={44} src={profile.avatar.src} alt="" initials={initials} />
+    <span class="names">
+      <span class="username">{profile.username}</span>
+      <span class="name">{profile.displayName}</span>
+    </span>
+  </a>
+
+  <fieldset class="lens" data-lens-switch>
+    <legend>Show work in</legend>
+    <div class="options">
+      {LENSES.map(({ id, label }) => (
+        <label class="option">
+          <input type="radio" name="lens" value={id} checked={id === 'all'} />
+          <span>
+            {label} <span class="count">{counts[id]}</span>
+          </span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+
+  <nav class="links" aria-label="More from her">
+    <a href={profile.links.linkedin} target="_blank" rel="noopener noreferrer">
+      LinkedIn
+    </a>
+    {profile.links.email && <a href={`mailto:${profile.links.email}`}>Email</a>}
+    <a href="/explore/">Explore</a>
+    <a href="/reels/">Reels</a>
+    <a href="/direct/">Messages</a>
+  </nav>
+  <p class="legal">{`© ${year} ${profile.displayName}.`} Not affiliated with Instagram or Meta.</p>
+</aside>
+
+<style>
+  .rail {
+    display: grid;
+    align-content: start;
+    gap: var(--space-6);
+    width: 319px;
+    padding-top: var(--space-6);
+  }
+
+  .mini-profile {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .names {
+    display: grid;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+  }
+
+  .username {
+    font-weight: var(--weight-semibold);
+  }
+
+  .name {
+    color: var(--text-secondary);
+  }
+
+  .lens {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  legend {
+    margin-bottom: var(--space-2);
+    padding: 0;
+    font-size: var(--fs-14);
+    line-height: var(--lh-14);
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+  }
+
+  /* A segmented control: the radios stay real radios, for the keyboard and screen readers. */
+  .options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+  }
+
+  .option {
+    position: relative;
+  }
+
+  /* The real radio lies over its label, invisible: clicks, taps and keys all reach it. */
+  .option input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .option > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    min-height: 36px;
+    padding: 0 var(--space-3);
+    font-size: var(--fs-14);
+    font-weight: var(--weight-semibold);
+    color: var(--button-secondary-text);
+    background: var(--button-secondary);
+    border-radius: var(--radius-button);
+    cursor: pointer;
+  }
+
+  .option input:checked + span {
+    color: var(--on-accent);
+    background: var(--accent);
+  }
+
+  .option input:focus-visible + span {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Lighter weight, same colour: dimming it would fail contrast on the chosen lens. */
+  .count {
+    font-weight: var(--weight-regular);
+  }
+
+  /* Without JavaScript the switch can't filter, so it isn't offered. */
+  :global(html:not(.js)) .lens {
+    display: none;
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+  }
+
+  .links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+
+  .legal {
+    margin: calc(-1 * var(--space-3)) 0 0;
+    font-size: var(--fs-12);
+    line-height: var(--lh-12);
+    color: var(--text-secondary);
+  }
+
+  @media (hover: hover) {
+    .links a:hover {
+      text-decoration: underline;
+    }
+  }
+</style>

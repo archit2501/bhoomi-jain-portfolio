@@ -22,6 +22,9 @@ for (const path of PAGES) {
     test(`${path} has no serious accessibility issues (${colorScheme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme });
       await page.goto(path);
+      // Cards below the fold skip layout (content-visibility: auto) until a visitor nears them,
+      // and their placeholder geometry misleads the spacing checks: audit the laid-out page.
+      await page.addStyleTag({ content: '* { content-visibility: visible !important; }' });
       const { violations } = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
         .analyze();
