@@ -30,6 +30,8 @@ interface Props {
   immersive?: boolean;
   /** Private pages (a visitor's own conversation) stay out of search engines. */
   noindex?: boolean;
+  /** An image that is this page's largest paint, fetched from the head before the body is read. */
+  preload?: string;
 }
 
 // Full-screen media (reels) is black, and so is the browser's bar around it, as in the app.
@@ -44,6 +46,7 @@ const {
   current,
   immersive = false,
   noindex = false,
+  preload,
 } = Astro.props;
 const fullTitle = pageTitle(title);
 const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
@@ -58,6 +61,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
+    {preload && <link rel="preload" as="image" href={preload} fetchpriority="high" />}
     {immersive ? (
       <meta name="theme-color" content={BLACK} />
     ) : (

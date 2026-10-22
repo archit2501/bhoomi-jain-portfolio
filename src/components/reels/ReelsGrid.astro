@@ -5,9 +5,11 @@ import TypeTile from '../post/TypeTile.astro';
 
 interface Props {
   reels: { id: string; data: Reel }[];
+  /** When this grid is the page's visible panel (/reels/): its first row is the largest paint. */
+  eager?: boolean;
 }
 
-const { reels } = Astro.props;
+const { reels, eager = false } = Astro.props;
 ---
 
 <ul class="reels-grid" role="list">
@@ -21,7 +23,15 @@ const { reels } = Astro.props;
         style={`--vt-name: reel-${id}`}
       >
         {data.poster ? (
-          <img src={data.poster} alt="" width="540" height="960" loading="lazy" decoding="async" />
+          <img
+            src={data.poster}
+            alt=""
+            width="540"
+            height="960"
+            loading={eager && i < 3 ? 'eager' : 'lazy'}
+            fetchpriority={eager && i === 0 ? 'high' : 'auto'}
+            decoding="async"
+          />
         ) : (
           <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
         )}

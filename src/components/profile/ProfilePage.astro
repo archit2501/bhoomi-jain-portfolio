@@ -22,6 +22,7 @@ const intro = highlights.find((h) => h.data.inRow === false);
 <BaseLayout
   title={tab === 'reels' ? 'Reels' : tab === 'tagged' ? 'Tagged' : undefined}
   current={tab === 'reels' ? 'reels' : 'profile'}
+  preload={tab === 'reels' ? reels[0]?.data.poster : undefined}
 >
   <ProfileHeader profile={profile} figures={figures} intro={intro} />
   <Highlights highlights={highlights.filter((h) => h.data.inRow !== false)} />
