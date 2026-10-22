@@ -103,7 +103,8 @@ Each number, and the line of her résumé it comes from.
 
 - [ ] Title and line: Bachelor of Computer Applications (BCA) · Amity University, Uttar Pradesh · Sep 2022 – Apr 2025
 - [ ] Caption: Bachelor of Computer Applications at Amity University, Uttar Pradesh, from September 2022 to April 2025.
-- [ ] Slide 1: BCA — Amity University, Uttar Pradesh
+- [ ] Slide 1 (photo): Bhoomi Jain at her BCA convocation at Amity University, in gown and cap, smiling and holding her framed degree.
+- [ ] Slide 2: BCA — Amity University, Uttar Pradesh
 
 ### Certifications (`/p/certifications/`)
 
