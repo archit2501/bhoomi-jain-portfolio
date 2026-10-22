@@ -69,7 +69,7 @@ Once the domain is on Cloudflare (it's added as a zone in the same account):
 
 ## Previews
 
-Each pull request uploads a version of a separate Worker, `bhoomi-jain-portfolio-preview` (the `preview` environment in `wrangler.jsonc`), under the alias `pr-<number>`. The workflow migrates the preview database, comments the preview URL on the pull request and smoke-tests it. Production keeps serving the current deployment.
+Each pull request deploys a separate Worker, `bhoomi-jain-portfolio-preview` (the `preview` environment in `wrangler.jsonc`), at `https://bhoomi-jain-portfolio-preview.<subdomain>.workers.dev`. There is one preview at a time: the latest push to any pull request wins. Cloudflare gives no per-version preview links to a Worker with a Durable Object (Presence), so per-PR aliases aren't possible. The first preview creates the Worker with its own database, KV and rate limiters. The workflow migrates the preview database, comments the preview URL on the pull request and smoke-tests it. Production keeps serving the current deployment.
 
 The preview Worker has its own database, KV namespaces and rate limiters, so a preview can never read or write production data. (Wrangler's `previews` block would do the same, but it only applies to `wrangler preview`, which is still in open beta.)
 
