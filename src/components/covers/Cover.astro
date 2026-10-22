@@ -484,10 +484,13 @@ const dots =
       margin-top: 0;
     }
 
+    /* Bars only, no names: drop the mono face too, or the bars alone make the browser fetch it
+       (a phone's profile then waits on a font it never shows). */
     .layers {
       gap: 5cqi;
       height: 30%;
       align-content: end;
+      font-family: inherit;
     }
 
     .layers li {

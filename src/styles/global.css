@@ -308,7 +308,10 @@ picture {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background-image: var(--grain);
+  /* Ink through a grain mask, not the grain as a background image: browsers count a background
+     image as content, which made a whole tile the page's largest paint, timed by the noise. */
+  background-color: #000;
+  mask-image: var(--grain);
   opacity: var(--f-grain, 0);
   mix-blend-mode: var(--f-blend, multiply);
   pointer-events: none;
