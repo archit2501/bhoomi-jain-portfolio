@@ -44,7 +44,10 @@ export function loadSiteContent(): Promise<SiteContent> {
       events,
       dmThreads,
     };
-    assertContent(content, { requireVerified: process.env.REQUIRE_VERIFIED === '1' });
+    assertContent(content, {
+      requireVerified: process.env.REQUIRE_VERIFIED === '1',
+      allowTextPosts: process.env.ALLOW_TEXT_POSTS === 'true',
+    });
     return content;
   })();
   return cached;
