@@ -23,7 +23,7 @@ const { posts, reels } = await loadSiteContent();
         <li class="tile reel" data-saved-id={`reel-${id}`} hidden>
           <a href={`/reels/${id}/`} aria-label={`Reel: ${data.title}`}>
             {data.poster ? (
-              <img src={data.poster} alt="" width="540" height="960" loading="lazy" />
+              <img src={data.poster} alt="" width="720" height="1280" loading="lazy" />
             ) : (
               <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
             )}

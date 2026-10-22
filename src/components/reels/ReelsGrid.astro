@@ -26,10 +26,10 @@ const { reels, eager = false } = Astro.props;
         {data.poster ? (
           <img
             src={data.poster}
-            {...posterSources(data.poster, 540)}
+            {...posterSources(data.poster, 720)}
             alt=""
-            width="540"
-            height="960"
+            width="720"
+            height="1280"
             loading={eager && i < 3 ? 'eager' : 'lazy'}
             fetchpriority={eager && i === 0 ? 'high' : 'auto'}
             decoding="async"
