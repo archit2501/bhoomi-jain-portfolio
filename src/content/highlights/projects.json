@@ -2,8 +2,8 @@
   "label": "Projects",
   "order": 1,
   "cover": {
-    "type": "text",
-    "text": "</>"
+    "type": "icon",
+    "icon": "architecture"
   },
   "figures": ["network-calls", "latency", "response-time"],
   "frames": [

@@ -1,3 +1,4 @@
+import { ICON_NAMES } from '../components/icon-names';
 import { z } from 'astro/zod';
 import { POST_DATE } from './post-date';
 
@@ -272,6 +273,8 @@ export const frameSchema = z.discriminatedUnion('type', [textFrame, imageFrame])
 
 const highlightCover = z.discriminatedUnion('type', [
   z.object({ type: z.literal('text'), text: z.string().trim().min(1).max(4) }),
+  /** A drawn glyph on her ring colours (task 6.2.3). */
+  z.object({ type: z.literal('icon'), icon: z.enum(ICON_NAMES) }),
   imageMedia,
 ]);
 
@@ -288,7 +291,7 @@ export const highlightSchema = z
     frames: z.array(frameSchema).min(1),
   })
   .refine(
-    (h) => !h.textOnly || (h.cover.type === 'text' && h.frames.every((f) => f.type === 'text')),
+    (h) => !h.textOnly || (h.cover.type !== 'image' && h.frames.every((f) => f.type === 'text')),
     {
       message: 'This highlight is text-only for privacy, so its cover and frames cannot be images',
       path: ['frames'],

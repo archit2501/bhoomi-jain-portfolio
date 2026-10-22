@@ -2,8 +2,8 @@
   "label": "Certs",
   "order": 5,
   "cover": {
-    "type": "text",
-    "text": "Cert"
+    "type": "icon",
+    "icon": "certificate"
   },
   "figures": ["certifications"],
   "frames": [
