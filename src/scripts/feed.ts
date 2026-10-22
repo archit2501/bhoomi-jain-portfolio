@@ -1,4 +1,5 @@
 import { initLike } from './like';
+import { initSave } from './save';
 import { initShare } from './share';
 
 /**
@@ -14,6 +15,7 @@ export function initFeed(): void {
 
   for (const card of feed.querySelectorAll<HTMLElement>('.feed-card')) {
     initLike(card);
+    initSave(card);
     initShare(card);
     // The comments live on the post's page.
     card

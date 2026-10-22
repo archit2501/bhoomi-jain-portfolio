@@ -1,0 +1,78 @@
+---
+/**
+ * The ambient glow (task 5.1.2): a soft blurred wash of the current item's two dominant colours
+ * behind desktop stories and reels, crossfading between two layers as the item changes
+ * (src/scripts/ambient.ts). Wide screens only; none with reduced motion's transitions, and none
+ * where it would sit behind a phone's full-screen media.
+ */
+interface Props {
+  /** "page" fills the viewport behind the reels feed; "dialog" fills the story viewer. */
+  mode: 'page' | 'dialog';
+  /** The first item's colours, so the glow is there before any script runs. */
+  initial?: string;
+}
+
+const { mode, initial } = Astro.props;
+const [a, b] = (initial ?? '#0c1014 #0c1014').split(' ');
+---
+
+<div class:list={['ambient', mode]} aria-hidden="true" data-ambient-layers>
+  <span class="layer on" style={`--ambient-a: ${a}; --ambient-b: ${b}`}></span>
+  <span class="layer"></span>
+</div>
+
+<style>
+  .ambient {
+    display: none;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ambient.page {
+    position: fixed;
+    z-index: -1;
+  }
+
+  .ambient.dialog {
+    position: absolute;
+    z-index: 0;
+  }
+
+  .layer {
+    position: absolute;
+    inset: -15%;
+    background:
+      radial-gradient(40% 55% at 28% 45%, var(--ambient-a, transparent), transparent 70%),
+      radial-gradient(40% 55% at 72% 55%, var(--ambient-b, transparent), transparent 70%);
+    filter: blur(72px) saturate(1.2);
+    opacity: 0;
+    transition: opacity 700ms ease;
+  }
+
+  .layer.on {
+    opacity: 0.5;
+  }
+
+  /* A fine grain over the wash: soft gradients on a dark screen otherwise show bands. */
+  .ambient::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+  }
+
+  @media (min-width: 1024px) {
+    .ambient {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .layer {
+      transition: none;
+    }
+  }
+</style>

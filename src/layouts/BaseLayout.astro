@@ -11,6 +11,7 @@ import SideNav from '../components/nav/SideNav.astro';
 import CreateSheet from '../components/panels/CreateSheet.astro';
 import NotificationsPanel from '../components/panels/NotificationsPanel.astro';
 import SearchPanel from '../components/panels/SearchPanel.astro';
+import ShortcutsSheet from '../components/ShortcutsSheet.astro';
 import type { NavId } from '../components/nav/nav-items';
 import { loadSiteContent } from '../lib/content';
 import { jsonLdScript, personJsonLd } from '../lib/seo';
@@ -87,6 +88,7 @@ const person = jsonLdScript(personJsonLd(profile, new URL('/', Astro.site).href)
     <BottomTabs current={current} />
     <ContactSheet profile={profile} />
     <SearchPanel />
+    <ShortcutsSheet />
     <NotificationsPanel />
     <CreateSheet />
     <script>

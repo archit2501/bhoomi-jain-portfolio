@@ -30,6 +30,18 @@ const { id, when, class: className, ...attributes } = Astro.props;
     <button class="share" type="button" aria-label="Copy link to this post" data-href={`/p/${id}/`}>
       <Icon name="link" size={24} />
     </button>
+    <!-- Instagram's bookmark, at the far end: saved in this browser (src/scripts/save.ts). -->
+    <button
+      class="save"
+      type="button"
+      aria-pressed="false"
+      aria-label="Save"
+      data-save={id}
+      data-needs-js
+    >
+      <Icon name="save" class="save-off" size={24} />
+      <Icon name="save" filled class="save-on" size={24} />
+    </button>
   </div>
   <p class="likes" hidden></p>
   {when && (
@@ -45,9 +57,23 @@ const { id, when, class: className, ...attributes } = Astro.props;
     display: flex;
   }
 
+  .save {
+    margin-left: auto;
+  }
+
+  .save :global(.save-on),
+  .save[aria-pressed='true'] :global(.save-off) {
+    display: none;
+  }
+
+  .save[aria-pressed='true'] :global(.save-on) {
+    display: block;
+  }
+
   .like,
   .comment,
-  .share {
+  .share,
+  .save {
     display: flex;
     padding: var(--space-2);
     color: var(--text);

@@ -1,0 +1,140 @@
+---
+import EmptyState from '../components/EmptyState.astro';
+import Icon from '../components/Icon.astro';
+import TypeTile from '../components/post/TypeTile.astro';
+import PostTile from '../components/profile/PostTile.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { loadSiteContent } from '../lib/content';
+
+// What this visitor saved (task 5.1.2), from this browser only; nothing goes to the server.
+// Every tile is drawn hidden; the script shows the saved ones, most recently saved first.
+const { posts, reels } = await loadSiteContent();
+---
+
+<BaseLayout title="Saved" description="What you saved, in this browser." noindex>
+  <section class="saved" aria-labelledby="saved-title">
+    <h1 id="saved-title">Saved</h1>
+    <p class="lede">Only you can see what you save. It stays in this browser.</p>
+    <ul class="grid" role="list" data-saved-grid>
+      {posts.map((post) => (
+        <PostTile post={post} savedId={post.id} />
+      ))}
+      {reels.map(({ id, data }, i) => (
+        <li class="tile reel" data-saved-id={`reel-${id}`} hidden>
+          <a href={`/reels/${id}/`} aria-label={`Reel: ${data.title}`}>
+            {data.poster ? (
+              <img src={data.poster} alt="" width="540" height="960" loading="lazy" />
+            ) : (
+              <TypeTile headline={data.title} tone={((i % 3) + 1) as 1 | 2 | 3} />
+            )}
+            <span class="badge" aria-hidden="true">
+              <Icon name="reels" filled size={20} />
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <div data-saved-empty>
+      <EmptyState icon="save" title="Save what you want to see again">
+        Tap the bookmark on any post or reel to keep it here.
+        <a slot="action" class="action" href="/explore/">
+          Browse Explore
+        </a>
+      </EmptyState>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { readSaved } from '../scripts/save';
+
+  const grid = document.querySelector<HTMLElement>('[data-saved-grid]');
+  const empty = document.querySelector<HTMLElement>('[data-saved-empty]');
+  if (grid && empty) {
+    const tiles = new Map(
+      [...grid.querySelectorAll<HTMLElement>('[data-saved-id]')].map((t) => [t.dataset.savedId, t]),
+    );
+    let shown = 0;
+    // Most recently saved first.
+    for (const { id } of [...readSaved()].sort((a, b) => b.at - a.at)) {
+      const tile = tiles.get(id);
+      if (!tile) continue;
+      grid.append(tile);
+      tile.hidden = false;
+      shown++;
+    }
+    empty.hidden = shown > 0;
+    grid.hidden = shown === 0;
+  }
+</script>
+
+<style>
+  .saved {
+    max-width: 935px;
+    margin: 0 auto;
+    padding: var(--space-6) 0 var(--space-8);
+  }
+
+  h1 {
+    margin: 0;
+    padding: 0 var(--space-4);
+    font-size: var(--fs-24);
+    line-height: var(--lh-24);
+    font-weight: var(--weight-semibold);
+  }
+
+  .lede {
+    margin: var(--space-1) 0 var(--space-4);
+    padding: 0 var(--space-4);
+    color: var(--text-secondary);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .grid[hidden],
+  .grid > [hidden],
+  [data-saved-empty][hidden] {
+    display: none;
+  }
+
+  .reel a {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: var(--story-end);
+  }
+
+  .reel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .badge {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    color: #ffffff;
+    filter: drop-shadow(0 0 2px rgb(0 0 0 / 50%));
+  }
+
+  .action {
+    font-weight: var(--weight-semibold);
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+
+  @media (min-width: 768px) {
+    .grid {
+      gap: 4px;
+    }
+  }
+</style>

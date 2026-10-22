@@ -6,6 +6,9 @@ import { pageTitle } from '../../lib/site';
 import { frameDuration } from '../../lib/story/controller';
 import Avatar from '../Avatar.astro';
 import Sticker from './Sticker.astro';
+import Ambient from '../Ambient.astro';
+import { TONE_AMBIENT } from '../../lib/ambient';
+import { ambientOf } from '../../lib/ambient-image';
 
 interface Props {
   highlights: { id: string; data: Highlight }[];
@@ -20,9 +23,23 @@ const initials = profile.displayName
   .map((part) => part[0])
   .join('')
   .slice(0, 2);
+// Each frame's glow on desktop: its photo's two dominant colours, or its tile's (tone).
+const ambients = await Promise.all(
+  highlights.map(({ data }) =>
+    Promise.all(
+      data.frames.map(async (frame, i) =>
+        (
+          (frame.type === 'image' ? await ambientOf(frame.src, 'media') : null) ??
+          TONE_AMBIENT[((i % 3) + 1) as 1 | 2 | 3]
+        ).join(' '),
+      ),
+    ),
+  ),
+);
 ---
 
 <dialog data-motion="fade" id="story-viewer" class="story-viewer" aria-label="Stories">
+  <Ambient mode="dialog" />
   <div class="stage">
     <button class="peek peek-prev" type="button" hidden>
       <Icon name="back" size={16} class="peek-arrow" />
@@ -71,7 +88,7 @@ const initials = profile.displayName
   </div>
 </dialog>
 
-{highlights.map(({ id, data }) => (
+{highlights.map(({ id, data }, h) => (
   <template
     data-story-group={id}
     data-label={data.label}
@@ -81,6 +98,7 @@ const initials = profile.displayName
     {data.frames.map((frame, i) => (
       <div
         class={`frame tone-${(i % 3) + 1}`}
+        data-ambient={ambients[h][i]}
         role="group"
         aria-roledescription="story"
         aria-label={`${i + 1} of ${data.frames.length}`}
@@ -138,8 +156,10 @@ const initials = profile.displayName
     background: #000000;
   }
 
+  /* Above the ambient glow (src/components/Ambient.astro), which sits behind it. */
   .stage {
     position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     place-items: center;

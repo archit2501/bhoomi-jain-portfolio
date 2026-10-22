@@ -10,9 +10,11 @@ interface Props {
   post: { id: string; data: Post };
   /** The first row loads eagerly; it holds the page's largest paint. */
   eager?: boolean;
+  /** On /saved/: drawn hidden, and shown once the visitor's saved list says so. */
+  savedId?: string;
 }
 
-const { post, eager = false } = Astro.props;
+const { post, eager = false, savedId } = Astro.props;
 const { media, pinned, title, order } = post.data;
 const first = media[0];
 const label = [
@@ -25,7 +27,7 @@ const label = [
 const tone = tileTone(order);
 ---
 
-<li class="tile">
+<li class="tile" data-saved-id={savedId} hidden={savedId !== undefined}>
   <a
     href={`/p/${post.id}/`}
     aria-label={label}
