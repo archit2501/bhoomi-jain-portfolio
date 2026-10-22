@@ -1,0 +1,514 @@
+---
+/**
+ * A post's cover (task 6.2.1): the grid tile and the feed card, printed on its field (the
+ * parent sets data-field). Layouts per kind come from src/lib/covers.ts; everything here is
+ * text and CSS shapes, no image bytes. Sizes are in cqi of the cover's width, so one layout
+ * serves the 129px phone tile, the 296px desktop tile and the 470px feed card. Below 200px
+ * only the big type, one short label and the shapes stay: anything smaller couldn't be read.
+ */
+import type { Cover, Picto } from '../../lib/covers';
+import type { Mark } from '../../lib/fields';
+
+interface Props {
+  cover: Exclude<Cover, { layout: 'photo' }>;
+  /** A highlighter stroke for the big words; only on paper. */
+  mark?: Mark;
+  /** Room to keep clear at the top right of the running head, for the tile's badges (px). */
+  reserve?: number;
+}
+
+const { cover, mark, reserve = 0 } = Astro.props;
+const longest = (text: string) => Math.max(...text.split(/\s+/).map((w) => w.length));
+const picto: Picto | undefined = cover.layout === 'stat' ? cover.picto : undefined;
+const dots =
+  picto?.type === 'dots'
+    ? (() => {
+        const cols = Math.min(16, Math.ceil(Math.sqrt(picto.total * 1.6)));
+        const rows = Math.ceil(picto.total / cols);
+        const at = picto.lit - 1;
+        return { cols, rows, x: at % cols, y: Math.floor(at / cols) };
+      })()
+    : undefined;
+---
+
+<div
+  class="cover"
+  data-layout={cover.layout}
+  data-badged={reserve ? '' : undefined}
+  style={reserve ? `--reserve: ${reserve}px` : undefined}
+>
+  <div class="c">
+    <p class="head">
+      <span>{cover.head[0]}</span>
+      {cover.head[1] && <span>{cover.head[1]}</span>}
+    </p>
+
+    {cover.layout === 'project' && (
+      <>
+        <p class="title" style={`--longest: ${longest(cover.title)}`}>
+          <span data-mark={mark}>{cover.title}</span>
+        </p>
+        {cover.deck && <p class="deck">{cover.deck}</p>}
+        {cover.layers.length > 0 && (
+          <ol class="layers">
+            {cover.layers.map((layer) => (
+              <li>
+                <span>{layer}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+        {cover.stack.length > 0 && <p class="stack">{cover.stack.join(' · ')}</p>}
+      </>
+    )}
+
+    {cover.layout === 'stat' && (
+      <>
+        <p class="hero" style={`--len: ${Math.max(cover.hero.length, 2)}`}>
+          <span data-mark={mark}>{cover.hero}</span>
+        </p>
+        {picto?.type === 'dots' && dots && (
+          <div
+            class="dots"
+            aria-hidden="true"
+            style={`--cols: ${dots.cols}; --rows: ${dots.rows}; --x: ${dots.x}; --y: ${dots.y}`}
+          >
+            <i />
+          </div>
+        )}
+        {picto?.type === 'units' && (
+          <div class:list={['units', picto.shape]} aria-hidden="true">
+            {Array.from({ length: picto.count }, (_, i) => (
+              <i style={`--i: ${i}; --n: ${picto.count}`} />
+            ))}
+            {picto.plus && <b>+</b>}
+          </div>
+        )}
+        {picto?.type === 'change' && (
+          <div
+            class:list={['change', picto.direction]}
+            aria-hidden="true"
+            style={`--p: ${picto.percent / 100}`}
+          >
+            <i class="base" />
+            <i class="delta" />
+          </div>
+        )}
+        <div class="foot">
+          {cover.who && <p class="who">{cover.who}</p>}
+          {cover.label && <p class="label">{cover.label}</p>}
+          {cover.detail && <p class="detail">{cover.detail}</p>}
+        </div>
+      </>
+    )}
+
+    {cover.layout === 'title' && (
+      <>
+        <p class="title big" style={`--longest: ${longest(cover.title)}`}>
+          <span data-mark={mark}>{cover.title}</span>
+        </p>
+        <div class="foot">
+          {cover.label && <p class="label">{cover.label}</p>}
+          {cover.timeline && (
+            <div class="timeline" style={`--p: ${cover.timeline.progress.toFixed(3)}`}>
+              <span class="track" aria-hidden="true">
+                <i />
+              </span>
+              <span class="ends">
+                <span>{cover.timeline.from}</span>
+                <span>
+                  {cover.timeline.to}
+                  {cover.timeline.note && ` (${cover.timeline.note})`}
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
+      </>
+    )}
+  </div>
+</div>
+
+<style>
+  .cover {
+    container-type: inline-size;
+    position: absolute;
+    inset: 0;
+    font-family: var(--font-display);
+  }
+
+  .c {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 7cqi 7cqi 6.5cqi;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  /* The running head: mono, quiet, over a hairline. */
+  .head {
+    display: flex;
+    justify-content: space-between;
+    gap: 3cqi;
+    padding-right: var(--reserve, 0px);
+    padding-bottom: 2.4cqi;
+    border-bottom: max(1px, 0.45cqi) solid currentColor;
+    color: var(--f-meta);
+    font: 500 clamp(9px, 3.7cqi, 13px) / 1.2 var(--font-mono);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .head span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .head span:last-child:not(:first-child) {
+    flex-shrink: 0;
+  }
+
+  .title {
+    margin-top: 5cqi;
+    font-weight: 800;
+    /* The longest word must fit the width; short titles stop at 15cqi. */
+    font-size: min(15cqi, calc(150cqi / var(--longest)));
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+
+  .title.big {
+    font-size: min(30cqi, calc(140cqi / var(--longest)));
+    letter-spacing: -0.05em;
+  }
+
+  .deck {
+    margin-top: 3cqi;
+    max-width: 82%;
+    color: var(--f-meta);
+    font-weight: 600;
+    font-size: clamp(10px, 5cqi, 18px);
+    line-height: 1.2;
+  }
+
+  /* A project's layers, top to bottom, on a spine in her ring colours. */
+  .layers {
+    position: relative;
+    display: grid;
+    gap: 3.4cqi;
+    margin: auto 0 0;
+    padding: 0 0 0 6cqi;
+    list-style: none;
+    font: 500 clamp(9px, 3.9cqi, 14px) / 1.15 var(--font-mono);
+  }
+
+  .layers::before {
+    content: '';
+    position: absolute;
+    top: 0.6em;
+    bottom: 0.6em;
+    left: 1.1cqi;
+    width: 0.8cqi;
+    border-radius: 1cqi;
+    background: var(--ring);
+  }
+
+  .layers li {
+    position: relative;
+  }
+
+  .layers li::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -6cqi;
+    width: 3cqi;
+    height: 3cqi;
+    border: 0.7cqi solid currentColor;
+    border-radius: 50%;
+    background: var(--f-bg);
+    transform: translateY(-50%);
+  }
+
+  .stack {
+    margin-top: 4cqi;
+    padding-top: 2.4cqi;
+    border-top: max(1px, 0.3cqi) solid color-mix(in srgb, currentColor 30%, transparent);
+    color: var(--f-meta);
+    font: 500 clamp(9px, 3.6cqi, 13px) / 1.2 var(--font-mono);
+  }
+
+  /* A number, as large as the tile allows. */
+  .hero {
+    margin-top: 4cqi;
+    font-weight: 800;
+    font-size: min(44cqi, calc(118cqi / var(--len)));
+    line-height: 0.88;
+    letter-spacing: -0.06em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .foot {
+    display: grid;
+    gap: 1.6cqi;
+    margin-top: auto;
+  }
+
+  .label {
+    font-weight: 700;
+    font-size: clamp(11px, 7cqi, 26px);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .detail {
+    color: var(--f-meta);
+    font: 500 clamp(9px, 3.6cqi, 13px) / 1.25 var(--font-mono);
+  }
+
+  .who {
+    display: none;
+    font-weight: 700;
+    font-size: 9.5cqi;
+    line-height: 1.05;
+  }
+
+  /* 160 dots for 160 teams, one lit for her place. */
+  .dots {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--cols) / var(--rows);
+    margin-top: 5cqi;
+    background: radial-gradient(circle, currentColor 0 27%, transparent 31%) 0 0 /
+      calc(100% / var(--cols)) calc(100% / var(--rows));
+    opacity: 1;
+  }
+
+  .dots::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--f-bg);
+    opacity: 0.68;
+  }
+
+  .dots i {
+    position: absolute;
+    left: calc(100% / var(--cols) * var(--x));
+    top: calc(100% / var(--rows) * var(--y));
+    width: calc(100% / var(--cols));
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--lit, currentColor) 0 36%, transparent 37%);
+    box-shadow: 0 0 0 max(1px, 0.5cqi) var(--lit, currentColor);
+  }
+
+  [data-field='ink'] .dots,
+  [data-field='deep'] .dots {
+    --lit: var(--field-lime);
+  }
+
+  /* One square per thing; certificates fan out like cards. */
+  .units {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2.4cqi;
+    margin-top: 6cqi;
+  }
+
+  .units.square i {
+    width: 9cqi;
+    aspect-ratio: 1;
+    border: max(1.5px, 0.8cqi) solid currentColor;
+    border-radius: 1.4cqi;
+  }
+
+  .units.square i:nth-child(odd) {
+    background: color-mix(in srgb, currentColor 14%, transparent);
+  }
+
+  .units b {
+    font-weight: 800;
+    font-size: 10cqi;
+    line-height: 1;
+  }
+
+  .units.card {
+    position: relative;
+    display: block;
+    height: 30cqi;
+  }
+
+  .units.card i {
+    position: absolute;
+    left: calc(var(--i) * 9cqi);
+    top: calc(4cqi + (var(--i) - (var(--n) - 1) / 2) * (var(--i) - (var(--n) - 1) / 2) * 0.9cqi);
+    width: 34cqi;
+    height: 23cqi;
+    border: max(1.5px, 0.7cqi) solid currentColor;
+    border-radius: 2.2cqi;
+    background: var(--f-bg);
+    transform: rotate(calc((var(--i) - (var(--n) - 1) / 2) * 6deg));
+  }
+
+  .units.card i::after {
+    content: '';
+    position: absolute;
+    left: 15%;
+    right: 35%;
+    top: 30%;
+    height: 1.2cqi;
+    border-radius: 1cqi;
+    background: currentColor;
+    box-shadow: 0 4cqi 0 color-mix(in srgb, currentColor 40%, transparent);
+  }
+
+  /* A change, unitless: a bar and the share that grew (ring colours) or fell away (hollow). */
+  .change {
+    display: flex;
+    width: 100%;
+    height: 4.2cqi;
+    margin-top: 6cqi;
+  }
+
+  .change i {
+    display: block;
+    height: 100%;
+  }
+
+  .change.up .base {
+    width: calc(100% / (1 + var(--p)));
+    background: currentColor;
+    border-radius: 3cqi 0 0 3cqi;
+  }
+
+  .change.up .delta {
+    flex: 1;
+    background: var(--ring);
+    border-radius: 0 3cqi 3cqi 0;
+  }
+
+  .change.down .base {
+    width: calc(100% * (1 - var(--p)));
+    background: currentColor;
+    border-radius: 3cqi 0 0 3cqi;
+  }
+
+  .change.down .delta {
+    flex: 1;
+    border: max(1px, 0.5cqi) dashed currentColor;
+    border-left: 0;
+    border-radius: 0 3cqi 3cqi 0;
+    opacity: 0.6;
+  }
+
+  /* A degree in progress: the share of its span already behind her, up to the build date. */
+  .timeline {
+    display: grid;
+    gap: 2cqi;
+    margin-top: 3cqi;
+  }
+
+  .track {
+    position: relative;
+    display: block;
+    height: 1.6cqi;
+    border-radius: 1cqi;
+    background: color-mix(in srgb, currentColor 28%, transparent);
+  }
+
+  .track i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(100% * var(--p));
+    border-radius: inherit;
+    background: var(--ring);
+  }
+
+  .track i::after {
+    content: '';
+    position: absolute;
+    right: -2cqi;
+    top: 50%;
+    width: 4cqi;
+    height: 4cqi;
+    border-radius: 50%;
+    background: currentColor;
+    transform: translateY(-50%);
+  }
+
+  .ends {
+    display: flex;
+    justify-content: space-between;
+    color: var(--f-meta);
+    font: 500 clamp(9px, 3.5cqi, 13px) / 1.2 var(--font-mono);
+  }
+
+  /* Small tiles (a phone's 3-column grid): the big type, one short label and the shapes. */
+  @container (max-width: 200px) {
+    .head,
+    .deck,
+    .stack,
+    .detail,
+    .ends,
+    .layers span {
+      display: none;
+    }
+
+    .c {
+      padding: 8cqi;
+    }
+
+    /* Without the running head, the badges would sit on the title: start below them. */
+    [data-badged] .c {
+      padding-top: 30px;
+    }
+
+    .title {
+      margin-top: 0;
+      font-size: min(17cqi, calc(158cqi / var(--longest)));
+    }
+
+    .title.big {
+      font-size: min(34cqi, calc(150cqi / var(--longest)));
+    }
+
+    .hero {
+      margin-top: 0;
+    }
+
+    .layers {
+      gap: 5cqi;
+      height: 30%;
+      align-content: end;
+    }
+
+    .layers li {
+      height: 3cqi;
+    }
+
+    /* A job names its company; other labels stay if they're short enough to read. */
+    .who {
+      display: block;
+    }
+
+    .who ~ .label {
+      display: none;
+    }
+
+    .label {
+      font-size: 9.5cqi;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  }
+</style>
