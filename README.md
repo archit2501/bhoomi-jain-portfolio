@@ -7,7 +7,7 @@ already knows by heart. Not affiliated with Instagram or Meta.
 - **Reels:** short vertical videos of her projects and figures.
 - **Home:** her work as a dev log, with a lens switch: Frontend, Backend, AI.
 - **Explore and Search:** one mosaic of everything; search that forgives typos.
-- **Messages:** write to her (she's told by Telegram or email and replies from a signed link), or ask her AI, which answers only from her résumé and posts.
+- **Messages:** write to her about hiring, collaborating or just hello. She's told by Telegram or email and replies from a signed link.
 - **Live:** real likes, comments she approves, story polls, "Active now".
 - **Insights:** her GitHub, this site's Lighthouse scores and real totals, each with its source and time.
 
@@ -25,7 +25,6 @@ npm run build
 npm run budget          # ≤ 40 KB of script per page, gzipped
 npm run lighthouse      # Lighthouse CI at the launch bar
 npm run content:review  # regenerate Bhoomi's sign-off sheet after a content change
-npm run eval:ai         # the AI's 30-question eval (paid API; needs AI_EVAL=1 and a key)
 ```
 
 Content lives in `src/content/`: her profile, résumé, posts (Markdown), highlights, reels,
