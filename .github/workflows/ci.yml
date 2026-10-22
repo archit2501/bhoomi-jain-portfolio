@@ -36,17 +36,23 @@ jobs:
         with: { node-version: '24', cache: 'npm' }
       - run: npm ci
       - run: npm test -- --coverage
-      # The runner's Azure apt mirror has hung for up to an hour at a time (22 Oct 2026), so the
-      # browsers' system packages come from the main Ubuntu archive, with retries.
+      # The runner's Azure apt mirror has hung for up to an hour at a time (22 Oct 2026). apt reads
+      # its mirror from apt-mirrors.txt, so that points at the main Ubuntu archive; apt waits for
+      # its lock; and a stalled try is cleared (a killed installer leaves apt-get holding the lock)
+      # before the next.
       - name: Install browsers
         timeout-minutes: 20
         run: |
+          [ -f /etc/apt/apt-mirrors.txt ] && echo 'http://archive.ubuntu.com/ubuntu' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
           for f in /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list; do
             [ -f "$f" ] && sudo sed -i 's#http://azure.archive.ubuntu.com/ubuntu#http://archive.ubuntu.com/ubuntu#g' "$f"
           done
+          echo 'DPkg::Lock::Timeout "120";' | sudo tee /etc/apt/apt.conf.d/99lock-timeout >/dev/null
           for attempt in 1 2 3; do
             timeout 360 npx playwright install --with-deps chromium webkit && exit 0
             echo "::warning::Browser install attempt $attempt failed; retrying"
+            sudo pkill -9 -f 'apt-get|/usr/bin/dpkg' || true
+            sudo dpkg --configure -a || true
           done
           exit 1
       - run: npm run test:e2e

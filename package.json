@@ -14,6 +14,7 @@
     "test:e2e": "playwright test",
     "lighthouse": "lhci autorun",
     "budget": "node scripts/js-budget.mjs dist/client 40",
+    "smoke:prod": "node scripts/smoke.mjs",
     "content:review": "node scripts/content-review.mjs > docs/content-review.md && prettier --write docs/content-review.md",
     "deploy": "astro build && wrangler deploy",
     "prebuild": "node scripts/placeholders.mjs",

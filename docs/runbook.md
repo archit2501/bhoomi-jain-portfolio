@@ -52,6 +52,21 @@ Every write goes through one pipeline (`src/lib/server/guard.ts`), in this order
 
 Until step 3 is done, the Deploy workflow's jobs are skipped and nothing is published. Until step 4 is done, the site works but refuses every like, comment and message. Until step 5 is done, comments are saved but nobody is told, so none get approved.
 
+## Go live on her domain
+
+Once the domain is on Cloudflare (it's added as a zone in the same account):
+
+1. In `wrangler.jsonc`, add the domain as a custom domain of the Worker:
+
+   ```jsonc
+   "routes": [{ "pattern": "<her domain>", "custom_domain": true }],
+   ```
+
+2. Set the repository variable `SITE_URL` to `https://<her domain>`. Canonical links, share cards, the sitemap and the QR card all take it from there.
+3. Add the domain to the Turnstile widget's hostnames.
+4. Merge. The deploy migrates the database, deploys, and runs the smoke test (`npm run smoke:prod`). It fails, and says to roll back, if a page, a file, the API, the database or a switch isn't right.
+5. Work through `docs/launch-checklist.md`: her sign-off, the AI eval, and the kill-switch and rollback drills on production.
+
 ## Previews
 
 Each pull request uploads a version of a separate Worker, `bhoomi-jain-portfolio-preview` (the `preview` environment in `wrangler.jsonc`), under the alias `pr-<number>`. The workflow migrates the preview database, comments the preview URL on the pull request and smoke-tests it. Production keeps serving the current deployment.

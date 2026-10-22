@@ -154,12 +154,8 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler d1 migrations apply DB --remote -c wrangler.jsonc
 
+      # Pages, files, the API, the database, and every off switch on (scripts/smoke.mjs).
       - name: Smoke-test the live site
         env:
           BASE: ${{ vars.SITE_URL }}
-        run: |
-          for path in / /api/health /reels/ /p/smartblog-ai/ /stories/projects/ /sitemap.xml /og/default.png; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' --retry 6 --retry-delay 10 --retry-all-errors "$BASE$path") || true
-            echo "$path -> $code"
-            [ "$code" = 200 ] || { echo "::error::$BASE$path returned $code. Roll back with: npx wrangler rollback"; exit 1; }
-          done
+        run: npm run smoke:prod
