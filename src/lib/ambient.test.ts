@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { ambientStyle, dominantColors } from './ambient';
+import { ambientStyle, dominantColors, FIELD_AMBIENT } from './ambient';
+import { FIELDS } from './fields';
 import { ambientOf } from './ambient-image';
 
 const image = (...runs: [number, [number, number, number]][]) =>
@@ -38,5 +40,18 @@ describe('ambientOf', () => {
     expect(colours).toHaveLength(2);
     expect(colours![0]).toMatch(/^#[0-9a-f]{6}$/);
     expect(await ambientOf('/reels/nope.webp')).toBeNull();
+  });
+});
+
+describe('FIELD_AMBIENT', () => {
+  const tokens = readFileSync('src/styles/tokens.css', 'utf8');
+  const token = (field: string) =>
+    new RegExp(`--field-${field}:\\s*(#[0-9a-f]{6})`, 'i').exec(tokens)?.[1];
+
+  it('glows in each field’s own colour (ink, lifted off the black behind it)', () => {
+    for (const field of FIELDS) {
+      expect(FIELD_AMBIENT[field]).toHaveLength(2);
+      if (field !== 'ink') expect([field, FIELD_AMBIENT[field][0]]).toEqual([field, token(field)]);
+    }
   });
 });

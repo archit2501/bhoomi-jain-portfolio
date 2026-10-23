@@ -7,8 +7,10 @@ import { frameDuration } from '../../lib/story/controller';
 import Avatar from '../Avatar.astro';
 import Sticker from './Sticker.astro';
 import Ambient from '../Ambient.astro';
-import { TONE_AMBIENT } from '../../lib/ambient';
+import Cover from '../covers/Cover.astro';
+import { FIELD_AMBIENT } from '../../lib/ambient';
 import { ambientOf } from '../../lib/ambient-image';
+import { storyArt } from '../../lib/story/art';
 
 interface Props {
   highlights: { id: string; data: Highlight }[];
@@ -23,14 +25,18 @@ const initials = profile.displayName
   .map((part) => part[0])
   .join('')
   .slice(0, 2);
-// Each frame's glow on desktop: its photo's two dominant colours, or its tile's (tone).
+// Every frame as printed (task 6.4.2): its field, its layout and the ground under the viewer's bar.
+const arts = highlights.map((highlight, h) => storyArt(highlight, h));
+// A glyph cover's slice of her ring, as the profile row shows it (only the row's highlights).
+const row = highlights.filter((h) => h.data.inRow !== false);
+// Each frame's glow on desktop: its photo's two dominant colours, or its field's.
 const ambients = await Promise.all(
-  highlights.map(({ data }) =>
+  highlights.map(({ data }, h) =>
     Promise.all(
       data.frames.map(async (frame, i) =>
         (
           (frame.type === 'image' ? await ambientOf(frame.src, 'media') : null) ??
-          TONE_AMBIENT[((i % 3) + 1) as 1 | 2 | 3]
+          FIELD_AMBIENT[arts[h][i].field ?? 'ink']
         ).join(' '),
       ),
     ),
@@ -93,11 +99,25 @@ const ambients = await Promise.all(
     data-story-group={id}
     data-label={data.label}
     data-cover={data.cover.type === 'text' ? data.cover.text : ''}
+    data-field={arts[h][0].field ?? 'ink'}
     data-title={pageTitle(`${data.label} highlights`)}
   >
+    {data.cover.type === 'icon' && (
+      <span
+        class="peek-glyph"
+        style={`--i: ${Math.max(
+          0,
+          row.findIndex((r) => r.id === id),
+        )}; --n: ${row.length}`}
+      >
+        <Icon name={data.cover.icon} size={26} />
+      </span>
+    )}
     {data.frames.map((frame, i) => (
       <div
-        class={`frame tone-${(i % 3) + 1}`}
+        class="frame"
+        data-field={arts[h][i].field}
+        data-ground={arts[h][i].ground}
         data-ambient={ambients[h][i]}
         role="group"
         aria-roledescription="story"
@@ -119,10 +139,7 @@ const ambients = await Promise.all(
             {frame.caption && <p class="frame-caption">{frame.caption}</p>}
           </>
         ) : (
-          <div class="text-frame">
-            {frame.heading && <p class="frame-heading">{frame.heading}</p>}
-            <p class="frame-body">{frame.body}</p>
-          </div>
+          arts[h][i].cover && <Cover cover={arts[h][i].cover} mark={arts[h][i].mark} story />
         )}
         {frame.stickers.map((sticker) => (
           <Sticker sticker={sticker} />
@@ -212,7 +229,7 @@ const ambients = await Promise.all(
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: linear-gradient(160deg, var(--story-start), var(--story-end));
+    background: var(--field-ink);
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -233,49 +250,10 @@ const ambients = await Promise.all(
     display: flex;
   }
 
-  /* Text stories rotate through the same three colour fields as the grid. */
-  .frames :global(.frame.tone-1) {
-    background: linear-gradient(160deg, var(--story-start), var(--story-end));
-  }
-
-  .frames :global(.frame.tone-2) {
-    background: linear-gradient(160deg, var(--tile-slate), var(--story-end));
-  }
-
-  .frames :global(.frame.tone-3) {
-    background: var(--accent);
-  }
-
   .frames :global(.frame img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-  .frames :global(.text-frame) {
-    font-family: var(--font-display);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--space-3);
-    width: 100%;
-    padding: 72px var(--space-6) var(--space-11);
-  }
-
-  .frames :global(.frame-heading) {
-    margin: 0;
-    font-size: clamp(26px, 8vw, 36px);
-    line-height: 1.15;
-    font-weight: var(--weight-bold);
-    letter-spacing: -0.02em;
-    overflow-wrap: anywhere;
-  }
-
-  .frames :global(.frame-body) {
-    margin: 0;
-    font-size: var(--fs-20);
-    line-height: 1.35;
-    letter-spacing: 0;
   }
 
   .frames :global(.frame-caption) {
@@ -285,6 +263,27 @@ const ambients = await Promise.all(
     padding: var(--space-2) var(--space-3);
     background: rgb(0 0 0 / 55%);
     border-radius: var(--radius-button);
+  }
+
+  /* On a light field (paper, lime, the ring colours) the bar turns to ink and needs no scrim. */
+  .card[data-ground='light'] {
+    --chrome: var(--field-paper-fg);
+  }
+
+  .card[data-ground='light'] .scrim {
+    display: none;
+  }
+
+  .card[data-ground='light'] .progress :global(.bar) {
+    background: rgb(12 16 20 / 22%);
+  }
+
+  .card[data-ground='light'] .progress :global(.fill) {
+    background: var(--chrome);
+  }
+
+  .story-head {
+    color: var(--chrome, #ffffff);
   }
 
   .scrim {
@@ -350,7 +349,7 @@ const ambients = await Promise.all(
   .icon-btn {
     display: flex;
     padding: var(--space-2);
-    color: #ffffff;
+    color: var(--chrome, #ffffff);
     background: none;
     border: 0;
     border-radius: var(--radius-button);
@@ -361,6 +360,10 @@ const ambients = await Promise.all(
   .frame-nav:focus-visible,
   .peek:focus-visible {
     outline-color: #ffffff;
+  }
+
+  .card[data-ground='light'] .icon-btn:focus-visible {
+    outline-color: var(--chrome);
   }
 
   .pause :global(.icon-play),
@@ -520,8 +523,7 @@ const ambients = await Promise.all(
       height: 40%;
       aspect-ratio: 9 / 16;
       padding: var(--space-3);
-      color: #ffffff;
-      background: linear-gradient(160deg, var(--story-start), var(--story-end));
+      overflow: hidden;
       border: 0;
       border-radius: 8px;
       filter: brightness(0.55);
@@ -549,10 +551,30 @@ const ambients = await Promise.all(
       justify-content: center;
       width: 56px;
       height: 56px;
+      overflow: hidden;
       font-size: var(--fs-20);
       font-weight: var(--weight-semibold);
-      background: rgb(255 255 255 / 15%);
+      background: color-mix(in srgb, currentColor 14%, transparent);
       border-radius: 50%;
+    }
+
+    /* The neighbour's glyph on its slice of her ring, as in the highlight row (task 6.2.3). */
+    .peek-cover :global(.peek-glyph) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      color: var(--field-lime-fg);
+      background-image: linear-gradient(
+        90deg,
+        var(--field-lime),
+        var(--field-emerald),
+        var(--field-cyan),
+        var(--field-sky)
+      );
+      background-size: calc(var(--n) * 100%) 100%;
+      background-position: calc(var(--i) / max(var(--n) - 1, 1) * 100%) 0;
     }
 
     .peek-label {
