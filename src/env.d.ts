@@ -6,6 +6,9 @@
  * which share this TypeScript project. Keep this file in step with wrangler.jsonc.
  */
 
+/** True in builds for the preview Worker (CLOUDFLARE_ENV=preview); set in astro.config.mjs. */
+declare const __PREVIEW_BUILD__: boolean;
+
 interface KVNamespace {
   get(key: string): Promise<string | null>;
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;

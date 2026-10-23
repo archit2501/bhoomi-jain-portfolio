@@ -6,6 +6,7 @@
 import { handle } from '@astrojs/cloudflare/handler';
 import profiles from './content/profile.json';
 import { githubLogin } from './lib/github';
+import { withSecurityHeaders } from './lib/security-headers';
 import { PROFILE_ID } from './lib/site';
 import { syncGithub } from './workers/github-sync';
 
@@ -14,7 +15,11 @@ export { Presence } from './workers/presence';
 const profile = (profiles as Record<string, { links?: { github?: string } }>)[PROFILE_ID];
 
 export default {
-  fetch: handle,
+  // Static files get their headers from dist/client/_headers; what the Worker renders gets them here.
+  async fetch(...args: Parameters<typeof handle>) {
+    const response = (await handle(...args)) as unknown as Response;
+    return withSecurityHeaders(response, { preview: __PREVIEW_BUILD__ });
+  },
   scheduled(
     _controller: unknown,
     env: Cloudflare.Env,

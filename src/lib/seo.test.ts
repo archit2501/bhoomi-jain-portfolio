@@ -72,4 +72,10 @@ describe('sitemapXml and robotsTxt', () => {
       'User-agent: *\nAllow: /\n\nSitemap: https://example.com/sitemap.xml\n',
     );
   });
+
+  it('turns every crawler away from a preview build, with no sitemap', () => {
+    expect(robotsTxt('https://example.com/sitemap.xml', { preview: true })).toBe(
+      'User-agent: *\nDisallow: /\n',
+    );
+  });
 });
