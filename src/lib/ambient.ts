@@ -3,6 +3,7 @@
  * colours, worked out at build time from its image (or its tile's colours), so the browser only
  * paints a blurred wash of them. O(p) for p sampled pixels.
  */
+import type { Field } from './fields';
 
 export type Ambient = [string, string];
 
@@ -53,6 +54,21 @@ export const TONE_AMBIENT: Record<1 | 2 | 3, Ambient> = {
   1: ['#075985', '#0c1014'],
   2: ['#2b3036', '#0c1014'],
   3: ['#0369a1', '#075985'],
+};
+
+/**
+ * A printed field's glow (task 6.4.2): the field itself (tokens.css, `--field-<name>`) and a
+ * darker partner, so a story on paper glows warm and one on lime glows green.
+ */
+export const FIELD_AMBIENT: Record<Field, Ambient> = {
+  paper: ['#f4f1ea', '#3a4049'],
+  ink: ['#2b3036', '#0c1014'],
+  deep: ['#0b1a26', '#0c1014'],
+  ocean: ['#0369a1', '#0b1a26'],
+  lime: ['#a3e635', '#1f2730'],
+  emerald: ['#34d399', '#1f2730'],
+  cyan: ['#22d3ee', '#1f2730'],
+  sky: ['#38bdf8', '#1f2730'],
 };
 
 /** The CSS custom properties an element carries for the glow. */

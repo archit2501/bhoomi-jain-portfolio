@@ -1,16 +1,23 @@
 ---
+import Cover from '../../components/covers/Cover.astro';
 import Icon from '../../components/Icon.astro';
 import Media from '../../components/Media.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { loadSiteContent } from '../../lib/content';
+import { storyArt } from '../../lib/story/art';
 
 export async function getStaticPaths() {
   const { highlights } = await loadSiteContent();
-  return highlights.map((highlight) => ({ params: { id: highlight.id }, props: { highlight } }));
+  return highlights.map((highlight, index) => ({
+    params: { id: highlight.id },
+    props: { highlight, index },
+  }));
 }
 
-const { highlight } = Astro.props;
+const { highlight, index } = Astro.props;
 const { label, frames } = highlight.data;
+// Each story printed as in the viewer (task 6.4.2): same field, same layout, same page number.
+const arts = storyArt(highlight, index);
 ---
 
 <BaseLayout title={`${label} highlights`} current="profile" image={`/og/s/${highlight.id}.png`}>
@@ -22,7 +29,7 @@ const { label, frames } = highlight.data;
     <h1>{label}</h1>
     <ol role="list">
       {frames.map((frame, i) => (
-        <li class={`frame tone-${(i % 3) + 1}`}>
+        <li class:list={['frame', { printed: arts[i].cover }]} data-field={arts[i].field}>
           {frame.type === 'image' ? (
             <figure>
               <Media
@@ -36,10 +43,7 @@ const { label, frames } = highlight.data;
               {frame.caption && <figcaption>{frame.caption}</figcaption>}
             </figure>
           ) : (
-            <>
-              {frame.heading && <h2>{frame.heading}</h2>}
-              <p>{frame.body}</p>
-            </>
+            arts[i].cover && <Cover cover={arts[i].cover} mark={arts[i].mark} story />
           )}
         </li>
       ))}
@@ -77,35 +81,16 @@ const { label, frames } = highlight.data;
   }
 
   .frame {
-    padding: var(--space-6) var(--space-5);
-    color: var(--on-story);
+    overflow: hidden;
     border-radius: var(--radius-card);
   }
 
-  .tone-1 {
-    background: linear-gradient(160deg, var(--story-start), var(--story-end));
+  /* A printed story keeps the post slides' shape, so its cover lays out as theirs do. */
+  .frame.printed {
+    --story-top: 7cqi;
+    aspect-ratio: 4 / 5;
   }
 
-  .tone-2 {
-    background: linear-gradient(160deg, var(--tile-slate), var(--story-end));
-  }
-
-  .tone-3 {
-    background: var(--accent);
-  }
-
-  h2,
-  p {
-    font-family: var(--font-display);
-  }
-
-  h2 {
-    margin: 0 0 var(--space-2);
-    font-size: var(--fs-24);
-    line-height: var(--lh-24);
-  }
-
-  p,
   figure {
     margin: 0;
   }

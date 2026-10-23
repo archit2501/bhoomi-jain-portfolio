@@ -15,9 +15,12 @@ interface Props {
   mark?: Mark;
   /** Room to keep clear at the top right of the running head, for the tile's badges (px). */
   reserve?: number;
+  /** A story frame (task 6.4.2): 9:16, under the viewer's bar, the words straight after the
+   * title, and the lower third left to the frame's stickers. */
+  story?: boolean;
 }
 
-const { cover, mark, reserve = 0 } = Astro.props;
+const { cover, mark, reserve = 0, story = false } = Astro.props;
 const longest = (text: string) => Math.max(...text.split(/\s+/).map((w) => w.length));
 const picto: Picto | undefined = cover.layout === 'stat' ? cover.picto : undefined;
 const dots =
@@ -35,14 +38,16 @@ const dots =
   class="cover"
   data-layout={cover.layout}
   data-badged={reserve ? '' : undefined}
+  data-story={story ? '' : undefined}
   style={reserve ? `--reserve: ${reserve}px` : undefined}
 >
   <div class="c">
     <p class="run-head">
       <span>{cover.head[0]}</span>
+      {/* Spaces between the parts keep the text one phrase ("1st of 160 teams") for search,
+          copy and tests; flex and grid boxes don't render them. */}{' '}
       {cover.head[1] && <span>{cover.head[1]}</span>}
-    </p>
-
+    </p>{' '}
     {cover.layout === 'project' && (
       <>
         <p class="cover-title" style={`--longest: ${longest(cover.title)}`}>
@@ -61,12 +66,11 @@ const dots =
         {cover.stack.length > 0 && <p class="stack">{cover.stack.join(' · ')}</p>}
       </>
     )}
-
     {cover.layout === 'stat' && (
       <>
         <p class="hero" style={`--len: ${Math.max(cover.hero.length, 2)}`}>
           <span data-mark={mark}>{cover.hero}</span>
-        </p>
+        </p>{' '}
         {picto?.type === 'dots' && dots && (
           <div
             class="dot-field"
@@ -96,17 +100,18 @@ const dots =
         )}
         <div class="foot">
           {cover.who && <p class="who">{cover.who}</p>}
-          {cover.label && <p class="label">{cover.label}</p>}
+          {cover.label && <p class="label">{cover.label}</p>}{' '}
           {cover.detail && <p class="detail">{cover.detail}</p>}
         </div>
       </>
     )}
-
     {cover.layout === 'title' && (
       <>
-        <p class="cover-title big" style={`--longest: ${longest(cover.title)}`}>
-          <span data-mark={mark}>{cover.title}</span>
-        </p>
+        {cover.title && (
+          <p class="cover-title big" style={`--longest: ${longest(cover.title)}`}>
+            <span data-mark={mark}>{cover.title}</span>
+          </p>
+        )}{' '}
         <div class="foot">
           {cover.label && <p class="label">{cover.label}</p>}
           {cover.timeline && (
@@ -449,6 +454,47 @@ const dots =
     justify-content: space-between;
     color: var(--f-meta);
     font: 500 clamp(9px, 3.5cqi, 13px) / 1.2 var(--font-mono);
+  }
+
+  /* A story frame (task 6.4.2): a tall page under the viewer's bar (progress, name, buttons).
+     The frame's words follow the title instead of sitting at the foot, in a size made for
+     reading, and the pictograms stay small enough to leave the lower third to the stickers. */
+  [data-story] .c {
+    /* Room for the viewer's bar; a page that lists the stories (no bar) sets --story-top. */
+    padding: var(--story-top, calc(64px + env(safe-area-inset-top, 0px))) 8cqi 8cqi;
+  }
+
+  [data-story] .run-head {
+    font-size: clamp(10px, 3.2cqi, 13px);
+  }
+
+  [data-story] .cover-title.big {
+    margin-top: 7cqi;
+    font-size: min(24cqi, calc(140cqi / var(--longest)));
+  }
+
+  [data-story] .hero {
+    margin-top: 5cqi;
+    font-size: min(27cqi, calc(110cqi / var(--len)));
+  }
+
+  [data-story] .foot {
+    gap: 3cqi;
+    margin-top: 6cqi;
+  }
+
+  [data-story][data-layout='title'] .label,
+  [data-story] .detail {
+    max-width: 34ch;
+    color: var(--f-fg);
+    font: 600 clamp(16px, 5.2cqi, 21px) / 1.32 var(--font-display);
+    letter-spacing: -0.005em;
+    text-wrap: pretty;
+  }
+
+  [data-story] .dot-field {
+    width: 50%;
+    margin-top: 4cqi;
   }
 
   /* Small tiles (a phone's 3-column grid): the big type, one short label and the shapes. */

@@ -186,6 +186,8 @@ export function initStoryViewer(): void {
     const content = template.content.cloneNode(true) as DocumentFragment;
     // Nothing fetches until loadAhead says so.
     content.querySelectorAll('img, source').forEach(park);
+    // The glyph is only for the previews of this highlight beside its neighbours.
+    content.querySelector('.peek-glyph')?.remove();
     framesEl.replaceChildren(content);
     progressEl.replaceChildren(
       ...Array.from({ length: shape[group] }, () => {
@@ -213,7 +215,12 @@ export function initStoryViewer(): void {
         'aria-label',
         `${side === 'prev' ? 'Previous' : 'Next'} highlight: ${label}`,
       );
-      peek.querySelector('.peek-cover')!.textContent = neighbour.dataset.cover ?? '';
+      // The preview is printed on the field its first story opens on, with its glyph or initials.
+      peek.dataset.field = neighbour.dataset.field ?? 'ink';
+      const glyph = neighbour.content.querySelector('.peek-glyph');
+      const cover = peek.querySelector('.peek-cover')!;
+      if (glyph) cover.replaceChildren(glyph.cloneNode(true));
+      else cover.textContent = neighbour.dataset.cover ?? '';
       peek.querySelector('.peek-label')!.textContent = label;
     }
     renderedGroup = group;
@@ -229,6 +236,8 @@ export function initStoryViewer(): void {
     if (state.group !== renderedGroup) renderGroup(state.group);
     const frames = framesEl.querySelectorAll<HTMLElement>('.frame');
     frames.forEach((frame, i) => frame.classList.toggle('active', i === state!.frame));
+    // The bar over the story turns to ink on a light field (task 6.4.2).
+    card.dataset.ground = frames[state.frame]?.dataset.ground ?? 'dark';
     loadAhead();
     viewed.add(ids[state.group]);
     // A focused sticker that just left the screen hands focus to the pause button.
