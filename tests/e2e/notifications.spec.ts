@@ -13,7 +13,10 @@ const events = Object.entries(
 ).map(([id, data]) => ({ id, data }));
 // Newest first, as the page lists them.
 const career = newestFirst(careerActivity(events, posts));
-const hoursAgo = (h: number) => new Date(Date.now() - h * 3600_000).toISOString();
+// The page's clock is pinned to noon today, so "1h ago" is always today and "3 days ago" this week:
+// with the real clock, the run just after midnight (CI runs on UTC) found yesterday's activity.
+const NOW = new Date(new Date().setHours(12, 0, 0, 0)).getTime();
+const hoursAgo = (h: number) => new Date(NOW - h * 3600_000).toISOString();
 const smartblog = posts.find((p) => p.id === 'smartblog-ai')!;
 
 function snapshot(): GithubSnapshot {
@@ -48,6 +51,7 @@ function snapshot(): GithubSnapshot {
 }
 
 async function withActivity(page: Page) {
+  await page.clock.setFixedTime(NOW);
   await page.route('**/api/github', (route) =>
     route.fulfill({ json: { ok: true, snapshot: snapshot() } }),
   );
@@ -125,7 +129,7 @@ test('"New" is what came since this browser last looked', async ({ page }) => {
         sessionStorage.setItem('seeded', '1');
       }
     },
-    Date.now() - 1.5 * 3600_000,
+    NOW - 1.5 * 3600_000,
   );
   await page.goto('/notifications/');
   await expect(group(page, 'New').locator('.text')).toHaveText([
