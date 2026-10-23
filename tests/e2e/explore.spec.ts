@@ -45,6 +45,24 @@ test('reels stand two rows tall, on the right, then the left', async ({ page }) 
   expect(Math.round(second.y)).toBeGreaterThanOrEqual(Math.round(first.y + first.height));
 });
 
+// A phone's tall tile is ~130 px wide: at the 1.75x density Lighthouse emulates, its poster is
+// the 270 px copy, not the 720 px one, so six posters don't hold up the page's largest paint
+// (task 6.3.6). Denser screens rightly take the full poster.
+test('on a 1.75x phone, reel posters load their small copies', async ({ browser, baseURL }) => {
+  test.skip(!reels.some((r) => r.data.poster), 'no reel has a poster');
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 1.75,
+    serviceWorkers: 'block',
+  });
+  const page = await context.newPage();
+  await page.goto(`${baseURL}/explore/`);
+  const poster = grid(page).locator('.reel img.poster').first();
+  await expect(poster).toHaveJSProperty('complete', true);
+  expect(await poster.evaluate((img: HTMLImageElement) => img.currentSrc)).toMatch(/-sm\.webp$/);
+  await context.close();
+});
+
 test('a story tile opens that highlight', async ({ page }) => {
   await page.goto('/explore/');
   await grid(page).locator(`a[href="/stories/${row[0].id}/"]`).click();

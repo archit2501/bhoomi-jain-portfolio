@@ -1,6 +1,6 @@
 name: Deploy
 
-# Cloudflare Workers. Every pull request gets its own preview URL; production deploys after CI
+# Cloudflare Workers. A pull request deploys the preview Worker; production deploys after CI
 # passes on main. Both stay off until the Cloudflare account is connected: set the repository
 # variable DEPLOY_ENABLED to "true", the variable SITE_URL, and the secrets CLOUDFLARE_API_TOKEN
 # and CLOUDFLARE_ACCOUNT_ID (docs/runbook.md, "Connect Cloudflare"). Production builds refuse any
@@ -22,8 +22,9 @@ on:
 permissions:
   contents: read
 
+# Every pull request shares the one preview Worker: a newer push cancels an older preview.
 concurrency:
-  group: deploy-${{ github.event.pull_request.number || 'production' }}
+  group: deploy-${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -39,7 +40,7 @@ jobs:
       pull-requests: write
     environment:
       name: preview
-      url: ${{ steps.upload.outputs.url }}
+      url: ${{ steps.preview.outputs.url }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -50,8 +51,11 @@ jobs:
         env:
           CLOUDFLARE_ENV: preview
 
-      - name: Upload a preview version (production is not touched)
-        id: upload
+      # Cloudflare gives no per-version preview links to a Worker with a Durable Object (Presence),
+      # so a pull request deploys the separate preview Worker itself: one preview at a time, the
+      # latest push wins. The first deploy also creates its own database, KV and rate limiters.
+      - name: Deploy the preview Worker (production is not touched)
+        id: preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -59,9 +63,9 @@ jobs:
           PR: ${{ github.event.pull_request.number }}
           SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          npx wrangler versions upload --preview-alias "pr-$PR" --message "PR #$PR at $SHA" | tee "$RUNNER_TEMP/upload.log"
-          url=$(jq -r 'select(.type == "version-upload") | .preview_alias_url // .preview_url // empty' "$WRANGLER_OUTPUT_FILE_PATH" | tail -1)
-          [ -n "$url" ] || url=$(grep -oE 'https://pr-[0-9]+-[a-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/upload.log" | tail -1)
+          npx wrangler deploy --message "PR #$PR at $SHA" 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+          url=$(jq -r 'select(.type == "deploy") | .targets[]? | select(startswith("https://"))' "$WRANGLER_OUTPUT_FILE_PATH" | head -1)
+          [ -n "$url" ] || url=$(grep -oE 'https://[a-z0-9-]+\.[a-z0-9-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | head -1)
           [ -n "$url" ] || { echo "::error::No preview URL in the wrangler output"; exit 1; }
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
@@ -73,7 +77,7 @@ jobs:
 
       - name: Smoke-test the preview
         env:
-          BASE: ${{ steps.upload.outputs.url }}
+          BASE: ${{ steps.preview.outputs.url }}
         run: |
           for path in / /api/health /p/smartblog-ai/ /stories/projects/ /og/default.png; do
             code=$(curl -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 5 --retry-all-errors "$BASE$path") || true
@@ -86,7 +90,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           SHA: ${{ github.event.pull_request.head.sha }}
-          URL: ${{ steps.upload.outputs.url }}
+          URL: ${{ steps.preview.outputs.url }}
         run: |
           gh pr comment "$PR" --edit-last --create-if-none \
             --body "Preview of \`${SHA:0:7}\`: $URL (production is unchanged)."

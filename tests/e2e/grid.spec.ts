@@ -41,6 +41,20 @@ for (const [width, gap] of [
   });
 }
 
+// A phone's tiles show no mono text, so the profile shouldn't wait on the mono face: an element
+// that only sets the font (bars without their names) is enough to make the browser fetch it.
+test('390px: the profile fetches only the display font', async ({ page }) => {
+  const fonts: string[] = [];
+  page.on('request', (r) => {
+    if (r.resourceType() === 'font') fonts.push(new URL(r.url()).pathname);
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.evaluate(() => document.fonts.ready);
+  expect(fonts.length).toBeGreaterThan(0);
+  expect(fonts.filter((f) => !f.includes('plus-jakarta-sans'))).toEqual([]);
+});
+
 test('tabs follow the ARIA tabs pattern and switch in place', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
